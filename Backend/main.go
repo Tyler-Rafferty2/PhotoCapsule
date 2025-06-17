@@ -23,6 +23,7 @@ type Upload struct {
 }
 
 type Image struct {
+	ID       uint   `json:"id"`
 	Filename string `json:"filename"`
 	Path     string `json:"path"`
 }
@@ -81,12 +82,13 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Log upload to DB using GORM
 	upload := Upload{Filename: handler.Filename}
+	log.Println(upload);
 	if err := db.Create(&upload).Error; err != nil {
 		http.Error(w, "Failed to log upload in DB", http.StatusInternalServerError)
 		log.Println("DB insert error:", err)
 		return
 	}
-
+	log.Println("✅ Successfully inserted:", upload)
 	w.Header().Set("Content-Type", "application/json")
 	fmt.Fprintf(w, `{"message":"Upload successful","filename":"%s"}`, handler.Filename)
 }
@@ -99,6 +101,9 @@ func connectToDB() {
 		getEnv("DB_NAME", "timecapsule"),
 		getEnv("DB_PORT", "5432"),
 	)
+
+
+	fmt.Println("📌 DSN:", dsn) // <--- log it here!
 
 	var err error
 	db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
