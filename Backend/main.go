@@ -7,27 +7,34 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"time"
+
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
-func uploadHandler(w http.ResponseWriter, r *http.Request) {
-	// Only allow POST
+var db *gorm.DB
 
+type Upload struct {
+	ID         uint      `gorm:"primaryKey"`
+	Filename   string    `gorm:"not null"`
+	UploadTime time.Time `gorm:"autoCreateTime"`
+}
+
+func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 
-	
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
-	// Parse the multipart form (10MB max)
 	err := r.ParseMultipartForm(10 << 20)
 	if err != nil {
 		http.Error(w, "Error parsing form", http.StatusBadRequest)
 		return
 	}
 
-	// Get file from form field "image"
 	file, handler, err := r.FormFile("image")
 	if err != nil {
 		http.Error(w, "Error retrieving the file", http.StatusBadRequest)
@@ -35,7 +42,6 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 
-	// Create destination file
 	dstPath := filepath.Join("uploads", handler.Filename)
 	dst, err := os.Create(dstPath)
 	if err != nil {
@@ -44,20 +50,58 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer dst.Close()
 
-	// Copy uploaded content to destination
 	_, err = io.Copy(dst, file)
 	if err != nil {
 		http.Error(w, "Failed to save file", http.StatusInternalServerError)
 		return
 	}
 
-	// Respond
+	// Log upload to DB using GORM
+	upload := Upload{Filename: handler.Filename}
+	if err := db.Create(&upload).Error; err != nil {
+		http.Error(w, "Failed to log upload in DB", http.StatusInternalServerError)
+		log.Println("DB insert error:", err)
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	fmt.Fprintf(w, `{"message":"Upload successful","filename":"%s"}`, handler.Filename)
 }
 
+func connectToDB() {
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
+		getEnv("DB_HOST", "localhost"),
+		getEnv("DB_USER", "postgres"),
+		getEnv("DB_PASSWORD", "password"),
+		getEnv("DB_NAME", "timecapsule"),
+		getEnv("DB_PORT", "5432"),
+	)
+
+	var err error
+	db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	if err != nil {
+		log.Fatal("Failed to connect to DB:", err)
+	}
+
+	// Automatically create the table if it doesn't exist
+	if err := db.AutoMigrate(&Upload{}); err != nil {
+		log.Fatal("Auto-migration failed:", err)
+	}
+
+	fmt.Println("✅ Connected to PostgreSQL database with GORM!")
+}
+
+func getEnv(key, fallback string) string {
+	val := os.Getenv(key)
+	if val == "" {
+		return fallback
+	}
+	return val
+}
+
 func main() {
-	// Make sure upload directory exists
+	connectToDB()
+
 	if err := os.MkdirAll("uploads", os.ModePerm); err != nil {
 		log.Fatal(err)
 	}

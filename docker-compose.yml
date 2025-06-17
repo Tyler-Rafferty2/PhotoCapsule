@@ -19,9 +19,15 @@ services:
     volumes:
       - ./Backend:/app
     environment:
-      - DATABASE_URL=postgres://postgres:password@db:5432/timecapsule
+      - DATABASE_URL=postgres://postgres:password@photovault-db:5432/timecapsule
+      - DB_HOST=photovault-db
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=password
+      - DB_NAME=timecapsule
     depends_on:
       - db
+
 
   db:
     image: postgres:15
