@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"time"
+	"encoding/json"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -19,6 +20,28 @@ type Upload struct {
 	ID         uint      `gorm:"primaryKey"`
 	Filename   string    `gorm:"not null"`
 	UploadTime time.Time `gorm:"autoCreateTime"`
+}
+
+type Image struct {
+	Filename string `json:"filename"`
+	Path     string `json:"path"`
+}
+
+func imagesHandler(w http.ResponseWriter, r *http.Request) {
+	// Only allow GET
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// Sample data (replace with real file data)
+	images := []Image{
+		{Filename: "cat.jpg", Path: "uploads/1.jpg"},
+	}
+
+	w.Header().Set("Access-Control-Allow-Origin", "*") // for frontend access
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(images)
 }
 
 func uploadHandler(w http.ResponseWriter, r *http.Request) {
@@ -107,6 +130,9 @@ func main() {
 	}
 
 	http.HandleFunc("/upload", uploadHandler)
+
+	http.HandleFunc("/images", imagesHandler)
+	http.Handle("/uploads/", http.StripPrefix("/uploads/", http.FileServer(http.Dir("uploads"))))
 
 	fmt.Println("🚀 Server running at http://localhost:8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))

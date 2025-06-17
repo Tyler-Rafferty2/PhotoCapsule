@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 
 export default function UploadPage() {
   const [file, setFile] = useState(null);
@@ -80,6 +81,8 @@ export default function UploadPage() {
       {status === 'error' && (
         <p className="text-red-600 text-sm text-center">❌ Upload failed</p>
       )}
+      <Link href="/view">View</Link>
     </div>
+    
   );
 }
