@@ -1,0 +1,22 @@
+┌────────────┐           ┌──────────────┐           ┌───────────────┐
+│   User     │           │    Vault     │           │     Photo     │
+├────────────┤           ├──────────────┤           ├───────────────┤
+│ id (PK)    │◄────────┐ │ id (PK)      │           │ id (PK)       │
+│ email      │         └─│ user_id (FK) │──────────▶│ vault_id (FK) │
+│ password   │           │ title        │           │ filename/url  │
+│ created_at │           │ description  │           │ caption       │
+└────────────┘           │ unlock_date  │           │ uploaded_at   │
+                         │ created_at   │           └───────────────┘
+                         └──────────────┘
+                                ▲
+                                │
+                                │
+                         ┌───────────────┐
+                         │ Vault Members │
+                         ├───────────────┤
+                         │ id (PK)       │
+                         │ vault_id (FK) │
+                         │ user_id (FK)  │
+                         │ role          │  ← 'owner', 'editor', 'viewer'
+                         │ added_at      │
+                         └───────────────┘

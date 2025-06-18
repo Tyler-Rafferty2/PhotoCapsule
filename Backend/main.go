@@ -12,6 +12,8 @@ import (
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 var db *gorm.DB
@@ -26,6 +28,18 @@ type Image struct {
 	ID       uint   `json:"id"`
 	Filename string `json:"filename"`
 	Path     string `json:"path"`
+}
+
+type User struct {
+	ID           uint      `gorm:"primaryKey"`
+	Email        string    `gorm:"unique;not null"`
+	PasswordHash string    `gorm:"not null"`
+	CreatedAt    time.Time `gorm:"autoCreateTime"`
+}
+
+type SignupRequest struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }
 
 func imagesHandler(w http.ResponseWriter, r *http.Request) {
@@ -93,6 +107,63 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, `{"message":"Upload successful","filename":"%s"}`, handler.Filename)
 }
 
+func signupHandler(w http.ResponseWriter, r *http.Request) {
+	
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+
+	// Handle preflight request
+	if r.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+	
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req SignupRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	if req.Email == "" || req.Password == "" {
+		http.Error(w, "Missing email or password", http.StatusBadRequest)
+		return
+	}
+
+	// Check if user already exists
+	var existing User
+	if err := db.Where("email = ?", req.Email).First(&existing).Error; err == nil {
+		http.Error(w, "Email already registered", http.StatusConflict)
+		return
+	}
+
+	// Hash the password
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+	if err != nil {
+		http.Error(w, "Failed to hash password", http.StatusInternalServerError)
+		return
+	}
+
+	// Create the user
+	newUser := User{
+		Email:        req.Email,
+		PasswordHash: string(hashedPassword),
+	}
+
+	if err := db.Create(&newUser).Error; err != nil {
+		http.Error(w, "Failed to create user", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	w.Write([]byte(`{"message":"User created successfully"}`))
+}
+
 func connectToDB() {
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
 		getEnv("DB_HOST", "localhost"),
@@ -112,7 +183,7 @@ func connectToDB() {
 	}
 
 	// Automatically create the table if it doesn't exist
-	if err := db.AutoMigrate(&Upload{}); err != nil {
+	if err := db.AutoMigrate(&Upload{}, &User{}); err != nil {
 		log.Fatal("Auto-migration failed:", err)
 	}
 
@@ -138,6 +209,8 @@ func main() {
 
 	http.HandleFunc("/images", imagesHandler)
 	http.Handle("/uploads/", http.StripPrefix("/uploads/", http.FileServer(http.Dir("uploads"))))
+
+	http.HandleFunc("/signup", signupHandler)
 
 	fmt.Println("🚀 Server running at http://localhost:8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
