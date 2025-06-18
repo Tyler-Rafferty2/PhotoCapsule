@@ -9,11 +9,14 @@ import (
 	"path/filepath"
 	"time"
 	"encoding/json"
+	"strings"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 
 	"golang.org/x/crypto/bcrypt"
+
+	"github.com/golang-jwt/jwt/v5"
 )
 
 var db *gorm.DB
@@ -42,6 +45,50 @@ type SignupRequest struct {
 	Password string `json:"password"`
 }
 
+type SigninRequest struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+var jwtSecret = []byte("ThisIsASuperLongAndSecureKey123321987789") // should come from env in prod
+
+func createJWT(userID uint, email string) (string, error) {
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"user_id": userID,
+		"email":   email,
+		"exp":     time.Now().Add(24 * time.Hour).Unix(), // expires in 1 day
+	})
+
+	return token.SignedString(jwtSecret)
+}
+
+func getUserFromToken(r *http.Request) (uint, string, error) {
+	authHeader := r.Header.Get("Authorization")
+	if !strings.HasPrefix(authHeader, "Bearer ") {
+		return 0, "", fmt.Errorf("missing or invalid Authorization header")
+	}
+
+	tokenStr := strings.TrimPrefix(authHeader, "Bearer ")
+
+	token, err := jwt.Parse(tokenStr, func(t *jwt.Token) (interface{}, error) {
+		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method")
+		}
+		return jwtSecret, nil
+	})
+
+	if err != nil || !token.Valid {
+		return 0, "", fmt.Errorf("invalid token: %v", err)
+	}
+
+	claims := token.Claims.(jwt.MapClaims)
+	userID := uint(claims["user_id"].(float64))
+	email := claims["email"].(string)
+
+	return userID, email, nil
+}
+
+
 func imagesHandler(w http.ResponseWriter, r *http.Request) {
 	// Only allow GET
 	if r.Method != http.MethodGet {
@@ -49,6 +96,12 @@ func imagesHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	_, _, err := getUserFromToken(r)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+	
 	// Sample data (replace with real file data)
 	images := []Image{
 		{Filename: "cat.jpg", Path: "uploads/1.jpg"},
@@ -70,6 +123,12 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseMultipartForm(10 << 20)
 	if err != nil {
 		http.Error(w, "Error parsing form", http.StatusBadRequest)
+		return
+	}
+
+	_, _, err = getUserFromToken(r)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
@@ -164,6 +223,63 @@ func signupHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(`{"message":"User created successfully"}`))
 }
 
+func signinHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type , Authorization")
+
+	// Handle preflight OPTIONS
+	if r.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// Parse request body
+	var req SigninRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	if req.Email == "" || req.Password == "" {
+		http.Error(w, "Missing email or password", http.StatusBadRequest)
+		return
+	}
+
+	// Find user by email
+	var user User
+	if err := db.Where("email = ?", req.Email).First(&user).Error; err != nil {
+		http.Error(w, "Invalid email or password", http.StatusUnauthorized)
+		return
+	}
+
+	// Compare password with stored hash
+	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.Password)); err != nil {
+		http.Error(w, "Invalid email or password", http.StatusUnauthorized)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	token, err := createJWT(user.ID, user.Email)
+	if err != nil {
+		http.Error(w, "Failed to generate token", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": "Login successful",
+		"token":   token,
+	})
+}
+
+
+
 func connectToDB() {
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
 		getEnv("DB_HOST", "localhost"),
@@ -211,6 +327,8 @@ func main() {
 	http.Handle("/uploads/", http.StripPrefix("/uploads/", http.FileServer(http.Dir("uploads"))))
 
 	http.HandleFunc("/signup", signupHandler)
+
+	http.HandleFunc("/signin", signinHandler)
 
 	fmt.Println("🚀 Server running at http://localhost:8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))

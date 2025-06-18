@@ -72,7 +72,8 @@ function SignUpForm() {
 
     const res = await fetch('http://localhost:8080/signup', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json',
+       },
       body: JSON.stringify({ email, password }),
     });
 
@@ -116,6 +117,72 @@ function SignUpForm() {
       </button>
       {status === 'success' && <p className="text-green-600 text-sm text-center">✅ Account created</p>}
       {status === 'error' && <p className="text-red-600 text-sm text-center">❌ Signup failed</p>}
+    </form>
+  );
+}
+
+function SignInForm() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [status, setStatus] = useState('idle'); // idle | loading | success | error
+  const [token, setToken] = useState(null);
+  
+
+  const handleSignIn = async (e) => {
+    e.preventDefault();
+    setStatus('loading');
+
+    const res = await fetch('http://localhost:8080/signin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+       },
+      body: JSON.stringify({ email, password }),
+    });
+
+    if (res.ok) {
+      const data = await res.json()
+      setStatus('success');
+      alert('Account singned in!');
+      setEmail('');
+      setPassword('');
+      setToken(data.token);
+      localStorage.setItem("token", data.token);
+    } else {
+      setStatus('error');
+      const error = await res.text();
+      alert(`Signup failed: ${error}`);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSignIn} className="space-y-2 border-t pt-6 mt-6">
+      <h2 className="text-lg font-semibold text-center">Sign In</h2>
+      <input
+        type="email"
+        placeholder="Email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        className="w-full border px-3 py-2 rounded"
+        required
+      />
+      <input
+        type="password"
+        placeholder="Password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        className="w-full border px-3 py-2 rounded"
+        required
+      />
+      <button
+        type="submit"
+        disabled={status === 'loading'}
+        className="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded"
+      >
+        {status === 'loading' ? 'Creating...' : 'Sign In'}
+      </button>
+      {status === 'success' && <p className="text-green-600 text-sm text-center">✅ Account Signed In Token is {token}</p>}
+      {status === 'error' && <p className="text-red-600 text-sm text-center">❌ Signin failed</p>}
     </form>
   );
 }
@@ -168,6 +235,7 @@ export default function UploadPage() {
       <StatusMessage status={status} />
       <LinkToGallery />
       <SignUpForm />
+      <SignInForm />
     </div>
   );
 }
