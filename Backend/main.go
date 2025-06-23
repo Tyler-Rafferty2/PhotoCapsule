@@ -10,19 +10,18 @@ import (
 	"time"
 	"encoding/json"
 	"strings"
-
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-
 	"golang.org/x/crypto/bcrypt"
-
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/joho/godotenv"
 )
 
 var db *gorm.DB
 
 type Upload struct {
 	ID         uint      `gorm:"primaryKey"`
+	UserID     uint      `gorm:"not null"`
 	Filename   string    `gorm:"not null"`
 	UploadTime time.Time `gorm:"autoCreateTime"`
 }
@@ -50,7 +49,7 @@ type SigninRequest struct {
 	Password string `json:"password"`
 }
 
-var jwtSecret = []byte("ThisIsASuperLongAndSecureKey123321987789") // should come from env in prod
+var jwtSecret []byte;
 
 func createJWT(userID uint, email string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
@@ -126,7 +125,7 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, _, err = getUserFromToken(r)
+	userId, _, err := getUserFromToken(r)
 	if err != nil {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
@@ -154,7 +153,8 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Log upload to DB using GORM
-	upload := Upload{Filename: handler.Filename}
+	upload := Upload{UserID: userId, 
+		Filename: handler.Filename}
 	log.Println(upload);
 	if err := db.Create(&upload).Error; err != nil {
 		http.Error(w, "Failed to log upload in DB", http.StatusInternalServerError)
@@ -320,6 +320,17 @@ func main() {
 	if err := os.MkdirAll("uploads", os.ModePerm); err != nil {
 		log.Fatal(err)
 	}
+
+	err := godotenv.Load()
+	if err != nil {
+		log.Println("No .env file found; using OS env vars only")
+	}
+
+	secret := getEnv("secret_token", "")
+	if secret == "" {
+		log.Fatal("Token not set. Please define secret_token in environment variables.")
+	}
+	jwtSecret = []byte(secret)
 
 	http.HandleFunc("/upload", uploadHandler)
 
