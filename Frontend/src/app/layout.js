@@ -1,4 +1,5 @@
 // src/app/layout.js
+import './globals.css'
 export const metadata = {
   title: 'PhotoVault',
   description: 'Image sharing app',

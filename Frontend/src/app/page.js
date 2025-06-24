@@ -1,5 +1,6 @@
 'use client';
 
+import Navbar from '@/components/Navbar';
 import { useState } from 'react';
 import Link from 'next/link';
 
@@ -181,8 +182,8 @@ function SignInForm() {
       >
         {status === 'loading' ? 'Creating...' : 'Sign In'}
       </button>
-      {status === 'success' && <p className="text-green-600 text-sm text-center">✅ Account Signed In Token is {token}</p>}
-      {status === 'error' && <p className="text-red-600 text-sm text-center">❌ Signin failed</p>}
+      {status === 'success' && <p className="text-green-600 text-sm text-green text-center">✅ Account Signed In Token is {token}</p>}
+      {status === 'error' && <p className="text-red-600 text-sm text-red text-center">❌ Signin failed</p>}
     </form>
   );
 }
@@ -230,6 +231,8 @@ export default function UploadPage() {
   };
 
   return (
+    <>
+    <Navbar />
     <div className="p-8 max-w-md mx-auto space-y-4">
       <FileInput onSelect={handleFileSelect} />
       <ImagePreview src={preview} />
@@ -239,5 +242,7 @@ export default function UploadPage() {
       <SignUpForm />
       <SignInForm />
     </div>
+  </>
+
   );
 }

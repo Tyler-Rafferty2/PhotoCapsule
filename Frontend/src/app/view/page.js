@@ -1,6 +1,16 @@
 'use client';
-
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
+
+function LinkToHome() {
+  return (
+    <div className="text-center">
+      <Link href="/" className="text-blue-500 hover:underline">
+        Go home
+      </Link>
+    </div>
+  );
+}
 
 export default function ViewPage() {
   const [images, setImages] = useState([]);
@@ -48,15 +58,15 @@ export default function ViewPage() {
         {images.map((img, idx) => (
           <div key={idx} style={{ border: '1px solid #ccc', padding: '1rem' }}>
             <img
-              src={`http://localhost:8080/uploads/${img.path}`}
-              alt={img.filename}
+              src={`http://localhost:8080/uploads/${img}`}
               style={{ width: '100%', height: 'auto' }}
             />
-            <p style={{ textAlign: 'center', marginTop: '0.5rem' }}>{img.filename}</p>
           </div>
         ))}
       </div>
       )}
+      <LinkToHome />
     </div>
+    
   );
 }
