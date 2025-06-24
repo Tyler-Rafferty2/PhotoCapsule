@@ -3,14 +3,14 @@
 ├────────────┤           ├──────────────┤           ├───────────────┤
 │ id (PK)    │◄────────┐ │ id (PK)      │           │ id (PK)       │
 │ email      │         └─│ user_id (FK) │──────────▶│ vault_id (FK) │
-│ password   │           │ title        │           │ filename/url  │
+│ password   │           │ title        │   1 to M  │ filename/url  │
 │ created_at │           │ description  │           │ caption       │
 └────────────┘           │ unlock_date  │           │ uploaded_at   │
                          │ created_at   │           └───────────────┘
                          └──────────────┘
                                 ▲
                                 │
-                                │
+                                │1 to M
                          ┌───────────────┐
                          │ Vault Members │
                          ├───────────────┤

@@ -1,4 +1,7 @@
 'use client';
+
+import Navbar from '@/components/Navbar';
+
 import { useState } from 'react';
 
 import { useRouter } from 'next/navigation';
@@ -41,46 +44,47 @@ export default function SignInForm() {
   };
 
   return (
-    <div className="flex justify-center">
-      <form onSubmit={handleSignIn} className="space-y-4 border-t pt-6 mt-6 w-[50vw] max-w-md flex flex-col">
-        <h2 className="text-lg font-semibold text-center">Sign In</h2>
+    <><Navbar />
+      <div className="flex justify-center">
+        <form onSubmit={handleSignIn} className="space-y-4 border-t pt-6 mt-6 w-[50vw] max-w-md flex flex-col">
+          <h2 className="text-lg font-semibold text-center">Sign In</h2>
 
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="w-full border px-3 py-2 rounded"
-          required
-        />
+          <input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full border px-3 py-2 rounded"
+            required
+          />
 
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="w-full border px-3 py-2 rounded"
-          required
-        />
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full border px-3 py-2 rounded"
+            required
+          />
 
-        <button
-          type="submit"
-          disabled={status === 'loading'}
-          className="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded"
-        >
-          {status === 'loading' ? 'Signing in...' : 'Sign In'}
-        </button>
+          <button
+            type="submit"
+            disabled={status === 'loading'}
+            className="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded"
+          >
+            {status === 'loading' ? 'Signing in...' : 'Sign In'}
+          </button>
 
-        {status === 'success' && (
-          <p className="text-green-600 text-sm text-center">
-            ✅ Signed in! Token: {token}
-          </p>
-        )}
-        {status === 'error' && (
-          <p className="text-red-600 text-sm text-center">❌ Sign-in failed</p>
-        )}
-      </form>
-    </div>
-
+          {status === 'success' && (
+            <p className="text-green-600 text-sm text-center">
+              ✅ Signed in! Token: {token}
+            </p>
+          )}
+          {status === 'error' && (
+            <p className="text-red-600 text-sm text-center">❌ Sign-in failed</p>
+          )}
+        </form>
+      </div>
+  </>
   );
 }
