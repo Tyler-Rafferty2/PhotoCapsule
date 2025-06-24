@@ -1,12 +1,16 @@
 'use client';
 import { useState } from 'react';
 
+import { useRouter } from 'next/navigation';
+
 export default function SignInForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [status, setStatus] = useState('idle'); // idle | loading | success | error
   const [token, setToken] = useState(null);
   
+  const router = useRouter();
+
 
   const handleSignIn = async (e) => {
     e.preventDefault();
@@ -23,15 +27,16 @@ export default function SignInForm() {
     if (res.ok) {
       const data = await res.json()
       setStatus('success');
-      alert('Account singned in!');
+      //alert('Account singned in!');
       setEmail('');
       setPassword('');
       setToken(data.token);
       localStorage.setItem("token", data.token);
+      router.push('/');
     } else {
       setStatus('error');
       const error = await res.text();
-      alert(`Signup failed: ${error}`);
+      //alert(`Signup failed: ${error}`);
     }
   };
 

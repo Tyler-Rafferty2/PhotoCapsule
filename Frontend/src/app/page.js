@@ -75,7 +75,7 @@ export default function UploadPage() {
 
   const handleUpload = async () => {
     if (!file) {
-      alert("Please select a file first.");
+      //alert("Please select a file first.");
       return;
     }
 
@@ -96,11 +96,11 @@ export default function UploadPage() {
 
       const data = await res.json();
       setStatus('success');
-      alert(`Upload successful: ${data.filename || data.message}`);
+      //alert(`Upload successful: ${data.filename || data.message}`);
     } catch (err) {
       console.error(err);
       setStatus('error');
-      alert('Upload failed. Check console for details.');
+      //alert('Upload failed. Check console for details.');
     }
   };
 

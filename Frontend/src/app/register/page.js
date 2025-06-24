@@ -1,14 +1,19 @@
 'use client';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+
 
 export default function SignUpForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [status, setStatus] = useState('idle'); // idle | loading | success | error
 
+  const router = useRouter();
+
   const handleSignUp = async (e) => {
     e.preventDefault();
     setStatus('loading');
+   
 
     const res = await fetch('http://localhost:8080/signup', {
       method: 'POST',
@@ -19,13 +24,14 @@ export default function SignUpForm() {
 
     if (res.ok) {
       setStatus('success');
-      alert('Account created!');
+      //alert('Account created!');
       setEmail('');
       setPassword('');
+      router.push('/login');
     } else {
       setStatus('error');
       const error = await res.text();
-      alert(`Signup failed: ${error}`);
+      //alert(`Signup failed: ${error}`);
     }
   };
 
