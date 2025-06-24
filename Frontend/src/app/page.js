@@ -212,6 +212,8 @@ export default function UploadPage() {
     try {
       const res = await fetch('http://localhost:8080/upload', {
         method: 'POST',
+        headers: {'Authorization': `Bearer ${localStorage.getItem('token')}`,
+       },
         body: formData,
       });
 

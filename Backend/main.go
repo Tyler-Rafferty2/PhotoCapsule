@@ -26,12 +26,6 @@ type Upload struct {
 	UploadTime time.Time `gorm:"autoCreateTime"`
 }
 
-type Image struct {
-	ID       uint   `json:"id"`
-	Filename string `json:"filename"`
-	Path     string `json:"path"`
-}
-
 type User struct {
 	ID           uint      `gorm:"primaryKey"`
 	Email        string    `gorm:"unique;not null"`
@@ -90,29 +84,54 @@ func getUserFromToken(r *http.Request) (uint, string, error) {
 
 func imagesHandler(w http.ResponseWriter, r *http.Request) {
 	// Only allow GET
+
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+
+	if r.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
 	if r.Method != http.MethodGet {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
-	_, _, err := getUserFromToken(r)
+	userId, _, err := getUserFromToken(r)
 	if err != nil {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 	
 	// Sample data (replace with real file data)
-	images := []Image{
-		{Filename: "cat.jpg", Path: "uploads/1.jpg"},
+	var uploads []Upload
+	if err := db.Where("user_id = ?", userId).Find(&uploads).Error; err != nil {
+		http.Error(w, "Failed to retrieve uploads", http.StatusInternalServerError)
+		return
 	}
 
+	var imageURLs []string
+	for _, u := range uploads {
+		url := fmt.Sprintf("%s", u.Filename)
+		imageURLs = append(imageURLs, url)
+	}
+	log.Println(imageURLs)
 	w.Header().Set("Access-Control-Allow-Origin", "*") // for frontend access
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(images)
+	json.NewEncoder(w).Encode(imageURLs)
 }
 
 func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+
+	if r.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
 
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -127,10 +146,10 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 
 	userId, _, err := getUserFromToken(r)
 	if err != nil {
+		log.Println(err)
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
-
 	file, handler, err := r.FormFile("image")
 	if err != nil {
 		http.Error(w, "Error retrieving the file", http.StatusBadRequest)
