@@ -98,109 +98,121 @@ func getUserFromToken(r *http.Request) (uint, string, error) {
 }
 
 
-// func imagesHandler(w http.ResponseWriter, r *http.Request) {
-// 	// Only allow GET
+func imagesHandler(w http.ResponseWriter, r *http.Request) {
+	// Only allow GET
 
-// 	w.Header().Set("Access-Control-Allow-Origin", "*")
-// 	w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
-// 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 
-// 	if r.Method == http.MethodOptions {
-// 		w.WriteHeader(http.StatusOK)
-// 		return
-// 	}
+	if r.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
 
-// 	if r.Method != http.MethodGet {
-// 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-// 		return
-// 	}
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
 
-// 	userId, _, err := getUserFromToken(r)
-// 	if err != nil {
-// 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-// 		return
-// 	}
+	VaultIdStr := strings.TrimPrefix(r.URL.Path, "/api/view/") 
+
+	userId, _, err := getUserFromToken(r)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
 	
-// 	// Sample data (replace with real file data)
-// 	var uploads []Upload
-// 	if err := db.Where("user_id = ?", userId).Find(&uploads).Error; err != nil {
-// 		http.Error(w, "Failed to retrieve uploads", http.StatusInternalServerError)
-// 		return
-// 	}
+	var vault Vault
+	if err := db.First(&vault, VaultIdStr).Error; err != nil {
+		http.Error(w, "Vault not found", http.StatusNotFound)
+		return
+	}
 
-// 	var imageURLs []string
-// 	for _, u := range uploads {
-// 		url := fmt.Sprintf("%s", u.Filename)
-// 		imageURLs = append(imageURLs, url)
-// 	}
-// 	log.Println(imageURLs)
-// 	w.Header().Set("Access-Control-Allow-Origin", "*") // for frontend access
-// 	w.Header().Set("Content-Type", "application/json")
-// 	json.NewEncoder(w).Encode(imageURLs)
-// }
+	if vault.UserID != userId {
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
 
-// //These needs to send VaultID or just vault name or smthn
-// func uploadHandler(w http.ResponseWriter, r *http.Request) {
-// 	w.Header().Set("Access-Control-Allow-Origin", "*")
-// 	w.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
-// 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+	var uploads []Upload
+	if err := db.Where("VaultID = ?", VaultIdStr).Find(&uploads).Error; err != nil {
+		http.Error(w, "Failed to retrieve uploads", http.StatusInternalServerError)
+		return
+	}
 
-// 	if r.Method == http.MethodOptions {
-// 		w.WriteHeader(http.StatusOK)
-// 		return
-// 	}
+	var imageURLs []string
+	for _, u := range uploads {
+		url := fmt.Sprintf("%s", u.Filename)
+		imageURLs = append(imageURLs, url)
+	}
+	log.Println(imageURLs)
+	w.Header().Set("Access-Control-Allow-Origin", "*") // for frontend access
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(imageURLs)
+}
 
-// 	if r.Method != http.MethodPost {
-// 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-// 		return
-// 	}
+//These needs to send VaultID or just vault name or smthn
+func uploadHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 
-// 	err := r.ParseMultipartForm(10 << 20)
-// 	if err != nil {
-// 		http.Error(w, "Error parsing form", http.StatusBadRequest)
-// 		return
-// 	}
+	if r.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
 
-// 	userId, _, err := getUserFromToken(r)
-// 	if err != nil {
-// 		log.Println(err)
-// 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-// 		return
-// 	}
-// 	file, handler, err := r.FormFile("image")
-// 	if err != nil {
-// 		http.Error(w, "Error retrieving the file", http.StatusBadRequest)
-// 		return
-// 	}
-// 	defer file.Close()
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
 
-// 	dstPath := filepath.Join("uploads", handler.Filename)
-// 	dst, err := os.Create(dstPath)
-// 	if err != nil {
-// 		http.Error(w, "Could not save file", http.StatusInternalServerError)
-// 		return
-// 	}
-// 	defer dst.Close()
+	err := r.ParseMultipartForm(10 << 20)
+	if err != nil {
+		http.Error(w, "Error parsing form", http.StatusBadRequest)
+		return
+	}
 
-// 	_, err = io.Copy(dst, file)
-// 	if err != nil {
-// 		http.Error(w, "Failed to save file", http.StatusInternalServerError)
-// 		return
-// 	}
+	userId, _, err := getUserFromToken(r)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+	file, handler, err := r.FormFile("image")
+	if err != nil {
+		http.Error(w, "Error retrieving the file", http.StatusBadRequest)
+		return
+	}
+	defer file.Close()
 
-// 	// Log upload to DB using GORM
-// 	upload := Upload{UserID: userId, 
-// 		Filename: handler.Filename}
-// 	log.Println(upload);
-// 	if err := db.Create(&upload).Error; err != nil {
-// 		http.Error(w, "Failed to log upload in DB", http.StatusInternalServerError)
-// 		log.Println("DB insert error:", err)
-// 		return
-// 	}
-// 	log.Println("✅ Successfully inserted:", upload)
-// 	w.Header().Set("Content-Type", "application/json")
-// 	fmt.Fprintf(w, `{"message":"Upload successful","filename":"%s"}`, handler.Filename)
-// }
+	dstPath := filepath.Join("uploads", handler.Filename)
+	dst, err := os.Create(dstPath)
+	if err != nil {
+		http.Error(w, "Could not save file", http.StatusInternalServerError)
+		return
+	}
+	defer dst.Close()
+
+	_, err = io.Copy(dst, file)
+	if err != nil {
+		http.Error(w, "Failed to save file", http.StatusInternalServerError)
+		return
+	}
+
+	// Log upload to DB using GORM
+	upload := Upload{UserID: userId, 
+		Filename: handler.Filename}
+	log.Println(upload);
+	if err := db.Create(&upload).Error; err != nil {
+		http.Error(w, "Failed to log upload in DB", http.StatusInternalServerError)
+		log.Println("DB insert error:", err)
+		return
+	}
+	log.Println("✅ Successfully inserted:", upload)
+	w.Header().Set("Content-Type", "application/json")
+	fmt.Fprintf(w, `{"message":"Upload successful","filename":"%s"}`, handler.Filename)
+}
 
 func signupHandler(w http.ResponseWriter, r *http.Request) {
 	
@@ -257,6 +269,47 @@ func signupHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(`{"message":"User created successfully"}`))
+}
+
+func getVaults(w http.ResponseWriter, r *http.Request) {
+	// Only allow GET
+
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+
+	if r.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	userId, _, err := getUserFromToken(r)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+	
+	// Sample data (replace with real file data)
+	var vaults []Vault
+	if err := db.Where("user_id = ?", userId).Find(&vaults).Error; err != nil {
+		http.Error(w, "Failed to retrieve uploads", http.StatusInternalServerError)
+		return
+	}
+
+	// var vaultNames []string
+	// for _, u := range vaults {
+	// 	name := fmt.Sprintf("%s", u.Title)
+	// 	vaultNames = append(vaultNames, name)
+	// }
+	// log.Println(vaultNames)
+	w.Header().Set("Access-Control-Allow-Origin", "*") // for frontend access
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(vaults)
 }
 
 func addVault(w http.ResponseWriter, r *http.Request) {
@@ -428,14 +481,17 @@ func main() {
 
 	// http.HandleFunc("/upload", uploadHandler)
 
-	// http.HandleFunc("/images", imagesHandler)
+	http.HandleFunc("/images/${vault_id}", imagesHandler)
+
 	http.Handle("/uploads/", http.StripPrefix("/uploads/", http.FileServer(http.Dir("uploads"))))
 
 	http.HandleFunc("/signup", signupHandler)
 
 	http.HandleFunc("/signin", signinHandler)
 
-	http.HandleFunc("/api/vaults", addVault)
+	http.HandleFunc("/api/addvaults", addVault)
+
+	http.HandleFunc("/api/getvaults", getVaults)
 
 	fmt.Println("🚀 Server running at http://localhost:8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))

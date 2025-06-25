@@ -20,8 +20,7 @@ export default function Navbar() {
         <div className="space-x-4 text-sm">
           {isLoggedIn ? (
             <>
-              <Link href="/upload" className="hover:underline">Upload</Link>
-              <Link href="/gallery" className="hover:underline">Gallery</Link>
+              <Link href="/vaults" className="hover:underline">Vaults</Link>
               <button onClick={() => {
                 localStorage.removeItem("token");
                 setIsLoggedIn(false);

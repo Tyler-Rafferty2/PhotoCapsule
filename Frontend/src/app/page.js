@@ -55,8 +55,8 @@ function StatusMessage({ status }) {
 function LinkToGallery() {
   return (
     <div className="text-center">
-      <Link href="/view" className="text-blue-500 hover:underline">
-        View uploaded images
+      <Link href="/vaults" className="text-blue-500 hover:underline">
+        View vaults
       </Link>
     </div>
   );
