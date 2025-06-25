@@ -19,19 +19,12 @@ import (
 
 var db *gorm.DB
 
-type Upload struct {
-	ID         uint      `gorm:"primaryKey"`
-	VaultID    uint      `gorm:"not null"`
-	Filename   string    `gorm:"not null"`
-	UploadTime time.Time `gorm:"autoCreateTime"`
-}
-
 type User struct {
 	ID           uint      `gorm:"primaryKey"`
 	Email        string    `gorm:"unique;not null"`
 	PasswordHash string    `gorm:"not null"`
 	CreatedAt    time.Time `gorm:"autoCreateTime"`
-	Vaults    []Vault
+	Vaults       []Vault
 }
 
 type Vault struct {
@@ -45,6 +38,13 @@ type Vault struct {
 	Uploads       []Upload
 }
 
+type Upload struct {
+	ID         uint      `gorm:"primaryKey"`
+	VaultID    uint      `gorm:"not null"`
+	Filename   string    `gorm:"not null"`
+	UploadTime time.Time `gorm:"autoCreateTime"`
+}
+
 type SignupRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
@@ -56,7 +56,7 @@ type SigninRequest struct {
 }
 
 type NewVaultRequest struct {
-	Name    string `json:"string"`
+	Name    string `json:"name"`
 }
 
 var jwtSecret []byte;
@@ -263,14 +263,14 @@ func addVault(w http.ResponseWriter, r *http.Request) {
 	
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 
 	// Handle preflight request
 	if r.Method == http.MethodOptions {
 		w.WriteHeader(http.StatusOK)
 		return
 	}
-	
+
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
@@ -280,7 +280,7 @@ func addVault(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
-	}
+	}	
 
 	if req.Name == "" {
 		http.Error(w, "Missing name", http.StatusBadRequest)
@@ -289,7 +289,7 @@ func addVault(w http.ResponseWriter, r *http.Request) {
 
 	// Check if vault already exists
 	var existing Vault
-	if err := db.Where("Name = ?", req.Name).First(&existing).Error; err == nil {
+	if err := db.Where("Title = ?", req.Name).First(&existing).Error; err == nil {
 		http.Error(w, "Vault already registered", http.StatusConflict)
 		return
 	}
@@ -384,7 +384,7 @@ func connectToDB() {
 	)
 
 
-	fmt.Println("📌 DSN:", dsn) // <--- log it here!
+	//fmt.Println("📌 DSN:", dsn) // <--- log it here!
 
 	var err error
 	db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
@@ -393,7 +393,7 @@ func connectToDB() {
 	}
 
 	// Automatically create the table if it doesn't exist
-	if err := db.AutoMigrate(&Upload{}, &User{}, &Vault{}); err != nil {
+	if err := db.AutoMigrate(&User{}, &Vault{}, &Upload{}); err != nil {
 		log.Fatal("Auto-migration failed:", err)
 	}
 
@@ -435,7 +435,7 @@ func main() {
 
 	http.HandleFunc("/signin", signinHandler)
 
-	http.HandleFunc("/api/vaults", signinHandler)
+	http.HandleFunc("/api/vaults", addVault)
 
 	fmt.Println("🚀 Server running at http://localhost:8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))

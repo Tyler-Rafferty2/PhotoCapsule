@@ -35,9 +35,10 @@ export default function VaultsPage() {
       const res = await fetch('http://localhost:8080/api/vaults', {
         method: 'POST',
         headers: {
+          'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ name: `Vault ${vaults.length + 1}` }),
+        body: JSON.stringify({ Name: `Vault ${vaults.length + 1}` }),
       });
       const newVault = await res.json();
       setVaults([...vaults, newVault]);
@@ -67,8 +68,8 @@ export default function VaultsPage() {
       ) : (
         <ul className="space-y-2">
           {vaults.map((vault) => (
-            <li key={vault.id} className="border p-4 rounded shadow-sm">
-              <h2 className="text-lg font-semibold">{vault.name}</h2>
+            <li key={`${vault.id}-${vault.name}`} className="border p-4 rounded shadow-sm">
+              <h2 className="text-lg font-semibold">{vault.title}</h2>
               <p className="text-sm text-gray-500">ID: {vault.id}</p>
             </li>
           ))}
