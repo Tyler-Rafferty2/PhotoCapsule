@@ -49,7 +49,6 @@ export default function VaultsPage() {
       setCreating(false);
     }
   };
-
   return (
     <><Navbar />
       <div className="p-8 max-w-3xl mx-auto space-y-6">
@@ -71,7 +70,7 @@ export default function VaultsPage() {
           <ul className="space-y-2">
             {vaults.map((vault) => ( 
               <li key={`${vault.ID}`} className="border p-4 rounded shadow-sm">
-                <Link href="/images/{vault.id}" className="text-lg font-semibold hover:underline">
+                <Link href={`/view/${vault.ID}`} className="text-lg font-semibold hover:underline">
                   View {vault.Title}
                 </Link>
                 <p className="text-sm text-gray-500">ID: {vault.ID}</p>

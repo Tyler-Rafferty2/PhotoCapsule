@@ -2,13 +2,14 @@ package main
 
 import (
 	"fmt"
-	//"io"
+	"io"
 	"log"
 	"net/http"
 	"os"
-	//"path/filepath"
+	"path/filepath"
 	"time"
 	"encoding/json"
+	"strconv"
 	"strings"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -115,8 +116,8 @@ func imagesHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	VaultIdStr := strings.TrimPrefix(r.URL.Path, "/api/view/") 
-
+	VaultIdStr := strings.TrimPrefix(r.URL.Path, "/images/") 
+	vaultId, err := strconv.ParseUint(VaultIdStr, 10, 64)
 	userId, _, err := getUserFromToken(r)
 	if err != nil {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
@@ -124,7 +125,7 @@ func imagesHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	
 	var vault Vault
-	if err := db.First(&vault, VaultIdStr).Error; err != nil {
+	if err := db.First(&vault, vaultId).Error; err != nil {
 		http.Error(w, "Vault not found", http.StatusNotFound)
 		return
 	}
@@ -135,7 +136,7 @@ func imagesHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var uploads []Upload
-	if err := db.Where("VaultID = ?", VaultIdStr).Find(&uploads).Error; err != nil {
+	if err := db.Where("VaultID = ?", vaultId).Find(&uploads).Error; err != nil {
 		http.Error(w, "Failed to retrieve uploads", http.StatusInternalServerError)
 		return
 	}
@@ -157,6 +158,7 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 
+	log.Println("in the upload")
 	if r.Method == http.MethodOptions {
 		w.WriteHeader(http.StatusOK)
 		return
@@ -173,12 +175,28 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	VaultIdStr := strings.TrimPrefix(r.URL.Path, "/upload/") 
+	log.Println("✅ Parsed vault ID:", VaultIdStr)
+	vaultId, err := strconv.ParseUint(VaultIdStr, 10, 64)
+	log.Println("✅ Parsed vault ID:", vaultId)
+
 	userId, _, err := getUserFromToken(r)
 	if err != nil {
-		log.Println(err)
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
+
+	var vault Vault
+	if err := db.First(&vault, vaultId).Error; err != nil {
+		http.Error(w, "Vault not found", http.StatusNotFound)
+		return
+	}
+
+	if vault.UserID != userId {
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
+
 	file, handler, err := r.FormFile("image")
 	if err != nil {
 		http.Error(w, "Error retrieving the file", http.StatusBadRequest)
@@ -201,7 +219,8 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Log upload to DB using GORM
-	upload := Upload{UserID: userId, 
+	upload := Upload{
+		VaultID: uint(vaultId),
 		Filename: handler.Filename}
 	log.Println(upload);
 	if err := db.Create(&upload).Error; err != nil {
@@ -479,9 +498,9 @@ func main() {
 	}
 	jwtSecret = []byte(secret)
 
-	// http.HandleFunc("/upload", uploadHandler)
+	http.HandleFunc("/upload/", uploadHandler)
 
-	http.HandleFunc("/images/${vault_id}", imagesHandler)
+	http.HandleFunc("/images/", imagesHandler)
 
 	http.Handle("/uploads/", http.StripPrefix("/uploads/", http.FileServer(http.Dir("uploads"))))
 
