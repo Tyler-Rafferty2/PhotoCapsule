@@ -136,17 +136,22 @@ func imagesHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var uploads []Upload
-	if err := db.Where("VaultID = ?", vaultId).Find(&uploads).Error; err != nil {
+	if err := db.Where("vault_id = ?", vaultId).Find(&uploads).Error; err != nil {
 		http.Error(w, "Failed to retrieve uploads", http.StatusInternalServerError)
 		return
 	}
 
+	if len(uploads) == 0 {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode([]string{}) // or []Upload{}, depending on your frontend
+		return
+	}
 	var imageURLs []string
 	for _, u := range uploads {
 		url := fmt.Sprintf("%s", u.Filename)
 		imageURLs = append(imageURLs, url)
 	}
-	log.Println(imageURLs)
+	
 	w.Header().Set("Access-Control-Allow-Origin", "*") // for frontend access
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(imageURLs)

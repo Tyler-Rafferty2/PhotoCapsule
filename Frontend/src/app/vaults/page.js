@@ -9,9 +9,8 @@ export default function VaultsPage() {
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
 
-  // Fetch vaults on load
-  useEffect(() => {
-    const fetchVaults = async () => {
+
+  const fetchVaults = async () => {
       try {
         const token = localStorage.getItem('token');
         const res = await fetch('http://localhost:8080/api/getvaults', {
@@ -25,7 +24,10 @@ export default function VaultsPage() {
       } finally {
         setLoading(false);
       }
-    };
+  };
+
+  // Fetch vaults on load
+  useEffect(() => {
     fetchVaults();
   }, []);
 
@@ -48,6 +50,7 @@ export default function VaultsPage() {
     } finally {
       setCreating(false);
     }
+    fetchVaults();
   };
   return (
     <><Navbar />

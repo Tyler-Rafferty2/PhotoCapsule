@@ -76,6 +76,20 @@ export default function ViewPage() {
       setStatus('idle');
   };
   
+  const fetchImages = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch(`http://localhost:8080/images/${id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        setImages(data);
+      } catch (err) {
+        console.error('Failed to fetch images:', err);
+      } finally {
+        setLoading(false);
+      }
+  };
 
   const handleUpload = async () => {
     if (!file) {
@@ -106,24 +120,10 @@ export default function ViewPage() {
       setStatus('error');
       //alert('Upload failed. Check console for details.');
     }
+    fetchImages();
   };
 
   useEffect(() => {
-    const fetchImages = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        const res = await fetch(`http://localhost:8080/images/${id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const data = await res.json();
-        setImages(data);
-      } catch (err) {
-        console.error('Failed to fetch images:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchImages();
   }, []);
 
@@ -131,22 +131,26 @@ export default function ViewPage() {
   useEffect(() => {
     console.log("✅ Updated images:", images);
   }, [images]);
-  images.forEach(img => console.log(img));
+  console.log(images);
   return (
     <>
         <Navbar />
-        <div className="p-8 max-w-md mx-auto space-y-4">
-          <FileInput onSelect={handleFileSelect} />
-          <ImagePreview src={preview} />
-          <StatusMessage status={status} />
-          <UploadButton onClick={handleUpload} disabled={status === 'uploading'} status={status} />
-              <div style={{ padding: '2rem' }}>
-                <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1rem' }}>
-                  📸 Uploaded Images
-                </h1>
-                {loading ? (
+          <div className="p-8 max-w-md mx-auto space-y-4">
+            <FileInput onSelect={handleFileSelect} />
+            <ImagePreview src={preview} />
+            <StatusMessage status={status} />
+            <UploadButton onClick={handleUpload} disabled={status === 'uploading'} status={status} />
+
+            <div style={{ padding: '2rem' }}>
+              <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1rem' }}>
+                📸 Uploaded Images
+              </h1>
+
+              {loading ? (
                 <p>Loading images...</p>
-                ) : (
+              ) : images.length === 0 ? (
+                <p>No images uploaded yet.</p>
+              ) : (
                 <div
                   style={{
                     display: 'grid',
@@ -159,14 +163,17 @@ export default function ViewPage() {
                       <img
                         src={`http://localhost:8080/uploads/${img}`}
                         style={{ width: '100%', height: 'auto' }}
+                        alt={`Uploaded ${idx}`}
                       />
                     </div>
                   ))}
                 </div>
-                )}
-                <LinkToHome />
-              </div>
-        </div>
+              )}
+
+              <LinkToHome />
+            </div>
+          </div>
+
       </>
 
     
