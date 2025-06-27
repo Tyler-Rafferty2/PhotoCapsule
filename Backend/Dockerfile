@@ -4,6 +4,7 @@ FROM golang:1.24.3-alpine AS builder
 # Install git and ca-certificates (needed for go modules and HTTPS)
 RUN apk add --no-cache git ca-certificates
 
+# WORKDIR /app
 # Copy go.mod and go.sum first to leverage Docker cache
 COPY go.mod go.sum ./
 

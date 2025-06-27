@@ -135,7 +135,7 @@ export default function ViewPage() {
   return (
     <>
         <Navbar />
-          <div className="p-8 max-w-md mx-auto space-y-4">
+          <div className="p-8 w-full space-y-4">
             <FileInput onSelect={handleFileSelect} />
             <ImagePreview src={preview} />
             <StatusMessage status={status} />
@@ -154,12 +154,18 @@ export default function ViewPage() {
                 <div
                   style={{
                     display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
                     gap: '1rem',
                   }}
                 >
                   {images.map((img, idx) => (
-                    <div key={idx} style={{ border: '1px solid #ccc', padding: '1rem' }}>
+                    <div key={idx} className="relative aspect-square overflow-hidden border transition-transform duration-200 hover:scale-105 group" style={{ border: '1px solid #ccc', padding: '1rem' }}>
+                      <button
+                        onClick={() => handleDelete(img)}
+                        className="absolute top-1 right-1 bg-red-500 text-white text-xs px-2 py-1 rounded z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                      >
+                        ✕
+                      </button>
                       <img
                         src={`http://localhost:8080/uploads/${img}`}
                         style={{ width: '100%', height: 'auto' }}
