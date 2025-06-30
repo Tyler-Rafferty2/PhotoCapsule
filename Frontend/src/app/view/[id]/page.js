@@ -62,6 +62,7 @@ function StatusMessage({ status }) {
   return null;
 }
 
+
 export default function ViewPage() {
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -82,7 +83,9 @@ export default function ViewPage() {
         const res = await fetch(`http://localhost:8080/images/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
+        
         const data = await res.json();
+        console.log("Fetched data:", data);
         setImages(data);
       } catch (err) {
         console.error('Failed to fetch images:', err);
@@ -113,6 +116,7 @@ export default function ViewPage() {
       if (!res.ok) throw new Error('Upload failed');
 
       const data = await res.json();
+      setPreview(null);
       setStatus('success');
       //alert(`Upload successful: ${data.filename || data.message}`);
     } catch (err) {
@@ -122,6 +126,21 @@ export default function ViewPage() {
     }
     fetchImages();
   };
+
+  const handleTrash = async (img) => {
+    try {
+      const res = await fetch(`http://localhost:8080/api/upload/trash/${img}`, {
+        method: 'PATCH',
+        headers: {'Authorization': `Bearer ${localStorage.getItem('token')}`,
+       },
+      });
+
+      if (!res.ok) throw new Error('Trash failed');
+      fetchImages();
+    } catch (err) {
+      console.error(err);
+    }
+  }
 
   useEffect(() => {
     fetchImages();
@@ -161,13 +180,13 @@ export default function ViewPage() {
                   {images.map((img, idx) => (
                     <div key={idx} className="relative aspect-square overflow-hidden border transition-transform duration-200 hover:scale-105 group" style={{ border: '1px solid #ccc', padding: '1rem' }}>
                       <button
-                        onClick={() => handleDelete(img)}
+                        onClick={() => handleTrash(img.id)}
                         className="absolute top-1 right-1 bg-red-500 text-white text-xs px-2 py-1 rounded z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
                       >
                         ✕
                       </button>
                       <img
-                        src={`http://localhost:8080/uploads/${img}`}
+                        src={`http://localhost:8080/uploads/${img.filename}`}
                         style={{ width: '100%', height: 'auto' }}
                         alt={`Uploaded ${idx}`}
                       />

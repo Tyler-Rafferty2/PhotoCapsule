@@ -9,11 +9,17 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	//"log"
 
 	"photovault/config"
 	"photovault/models"
 	"photovault/utils"
 )
+
+type UploadResponse struct {
+	ID       uint   `json:"id"`
+	Filename string `json:"filename"`
+}
 
 func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodOptions {
@@ -112,19 +118,20 @@ func ImagesHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var uploads []models.Upload
+	uploads := []models.Upload{}
 	if err := config.DB.Where("vault_id = ? AND deleted_at IS NULL", vaultId).Find(&uploads).Error; err != nil {
 		http.Error(w, "Failed to retrieve uploads", http.StatusInternalServerError)
 		return
 	}
 
-	var imageURLs []string
+	responses := []UploadResponse{}
 	for _, u := range uploads {
-		imageURLs = append(imageURLs, u.Filename)
+		responses = append(responses, UploadResponse{
+			ID:       u.ID,
+			Filename: u.Filename,
+		})
 	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(imageURLs)
+	json.NewEncoder(w).Encode(responses)
 }
 
 func TrashUpload(w http.ResponseWriter, r *http.Request) {
