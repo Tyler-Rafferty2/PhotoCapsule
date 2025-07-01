@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	//"log"
+	"log"
 
 	"photovault/config"
 	"photovault/models"
@@ -135,6 +135,7 @@ func ImagesHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func TrashUpload(w http.ResponseWriter, r *http.Request) {
+	log.Println("in TrashUpload")
 	if r.Method != http.MethodPatch {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
@@ -161,4 +162,105 @@ func TrashUpload(w http.ResponseWriter, r *http.Request) {
 	}
 
 	json.NewEncoder(w).Encode(map[string]string{"message": "Moved to trash"})
+}
+
+func TrashHandler(w http.ResponseWriter, r *http.Request) {
+	log.Println("in TrashHandler")
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	vaultIdStr := strings.TrimPrefix(r.URL.Path, "/images/trash/")
+	vaultId, err := strconv.ParseUint(vaultIdStr, 10, 64)
+	if err != nil {
+		http.Error(w, "Invalid vault ID", http.StatusBadRequest)
+		return
+	}
+
+	userId, _, err := utils.GetUserFromToken(r)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	var vault models.Vault
+	if err := config.DB.First(&vault, vaultId).Error; err != nil || vault.UserID != userId {
+		http.Error(w, "Vault not found or forbidden", http.StatusForbidden)
+		return
+	}
+
+	uploads := []models.Upload{}
+	if err := config.DB.Where("vault_id = ? AND deleted_at IS NOT NULL", vaultId).Find(&uploads).Error; err != nil {
+		http.Error(w, "Failed to retrieve uploads", http.StatusInternalServerError)
+		return
+	}
+
+	responses := []UploadResponse{}
+	for _, u := range uploads {
+		responses = append(responses, UploadResponse{
+			ID:       u.ID,
+			Filename: u.Filename,
+		})
+	}
+	json.NewEncoder(w).Encode(responses)
+}
+
+func TrashDelete(w http.ResponseWriter, r *http.Request) {
+	log.Println("in TrashDelete")
+	if r.Method != http.MethodDelete {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	idStr := strings.TrimPrefix(r.URL.Path, "/images/trash/delete/")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Error(w, "Invalid upload ID", http.StatusBadRequest)
+		return
+	}
+
+	var upload models.Upload
+	if err := config.DB.First(&upload, id).Error; err != nil {
+		http.Error(w, "Upload not found", http.StatusNotFound)
+		return
+	}
+
+	if err := config.DB.Delete(&upload).Error; err != nil {
+		http.Error(w, "Failed to delete upload", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{"message": "Deleted successfully"})
+
+}
+
+func TrashRecover(w http.ResponseWriter, r *http.Request) {
+	log.Println("in TrashRecover")
+	if r.Method != http.MethodPatch {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	idStr := strings.TrimPrefix(r.URL.Path, "/images/trash/recover/")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Error(w, "Invalid upload ID", http.StatusBadRequest)
+		return
+	}
+
+	var upload models.Upload
+	if err := config.DB.First(&upload, id).Error; err != nil {
+		http.Error(w, "Upload not found", http.StatusNotFound)
+		return
+	}
+
+	upload.DeletedAt = nil
+	if err := config.DB.Save(&upload).Error; err != nil {
+		http.Error(w, "Failed to recover", http.StatusInternalServerError)
+		return
+	}
+
+	json.NewEncoder(w).Encode(map[string]string{"message": "Recovered"})
 }

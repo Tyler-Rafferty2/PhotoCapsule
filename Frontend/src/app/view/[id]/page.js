@@ -62,6 +62,22 @@ function StatusMessage({ status }) {
   return null;
 }
 
+const Trashcan = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch(`http://localhost:8080/images/trash/${id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        
+        const data = await res.json();
+        console.log("Fetched data:", data);
+        setImages(data);
+      } catch (err) {
+        console.error('Failed to fetch images:', err);
+      } finally {
+        setLoading(false);
+      }
+  };
 
 export default function ViewPage() {
   const [images, setImages] = useState([]);
@@ -146,11 +162,10 @@ export default function ViewPage() {
     fetchImages();
   }, []);
 
-  // ✅ This logs the updated state only after setImages has run
   useEffect(() => {
     console.log("✅ Updated images:", images);
   }, [images]);
-  console.log(images);
+
   return (
     <>
         <Navbar />
@@ -194,13 +209,13 @@ export default function ViewPage() {
                   ))}
                 </div>
               )}
-
+              <Link href={`/view/trash/${id}`} className="text-lg font-semibold hover:underline">
+                  View Trash
+                </Link>
               <LinkToHome />
             </div>
           </div>
 
       </>
-
-    
   );
 }
