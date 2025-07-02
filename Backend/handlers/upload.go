@@ -21,6 +21,11 @@ type UploadResponse struct {
 	Filename string `json:"filename"`
 }
 
+type OrderUpdate struct {
+	ID         uint `json:"id"`
+	OrderIndex int  `json:"order_index"`
+}
+
 func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodOptions {
 		w.WriteHeader(http.StatusOK)
@@ -76,9 +81,15 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var maxIndex int
+	config.DB.Model(&models.Upload{}).
+    	Where("vault_id = ?", vaultId).
+    	Select("COALESCE(MAX(order_index), 0)").Scan(&maxIndex)
+
 	upload := models.Upload{
 		VaultID:  uint(vaultId),
 		Filename: handler.Filename,
+		OrderIndex: maxIndex + 1,
 	}
 
 	if err := config.DB.Create(&upload).Error; err != nil {
@@ -132,6 +143,30 @@ func ImagesHandler(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 	json.NewEncoder(w).Encode(responses)
+}
+
+func UpdateOrder(w http.ResponseWriter, r *http.Request) {
+
+	var updates []OrderUpdate
+	if err := json.NewDecoder(r.Body).Decode(&updates); err != nil {
+		http.Error(w, "Invalid request payload", http.StatusBadRequest)
+		return
+	}
+
+	for _, update := range updates {
+		err := config.DB.Model(&models.Upload{}).
+			Where("id = ?", update.ID).
+			Update("order_index", update.OrderIndex).Error
+		if err != nil {
+			http.Error(w, "Failed to update order", http.StatusInternalServerError)
+			return
+		}
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": "Order updated successfully",
+	})
 }
 
 func TrashUpload(w http.ResponseWriter, r *http.Request) {

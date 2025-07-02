@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Navbar from '@/components/Navbar';
+import Dnd from '@/components/Dnd';
 
 function LinkToHome() {
   return (
@@ -213,6 +214,7 @@ export default function ViewPage() {
                   View Trash
                 </Link>
               <LinkToHome />
+              <Dnd images={images} setImages={setImages} />
             </div>
           </div>
 

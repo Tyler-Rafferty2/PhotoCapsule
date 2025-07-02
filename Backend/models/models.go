@@ -29,4 +29,5 @@ type Upload struct {
 	Filename   string     `gorm:"not null"`
 	UploadTime time.Time  `gorm:"autoCreateTime"`
 	DeletedAt  *time.Time `gorm:"default:null"`
+	OrderIndex int  	  `gorm:"not null;default:0"`
 }
