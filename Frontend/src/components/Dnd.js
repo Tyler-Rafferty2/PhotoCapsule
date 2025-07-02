@@ -16,7 +16,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
-export default function ImageList({ images, setImages, handleTrash }) {
+export default function ImageList({ images, setImages, handleTrash}) {
   const [activeId, setActiveId] = useState(null);
   const activeImage = images.find((img) => img.id === activeId);
 
@@ -120,7 +120,6 @@ function SortableImage({ id, img, idx, handleTrash, isDragging }) {
       ref={setNodeRef}
       style={style}
       {...attributes}
-      {...listeners}
       className="relative aspect-square overflow-hidden transition-transform duration-200 hover:scale-105 group"
     >
       <button
@@ -130,6 +129,7 @@ function SortableImage({ id, img, idx, handleTrash, isDragging }) {
         ✕
       </button>
       <img
+        {...listeners}
         src={`http://localhost:8080/uploads/${img.filename}`}
         style={{ width: "100%", height: "auto" }}
         alt={`Uploaded ${idx}`}

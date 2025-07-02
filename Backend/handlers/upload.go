@@ -61,47 +61,58 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	file, handler, err := r.FormFile("image")
-	if err != nil {
-		http.Error(w, "Error retrieving the file", http.StatusBadRequest)
-		return
-	}
-	defer file.Close()
+	r.ParseMultipartForm(32 << 20)
 
-	dstPath := filepath.Join("uploads", handler.Filename)
-	dst, err := os.Create(dstPath)
-	if err != nil {
-		http.Error(w, "Could not save file", http.StatusInternalServerError)
-		return
-	}
-	defer dst.Close()
+	files := r.MultipartForm.File["images"]
 
-	if _, err := io.Copy(dst, file); err != nil {
-		http.Error(w, "Failed to save file", http.StatusInternalServerError)
+	if len(files) == 0 {
+		http.Error(w, "No files uploaded", http.StatusBadRequest)
 		return
 	}
 
-	var maxIndex int
-	config.DB.Model(&models.Upload{}).
-    	Where("vault_id = ?", vaultId).
-    	Select("COALESCE(MAX(order_index), 0)").Scan(&maxIndex)
+	for _, handler := range files {
+		file, err := handler.Open()
+		if err != nil {
+			http.Error(w, "Error opening file", http.StatusBadRequest)
+			return
+		}
+		defer file.Close()
 
-	upload := models.Upload{
-		VaultID:  uint(vaultId),
-		Filename: handler.Filename,
-		OrderIndex: maxIndex + 1,
-	}
+		dstPath := filepath.Join("uploads", handler.Filename)
+		dst, err := os.Create(dstPath)
+		if err != nil {
+			http.Error(w, "Could not save file", http.StatusInternalServerError)
+			return
+		}
+		defer dst.Close()
 
-	if err := config.DB.Create(&upload).Error; err != nil {
-		http.Error(w, "Failed to log upload in DB", http.StatusInternalServerError)
-		return
+		if _, err := io.Copy(dst, file); err != nil {
+			http.Error(w, "Failed to save file", http.StatusInternalServerError)
+			return
+		}
+
+		var maxIndex int
+		config.DB.Model(&models.Upload{}).
+			Where("vault_id = ?", vaultId).
+			Select("COALESCE(MAX(order_index), 0)").Scan(&maxIndex)
+
+		upload := models.Upload{
+			VaultID:   uint(vaultId),
+			Filename:  handler.Filename,
+			OrderIndex: maxIndex + 1,
+		}
+
+		if err := config.DB.Create(&upload).Error; err != nil {
+			http.Error(w, "Failed to log upload in DB", http.StatusInternalServerError)
+			return
+		}
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{
-		"message":  "Upload successful",
-		"filename": handler.Filename,
+		"message": "Upload successful",
 	})
+
 }
 
 func ImagesHandler(w http.ResponseWriter, r *http.Request) {
@@ -191,6 +202,7 @@ func TrashUpload(w http.ResponseWriter, r *http.Request) {
 
 	now := time.Now()
 	upload.DeletedAt = &now
+	upload.OrderIndex = -1
 	if err := config.DB.Save(&upload).Error; err != nil {
 		http.Error(w, "Failed to move to trash", http.StatusInternalServerError)
 		return
@@ -291,7 +303,12 @@ func TrashRecover(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var maxIndex int
+	config.DB.Model(&models.Upload{}).
+		Where("vault_id = ?", vaultId).
+		Select("COALESCE(MAX(order_index), 0)").Scan(&maxIndex)
 	upload.DeletedAt = nil
+	upload.OrderIndex = maxIndex
 	if err := config.DB.Save(&upload).Error; err != nil {
 		http.Error(w, "Failed to recover", http.StatusInternalServerError)
 		return

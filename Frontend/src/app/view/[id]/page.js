@@ -31,28 +31,47 @@ function UploadButton({ onClick, disabled, status }) {
 
 function FileInput({ onSelect }) {
   return (
-    <input
-      type="file"
-      accept="image/*"
-      onChange={(e) => {
-        const selected = e.target.files?.[0];
-        if (selected) onSelect(selected);
-      }}
-      className="block w-full text-sm text-gray-500"
-    />
+    <div>
+      <label
+        htmlFor="fileUpload"
+        className="cursor-pointer inline-block bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition"
+      >
+        Upload your image
+      </label>
+      <input
+        id="fileUpload"
+        type="file"
+        accept="image/*"
+        multiple
+        onChange={(e) => {
+          const files = e.target.files;
+          if (files && files.length > 0) {
+            onSelect(Array.from(files)); // pass as an array of File objects
+          }
+        }}
+        className="hidden" // hide default input
+      />
+    </div>
   );
 }
 
-function ImagePreview({ src }) {
-  if (!src) return null;
+function ImagePreview({ srcList }) {
+  if (!srcList || srcList.length === 0) return null;
+
   return (
-    <img
-      src={src}
-      alt="Image preview"
-      className="w-full h-auto rounded border"
-    />
+    <div className="flex flex-wrap gap-4">
+      {srcList.map((src, idx) => (
+        <img
+          key={idx}
+          src={src}
+          alt={`Preview ${idx}`}
+          className="w-64 h-auto rounded border"
+        />
+      ))}
+    </div>
   );
 }
+
 
 function StatusMessage({ status }) {
   if (status === 'success') {
@@ -63,36 +82,37 @@ function StatusMessage({ status }) {
   return null;
 }
 
-const Trashcan = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        const res = await fetch(`http://localhost:8080/images/trash/${id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        
-        const data = await res.json();
-        console.log("Fetched data:", data);
-        setImages(data);
-      } catch (err) {
-        console.error('Failed to fetch images:', err);
-      } finally {
-        setLoading(false);
-      }
-  };
-
 export default function ViewPage() {
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(true);
   const { id } = useParams();
   const [status, setStatus] = useState('idle');
-  const [file, setFile] = useState(null);
-  const [preview, setPreview] = useState(null);
+  const [file, setFile] = useState([]);
+  const [preview, setPreview] = useState([]);
 
-  const handleFileSelect = (selectedFile) => {
-      setFile(selectedFile);
-      setPreview(URL.createObjectURL(selectedFile));
-      setStatus('idle');
+  const handleFileSelect = (selectedFiles) => {
+    const filesArray = Array.isArray(selectedFiles) ? selectedFiles : [selectedFiles];
+    const newPreviews = filesArray.map(file => URL.createObjectURL(file));
+
+    setFile((prevFiles) => [...prevFiles, ...filesArray]); // if you're tracking files too
+    setPreview((prevPreviews) => [...prevPreviews, ...newPreviews]);
+    setStatus('idle');
   };
+
+  const handleTrash = async (img) => {
+    try {
+      const res = await fetch(`http://localhost:8080/api/upload/trash/${img}`, {
+        method: 'PATCH',
+        headers: {'Authorization': `Bearer ${localStorage.getItem('token')}`,
+       },
+      });
+
+      if (!res.ok) throw new Error('Trash failed');
+      fetchImages();
+    } catch (err) {
+      console.error(err);
+    }
+  }
   
   const fetchImages = async () => {
       try {
@@ -112,16 +132,16 @@ export default function ViewPage() {
   };
 
   const handleUpload = async () => {
-    if (!file) {
-      //alert("Please select a file first.");
+    if (file.length === 0) {
       return;
     }
 
     setStatus('uploading');
 
     const formData = new FormData();
-    formData.append('image', file);
-
+    file.forEach((f) => {
+      formData.append('images', f);
+    });
     try {
       const res = await fetch(`http://localhost:8080/upload/${id}`, {
         method: 'POST',
@@ -141,23 +161,8 @@ export default function ViewPage() {
       setStatus('error');
       //alert('Upload failed. Check console for details.');
     }
-    fetchImages();
+   fetchImages();
   };
-
-  const handleTrash = async (img) => {
-    try {
-      const res = await fetch(`http://localhost:8080/api/upload/trash/${img}`, {
-        method: 'PATCH',
-        headers: {'Authorization': `Bearer ${localStorage.getItem('token')}`,
-       },
-      });
-
-      if (!res.ok) throw new Error('Trash failed');
-      fetchImages();
-    } catch (err) {
-      console.error(err);
-    }
-  }
 
   useEffect(() => {
     fetchImages();
@@ -172,7 +177,7 @@ export default function ViewPage() {
         <Navbar />
           <div className="p-8 w-full space-y-4">
             <FileInput onSelect={handleFileSelect} />
-            <ImagePreview src={preview} />
+            <ImagePreview srcList={preview} />
             <StatusMessage status={status} />
             <UploadButton onClick={handleUpload} disabled={status === 'uploading'} status={status} />
 
@@ -186,35 +191,12 @@ export default function ViewPage() {
               ) : images.length === 0 ? (
                 <p>No images uploaded yet.</p>
               ) : (
-                <div
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
-                    gap: '1rem',
-                  }}
-                >
-                  {images.map((img, idx) => (
-                    <div key={idx} className="relative aspect-square overflow-hidden border transition-transform duration-200 hover:scale-105 group" style={{ border: '1px solid #ccc', padding: '1rem' }}>
-                      <button
-                        onClick={() => handleTrash(img.id)}
-                        className="absolute top-1 right-1 bg-red-500 text-white text-xs px-2 py-1 rounded z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                      >
-                        ✕
-                      </button>
-                      <img
-                        src={`http://localhost:8080/uploads/${img.filename}`}
-                        style={{ width: '100%', height: 'auto' }}
-                        alt={`Uploaded ${idx}`}
-                      />
-                    </div>
-                  ))}
-                </div>
+                <Dnd images={images} setImages={setImages} handleTrash={handleTrash} />
               )}
               <Link href={`/view/trash/${id}`} className="text-lg font-semibold hover:underline">
                   View Trash
                 </Link>
               <LinkToHome />
-              <Dnd images={images} setImages={setImages} />
             </div>
           </div>
 
