@@ -1,21 +1,58 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { parse, format } from "date-fns";
 
 export default function Time({ vaultId }) {
-  const [date, setDate] = useState(new Date());
-  const [time, setTime] = useState(new Date());
+  const [date, setDate] = useState(null);
+  const [time, setTime] = useState(null);
   const [inputValue, setInputValue] = useState("");
   const [error, setError] = useState("");
   const [status, setStatus] = useState("");
+
+  // Fetch existing release time on mount
+  useEffect(() => {
+    const fetchReleaseTime = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          console.error("No token found.");
+          return;
+        }
+
+        const res = await fetch(`http://localhost:8080/time/get/${vaultId}`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(`Failed to fetch time: ${text}`);
+        }
+
+        const data = await res.json();
+        console.log("fetched", data)
+        if (data.release_time) {
+          const releaseDate = new Date(data.release_time);
+
+          setDate(releaseDate);
+          setTime(releaseDate);
+          setInputValue(format(releaseDate, "h:mm aa"));
+        }
+      } catch (err) {
+        console.error("Error fetching release time:", err);
+      }
+    };
+
+    fetchReleaseTime();
+  }, [vaultId]);
 
   const parseTime = (val) => {
     let parsedDate;
     const today = new Date();
     const trimmed = val.trim().toLowerCase();
 
-    // "1300", "0930" (24-hour)
     if (/^\d{3,4}$/.test(trimmed)) {
       const hours = parseInt(trimmed.slice(0, -2), 10);
       const minutes = parseInt(trimmed.slice(-2), 10);
@@ -23,7 +60,6 @@ export default function Time({ vaultId }) {
         parsedDate = new Date(today.getFullYear(), today.getMonth(), today.getDate(), hours, minutes);
       }
     }
-    // "1230am", "930pm" (pure numeric with am/pm)
     else if (/^\d{3,4}(am|pm)$/.test(trimmed)) {
       const numPart = trimmed.slice(0, -2);
       const suffix = trimmed.slice(-2);
@@ -44,30 +80,26 @@ export default function Time({ vaultId }) {
         parsedDate = new Date(today.getFullYear(), today.getMonth(), today.getDate(), hours, minutes);
       }
     }
-    // "1:30am", "12:45pm"
     else if (/^\d{1,2}:\d{2}\s*(am|pm)$/.test(trimmed)) {
       parsedDate = parse(trimmed, "h:mm a", today);
     }
-    // "1:30", "12:45" — assume AM
     else if (/^\d{1,2}:\d{2}$/.test(trimmed)) {
       const [h, m] = trimmed.split(":").map(Number);
       if (h >= 0 && h <= 23 && m >= 0 && m <= 59) {
         parsedDate = new Date(today.getFullYear(), today.getMonth(), today.getDate(), h === 12 ? 0 : h, m);
       }
     }
-    // "1am", "12pm"
     else if (/^\d{1,2}(am|pm)$/.test(trimmed)) {
       parsedDate = parse(trimmed, "ha", today);
     }
-    // "1", "12", "23", "0" — assume AM or 24-hour
     else if (/^\d{1,2}$/.test(trimmed)) {
       let h = parseInt(trimmed, 10);
       if (h >= 0 && h <= 23) {
         let assumedHours = h;
         if (h === 0) {
-          assumedHours = 0; // midnight
+          assumedHours = 0;
         } else if (h >= 1 && h <= 12) {
-          assumedHours = h === 12 ? 0 : h; // 12 → 0 (midnight), otherwise AM
+          assumedHours = h === 12 ? 0 : h;
         }
         parsedDate = new Date(today.getFullYear(), today.getMonth(), today.getDate(), assumedHours, 0);
       }
@@ -75,9 +107,6 @@ export default function Time({ vaultId }) {
 
     return parsedDate && !isNaN(parsedDate) ? parsedDate : null;
   };
-
-
-
 
   const handleTimeInputChange = (e) => {
     const val = e.target.value;
@@ -199,7 +228,7 @@ export default function Time({ vaultId }) {
             onChange={handleTimeInputChange}
             onBlur={handleTimeBlur}
             className={`border p-2 w-full ${error ? "border-red-500" : ""}`}
-            placeholder="e.g., 1300, 1pm"
+            placeholder=""
           />
           <DatePicker
             selected={time}
