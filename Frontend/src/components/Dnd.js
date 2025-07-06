@@ -16,7 +16,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
-export default function ImageList({ images, setImages, handleTrash}) {
+export default function ImageList({ images, setImages, handleTrash }) {
   const [activeId, setActiveId] = useState(null);
   const activeImage = images.find((img) => img.id === activeId);
 
@@ -65,7 +65,10 @@ export default function ImageList({ images, setImages, handleTrash}) {
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <SortableContext items={images.map((img) => img.id)} strategy={rectSortingStrategy}>
+      <SortableContext
+        items={images.map((img) => img.id)}
+        strategy={rectSortingStrategy}
+      >
         <div
           style={{
             display: "grid",
@@ -87,25 +90,18 @@ export default function ImageList({ images, setImages, handleTrash}) {
       </SortableContext>
 
       <DragOverlay>
-        {activeImage ? (
-          <OverlayImage img={activeImage} />
-        ) : null}
+        {activeImage ? <OverlayImage img={activeImage} /> : null}
       </DragOverlay>
     </DndContext>
   );
 }
 
 function SortableImage({ id, img, idx, handleTrash, isDragging }) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-  } = useSortable({
-    id,
-    animateLayoutChanges: defaultAnimateLayoutChanges,
-  });
+  const { attributes, listeners, setNodeRef, transform, transition } =
+    useSortable({
+      id,
+      animateLayoutChanges: defaultAnimateLayoutChanges,
+    });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -156,4 +152,3 @@ function OverlayImage({ img, idx }) {
     </div>
   );
 }
-

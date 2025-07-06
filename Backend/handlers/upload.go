@@ -305,7 +305,7 @@ func TrashRecover(w http.ResponseWriter, r *http.Request) {
 
 	var maxIndex int
 	config.DB.Model(&models.Upload{}).
-		Where("vault_id = ?", vaultId).
+		Where("vault_id = ?", id).
 		Select("COALESCE(MAX(order_index), 0)").Scan(&maxIndex)
 	upload.DeletedAt = nil
 	upload.OrderIndex = maxIndex

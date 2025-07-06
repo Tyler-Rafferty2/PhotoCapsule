@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import Navbar from '@/components/Navbar';
-import { useState } from 'react';
-import Link from 'next/link';
+import Navbar from "@/components/Navbar";
+import { useState } from "react";
+import Link from "next/link";
 
 function LinkToGallery() {
   return (
@@ -15,14 +15,12 @@ function LinkToGallery() {
 }
 
 export default function UploadPage() {
-
   return (
     <>
-    <Navbar />
-    <div className="p-8 max-w-md mx-auto space-y-4">
-      <LinkToGallery />
-    </div>
-  </>
-
+      <Navbar />
+      <div className="p-8 max-w-md mx-auto space-y-4">
+        <LinkToGallery />
+      </div>
+    </>
   );
 }

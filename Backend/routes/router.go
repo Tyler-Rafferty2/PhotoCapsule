@@ -24,6 +24,10 @@ func SetupRoutes() *http.ServeMux {
 	mux.HandleFunc("/api/getvaults", middleware.WithCORS(middleware.AuthMiddleware(handlers.GetVaults)))
 	mux.HandleFunc("/api/update-order", middleware.WithCORS(middleware.AuthMiddleware(handlers.UpdateOrder)))
 	mux.HandleFunc("/api/upload/trash/", middleware.WithCORS(middleware.AuthMiddleware(handlers.TrashUpload)))
+	mux.HandleFunc("/time/set/", middleware.WithCORS(middleware.AuthMiddleware(handlers.SetVaultReleaseTimeHandler)))
+	mux.HandleFunc("/time/get/", middleware.WithCORS(middleware.AuthMiddleware(handlers.GetVaultReleaseTimeHandler)))
+
+
 
 	return mux
 }

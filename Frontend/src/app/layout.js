@@ -1,8 +1,8 @@
 // src/app/layout.js
-import './globals.css'
+import "./globals.css";
 export const metadata = {
-  title: 'PhotoVault',
-  description: 'Image sharing app',
+  title: "PhotoVault",
+  description: "Image sharing app",
 };
 
 export default function RootLayout({ children }) {
@@ -12,4 +12,3 @@ export default function RootLayout({ children }) {
     </html>
   );
 }
-

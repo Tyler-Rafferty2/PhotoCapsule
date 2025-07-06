@@ -1,9 +1,10 @@
-'use client';
-import Link from 'next/link';
-import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
-import Navbar from '@/components/Navbar';
-import Dnd from '@/components/Dnd';
+"use client";
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
+import Navbar from "@/components/Navbar";
+import Dnd from "@/components/Dnd";
+import Time from "@/components/Time";
 
 function LinkToHome() {
   return (
@@ -21,10 +22,12 @@ function UploadButton({ onClick, disabled, status }) {
       onClick={onClick}
       disabled={disabled}
       className={`w-full px-4 py-2 rounded text-white ${
-        disabled ? 'bg-gray-500 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
+        disabled
+          ? "bg-gray-500 cursor-not-allowed"
+          : "bg-blue-600 hover:bg-blue-700"
       }`}
     >
-      {status === 'uploading' ? 'Uploading...' : 'Upload'}
+      {status === "uploading" ? "Uploading..." : "Upload"}
     </button>
   );
 }
@@ -72,11 +75,12 @@ function ImagePreview({ srcList }) {
   );
 }
 
-
 function StatusMessage({ status }) {
-  if (status === 'success') {
-    return <p className="text-green-600 text-sm text-center">✅ Upload successful</p>;
-  } else if (status === 'error') {
+  if (status === "success") {
+    return (
+      <p className="text-green-600 text-sm text-center">✅ Upload successful</p>
+    );
+  } else if (status === "error") {
     return <p className="text-red-600 text-sm text-center">❌ Upload failed</p>;
   }
   return null;
@@ -86,49 +90,50 @@ export default function ViewPage() {
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(true);
   const { id } = useParams();
-  const [status, setStatus] = useState('idle');
+  const [status, setStatus] = useState("idle");
   const [file, setFile] = useState([]);
   const [preview, setPreview] = useState([]);
 
   const handleFileSelect = (selectedFiles) => {
-    const filesArray = Array.isArray(selectedFiles) ? selectedFiles : [selectedFiles];
-    const newPreviews = filesArray.map(file => URL.createObjectURL(file));
+    const filesArray = Array.isArray(selectedFiles)
+      ? selectedFiles
+      : [selectedFiles];
+    const newPreviews = filesArray.map((file) => URL.createObjectURL(file));
 
     setFile((prevFiles) => [...prevFiles, ...filesArray]); // if you're tracking files too
     setPreview((prevPreviews) => [...prevPreviews, ...newPreviews]);
-    setStatus('idle');
+    setStatus("idle");
   };
 
   const handleTrash = async (img) => {
     try {
       const res = await fetch(`http://localhost:8080/api/upload/trash/${img}`, {
-        method: 'PATCH',
-        headers: {'Authorization': `Bearer ${localStorage.getItem('token')}`,
-       },
+        method: "PATCH",
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
 
-      if (!res.ok) throw new Error('Trash failed');
+      if (!res.ok) throw new Error("Trash failed");
       fetchImages();
     } catch (err) {
       console.error(err);
     }
-  }
-  
+  };
+
   const fetchImages = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        const res = await fetch(`http://localhost:8080/images/${id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        
-        const data = await res.json();
-        console.log("Fetched data:", data);
-        setImages(data);
-      } catch (err) {
-        console.error('Failed to fetch images:', err);
-      } finally {
-        setLoading(false);
-      }
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`http://localhost:8080/images/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const data = await res.json();
+      console.log("Fetched data:", data);
+      setImages(data);
+    } catch (err) {
+      console.error("Failed to fetch images:", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleUpload = async () => {
@@ -136,32 +141,31 @@ export default function ViewPage() {
       return;
     }
 
-    setStatus('uploading');
+    setStatus("uploading");
 
     const formData = new FormData();
     file.forEach((f) => {
-      formData.append('images', f);
+      formData.append("images", f);
     });
     try {
       const res = await fetch(`http://localhost:8080/upload/${id}`, {
-        method: 'POST',
-        headers: {'Authorization': `Bearer ${localStorage.getItem('token')}`,
-       },
+        method: "POST",
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         body: formData,
       });
 
-      if (!res.ok) throw new Error('Upload failed');
+      if (!res.ok) throw new Error("Upload failed");
 
       const data = await res.json();
       setPreview(null);
-      setStatus('success');
+      setStatus("success");
       //alert(`Upload successful: ${data.filename || data.message}`);
     } catch (err) {
       console.error(err);
-      setStatus('error');
+      setStatus("error");
       //alert('Upload failed. Check console for details.');
     }
-   fetchImages();
+    fetchImages();
   };
 
   useEffect(() => {
@@ -174,32 +178,49 @@ export default function ViewPage() {
 
   return (
     <>
-        <Navbar />
-          <div className="p-8 w-full space-y-4">
-            <FileInput onSelect={handleFileSelect} />
-            <ImagePreview srcList={preview} />
-            <StatusMessage status={status} />
-            <UploadButton onClick={handleUpload} disabled={status === 'uploading'} status={status} />
+      <Navbar />
+      <div className="p-8 w-full space-y-4">
+        <Time vaultId={id} />
+        <FileInput onSelect={handleFileSelect} />
+        <ImagePreview srcList={preview} />
+        <StatusMessage status={status} />
+        <UploadButton
+          onClick={handleUpload}
+          disabled={status === "uploading"}
+          status={status}
+        />
 
-            <div style={{ padding: '2rem' }}>
-              <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1rem' }}>
-                📸 Uploaded Images
-              </h1>
+        <div style={{ padding: "2rem" }}>
+          <h1
+            style={{
+              fontSize: "1.5rem",
+              fontWeight: "bold",
+              marginBottom: "1rem",
+            }}
+          >
+            📸 Uploaded Images
+          </h1>
 
-              {loading ? (
-                <p>Loading images...</p>
-              ) : images.length === 0 ? (
-                <p>No images uploaded yet.</p>
-              ) : (
-                <Dnd images={images} setImages={setImages} handleTrash={handleTrash} />
-              )}
-              <Link href={`/view/trash/${id}`} className="text-lg font-semibold hover:underline">
-                  View Trash
-                </Link>
-              <LinkToHome />
-            </div>
-          </div>
-
-      </>
+          {loading ? (
+            <p>Loading images...</p>
+          ) : images.length === 0 ? (
+            <p>No images uploaded yet.</p>
+          ) : (
+            <Dnd
+              images={images}
+              setImages={setImages}
+              handleTrash={handleTrash}
+            />
+          )}
+          <Link
+            href={`/view/trash/${id}`}
+            className="text-lg font-semibold hover:underline"
+          >
+            View Trash
+          </Link>
+          <LinkToHome />
+        </div>
+      </div>
+    </>
   );
 }

@@ -1,7 +1,7 @@
-'use client'; // ← Add this if you're using the App Router
+"use client"; // ← Add this if you're using the App Router
 
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
+import { useEffect, useState } from "react";
+import Link from "next/link";
 
 export default function Navbar() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -20,18 +20,27 @@ export default function Navbar() {
         <div className="space-x-4 text-sm">
           {isLoggedIn ? (
             <>
-              <Link href="/vaults" className="hover:underline">Vaults</Link>
-              <button onClick={() => {
-                localStorage.removeItem("token");
-                setIsLoggedIn(false);
-              }} className="hover:underline">
+              <Link href="/vaults" className="hover:underline">
+                Vaults
+              </Link>
+              <button
+                onClick={() => {
+                  localStorage.removeItem("token");
+                  setIsLoggedIn(false);
+                }}
+                className="hover:underline"
+              >
                 Log Out
               </button>
             </>
           ) : (
             <>
-              <Link href="/login" className="hover:underline">Log In</Link>
-              <Link href="/register" className="hover:underline">Sign Up</Link>
+              <Link href="/login" className="hover:underline">
+                Log In
+              </Link>
+              <Link href="/register" className="hover:underline">
+                Sign Up
+              </Link>
             </>
           )}
         </div>
