@@ -191,16 +191,28 @@ export default function ViewPage() {
         />
 
         <div style={{ padding: "2rem" }}>
-          <h1
-            style={{
-              fontSize: "1.5rem",
-              fontWeight: "bold",
-              marginBottom: "1rem",
-            }}
-          >
-            📸 Uploaded Images
-          </h1>
-
+          <div className="flex items-center justify-between space-x-4">
+            <h1
+              style={{
+                fontSize: "1.5rem",
+                fontWeight: "bold",
+                marginBottom: "1rem",
+              }}
+            >
+              Uploaded Images
+            </h1>
+            <Link
+              href={`/view/trash/${id}`}
+              className="inline-flex items-center gap-2 bg-red-600 text-white px-4 py-1 rounded hover:bg-red-700 transition"
+              style={{
+                fontSize: "1.5rem",
+                fontWeight: "bold",
+                marginBottom: "1rem",
+              }}
+            >
+              Go To Trash
+            </Link>
+          </div>
           {loading ? (
             <p>Loading images...</p>
           ) : images.length === 0 ? (
@@ -212,12 +224,6 @@ export default function ViewPage() {
               handleTrash={handleTrash}
             />
           )}
-          <Link
-            href={`/view/trash/${id}`}
-            className="text-lg font-semibold hover:underline"
-          >
-            View Trash
-          </Link>
           <LinkToHome />
         </div>
       </div>

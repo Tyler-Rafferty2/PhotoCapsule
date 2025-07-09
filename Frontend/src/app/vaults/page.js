@@ -72,23 +72,23 @@ export default function VaultsPage() {
             No vaults yet. Click above to create one.
           </p>
         ) : (
-          <ul className="space-y-2">
+          <ul className="flex flex-wrap gap-4 justify-center">
             {vaults.map((vault) => (
               <li
                 key={vault.ID}
                 className="relative group p-4 rounded shadow-sm transition-transform duration-300 hover:scale-105"
               >
                 <Link href={`/view/${vault.ID}`}>
-                  <div className="relative w-40 h-40 mx-auto">
+                  <div className="relative inline-block mx-auto">
                     <img
                       src="/Vault-Closed.png"
                       alt="Vault Closed"
-                      className="w-full h-full object-contain transition-opacity duration-300 group-hover:opacity-0"
+                      className="transition-opacity duration-300 group-hover:opacity-0 w-32" // You can adjust w-32 to make smaller
                     />
                     <img
                       src="/Vault-Open.png"
                       alt="Vault Open"
-                      className="w-full h-full object-contain absolute top-0 left-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                      className="absolute top-0 left-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100 w-32"
                     />
                   </div>
                   <p className="text-center text-lg font-semibold mt-2">{vault.Title}</p>
