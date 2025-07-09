@@ -74,15 +74,26 @@ export default function VaultsPage() {
         ) : (
           <ul className="space-y-2">
             {vaults.map((vault) => (
-              <li key={`${vault.ID}`} className="border p-4 rounded shadow-sm">
-                <Link
-                  href={`/view/${vault.ID}`}
-                  className="text-lg font-semibold hover:underline"
-                >
-                  View {vault.Title}
+              <li
+                key={vault.ID}
+                className="relative group p-4 rounded shadow-sm transition-transform duration-300 hover:scale-105"
+              >
+                <Link href={`/view/${vault.ID}`}>
+                  <div className="relative w-40 h-40 mx-auto">
+                    <img
+                      src="/Vault-Closed.png"
+                      alt="Vault Closed"
+                      className="w-full h-full object-contain transition-opacity duration-300 group-hover:opacity-0"
+                    />
+                    <img
+                      src="/Vault-Open.png"
+                      alt="Vault Open"
+                      className="w-full h-full object-contain absolute top-0 left-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                    />
+                  </div>
+                  <p className="text-center text-lg font-semibold mt-2">{vault.Title}</p>
+                  <p className="text-center text-sm text-gray-500">{vault.Description}</p>
                 </Link>
-                <p className="text-sm text-gray-500">ID: {vault.ID}</p>
-                <p className="text-sm text-gray-500">{vault.Description}</p>
               </li>
             ))}
           </ul>

@@ -51,16 +51,17 @@ export default function Time({ vaultId }) {
   const parseTime = (val) => {
     let parsedDate;
     const today = new Date();
-    const trimmed = val.trim().toLowerCase();
+    let trimmed = val.trim().toLowerCase();
 
-    if (/^\d{3,4}$/.test(trimmed)) {
-      const hours = parseInt(trimmed.slice(0, -2), 10);
-      const minutes = parseInt(trimmed.slice(-2), 10);
-      if (hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59) {
-        parsedDate = new Date(today.getFullYear(), today.getMonth(), today.getDate(), hours, minutes);
-      }
-    }
-    else if (/^\d{3,4}(am|pm)$/.test(trimmed)) {
+
+    // Remove any space before am/pm (important!)
+    trimmed = trimmed.replace(/\s+(am|pm)$/, "$1");
+
+    // Normalize separators
+    trimmed = trimmed.replace(/[-.\s]/g, ":");
+
+    // "hhmmam" or "hmmam"
+    if (/^\d{3,4}(am|pm)$/.test(trimmed)) {
       const numPart = trimmed.slice(0, -2);
       const suffix = trimmed.slice(-2);
       let hours, minutes;
@@ -80,28 +81,26 @@ export default function Time({ vaultId }) {
         parsedDate = new Date(today.getFullYear(), today.getMonth(), today.getDate(), hours, minutes);
       }
     }
-    else if (/^\d{1,2}:\d{2}\s*(am|pm)$/.test(trimmed)) {
-      parsedDate = parse(trimmed, "h:mm a", today);
+    // "h:mmam" or "hh:mmam"
+    else if (/^\d{1,2}:\d{1,2}(am|pm)$/.test(trimmed)) {
+      parsedDate = parse(trimmed, "h:mma", today);
     }
-    else if (/^\d{1,2}:\d{2}$/.test(trimmed)) {
+    // "h:mm" (24-hour)
+    else if (/^\d{1,2}:\d{1,2}$/.test(trimmed)) {
       const [h, m] = trimmed.split(":").map(Number);
       if (h >= 0 && h <= 23 && m >= 0 && m <= 59) {
-        parsedDate = new Date(today.getFullYear(), today.getMonth(), today.getDate(), h === 12 ? 0 : h, m);
+        parsedDate = new Date(today.getFullYear(), today.getMonth(), today.getDate(), h, m);
       }
     }
+    // "ham"
     else if (/^\d{1,2}(am|pm)$/.test(trimmed)) {
       parsedDate = parse(trimmed, "ha", today);
     }
+    // Just hour number
     else if (/^\d{1,2}$/.test(trimmed)) {
       let h = parseInt(trimmed, 10);
       if (h >= 0 && h <= 23) {
-        let assumedHours = h;
-        if (h === 0) {
-          assumedHours = 0;
-        } else if (h >= 1 && h <= 12) {
-          assumedHours = h === 12 ? 0 : h;
-        }
-        parsedDate = new Date(today.getFullYear(), today.getMonth(), today.getDate(), assumedHours, 0);
+        parsedDate = new Date(today.getFullYear(), today.getMonth(), today.getDate(), h, 0);
       }
     }
 
