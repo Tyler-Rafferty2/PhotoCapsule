@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import ThemeToggle from "./ThemeToggle";
 
 export default function Navbar() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -12,11 +13,17 @@ export default function Navbar() {
   }, []);
 
   return (
-    <nav className="bg-gray-900 text-white p-4">
+    <nav 
+        style={{
+        background: "var(--softbackground)",
+        color: "var(--secondary)",
+      }}
+      className="p-4">
       <div className="max-w-6xl mx-auto flex justify-between items-center">
         <h1 className="text-xl font-bold">
-          <Link href="/">📸 PhotoVault</Link>
+          <Link href="/">PhotoVault</Link>
         </h1>
+        <ThemeToggle/>
         <div className="space-x-4 text-sm">
           {isLoggedIn ? (
             <>
