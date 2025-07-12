@@ -1,37 +1,34 @@
+@import url('https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;700&display=swap');
 @import "tailwindcss";
 
 :root {
-  --background: #F9FAFB;
-  --softbackground:#EDF3F8;
-  --foreground: #000000;
-  --navbar: #000000;
-  --accent: #4285F4;
-  --secondaccent: #1A73E8;
-  --text: #202124;
-  --border: #E0E0E0;
+  --background: #F7F5EF; /* Soft, warm light background */
+  --softbackground: #EFECE5; /* Slightly deeper neutral background */
+  --foreground: #3E3A36; /* Warm dark text */
+  --navbar: #3E3A36;
+  --accent: #6B8F71; /* Muted, earthy green accent */
+  --secondaccent: #A3BFA4; /* Lighter, complementary green for hover states */
+  --text: #3E3A36;
+  --border: #E5E1D8;
 }
-
-/* @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-} */
 
 .dark {
-  --background: #202124;
-  --softbackground: #2A2D31;
-  --foreground: #E8EAED;
-  --navbar: #171717;
-  --accent: #8AB4F8;
-  --secondaccent: #669DF6;
-  --text: #E8EAED;
-  --border: #3C4043;  
+  --background: #2E2B26;
+  --softbackground: #3B3833;
+  --foreground: #EDE8DD;
+  --navbar: #1F1D1A;
+  --accent: #A3BFA4; /* Lighter muted green in dark mode */
+  --secondaccent: #6B8F71; /* Darker muted green for accents */
+  --text: #EDE8DD;
+  --border: #4A4641;
 }
-
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: 'Work Sans', sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
 }

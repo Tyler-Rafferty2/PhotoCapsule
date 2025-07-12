@@ -1,6 +1,34 @@
-# PhotoVault
+# 📸 Photo Capsule
 
-docker exec -it photovault-db psql -U postgres -d timecapsule
-docker exec -it photovault-backend /bin/sh
+Photo Capsule is a modern web application that lets users create digital "capsules" to store and organize their most important photo memories — like a time capsule for your favorite moments.
 
-DELETE FROM uploads;
+---
+
+## ✨ Features
+
+- ✅ **Create Capsules** — Easily create new photo capsules to hold your memories.
+- ✅ **Organize Photos** — Upload and organize images inside each capsule.
+- ✅ **Responsive Design** — Works beautifully on all screen sizes.
+- ✅ **Secure & Private** — Capsules are private and require authentication to access.
+- ✅ **Smooth UI** — Clean, minimalist interface with gentle interactions.
+
+---
+
+## 💻 Tech Stack
+
+- **Frontend**: Next.js, React, Tailwind CSS
+- **Backend**: Go (Golang) API server
+- **Database**: PostgreSQL (via GORM)
+- **Auth**: JWT-based authentication
+- **Hosting**: (Add here, e.g., Vercel / Netlify / Render)
+
+---
+
+## 🚀 Getting Started
+
+### 1️⃣ Clone the repository
+
+```bash
+git clone https://github.com/yourusername/photo-capsule.git
+cd photo-capsule
+```
