@@ -159,11 +159,9 @@ export default function ViewPage() {
       const data = await res.json();
       setPreview(null);
       setStatus("success");
-      //alert(`Upload successful: ${data.filename || data.message}`);
     } catch (err) {
       console.error(err);
       setStatus("error");
-      //alert('Upload failed. Check console for details.');
     }
     fetchImages();
   };

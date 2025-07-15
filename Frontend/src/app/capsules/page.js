@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import Navbar from "@/components/Navbar";
 import Link from "next/link";
 
+
+
 function CapsuleModal({ isOpen, onClose, onSubmit }) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -29,7 +31,7 @@ function CapsuleModal({ isOpen, onClose, onSubmit }) {
     setDescription("");
     setCoverImage(null);
   };
-
+  
   if (!isOpen) return null;
 
   return (
@@ -161,7 +163,7 @@ export default function CapsulesPage() {
     const vaultId = vaultData.vaultId;
     const formData = new FormData();
     console.log(coverImage)
-    formData.append("coverImage", coverImage);
+    formData.append("images", coverImage);
     //formData.append("IncludeInCapsule", includeInCapsule);
 
     await fetch(`http://localhost:8080/cover/upload/${vaultId}`, {
@@ -171,12 +173,50 @@ export default function CapsulesPage() {
       },
       body: formData,
     });
+    console.log(includeInCapsule)
+    if(includeInCapsule){
+      await fetch(`http://localhost:8080/upload/${vaultId}`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+          body: formData,
+      });
+    }
+
       fetchCapsules();
     } catch (err) {
       console.error("Failed to create capsule:", err);
     } finally {
       setCreating(false);
       setIsModalOpen(false);
+    }
+  };
+
+  const handleUpload = async () => {
+    if (file.length === 0) {
+      return;
+    }
+
+    setStatus("uploading");
+
+    const formData = new FormData();
+    file.forEach((f) => {
+      formData.append("images", f);
+    });
+    try {
+      const res = await fetch(`http://localhost:8080/upload/${id}`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        body: formData,
+      });
+
+      if (!res.ok) throw new Error("Upload failed");
+
+      const data = await res.json();
+      setPreview(null);
+      setStatus("success");
+    } catch (err) {
+      console.error(err);
+      setStatus("error");
     }
   };
 
@@ -216,25 +256,25 @@ export default function CapsulesPage() {
             {capsules.map((capsule) => (
               <li
                 key={capsule.ID}
-                className="p-4 rounded shadow-sm"
+                className="p-4 rounded shadow-sm flex flex-col justify-center items-center" // Added flex for better centering
                 style={{
                   background: "var(--softbackground)",
                   border: `1px solid var(--border)`,
                 }}
               >
                 <Link href={`/view/${capsule.ID}`}>
-                  <div className="relative inline-block mx-auto">
+                  <div className="relative flex justify-center items-center">
                     {capsule.CoverImageURL ? (
                       <img
                         src={`http://localhost:8080/uploads/${capsule.CoverImageURL}`}
                         alt="Capsule Cover"
-                        className="w-32 mx-auto" 
+                        className="w-32 h-32 object-cover" // Ensure the image has fixed dimensions
                       />
                     ) : (
                       <img
                         src="/Vault-Closed.png"
                         alt="Capsule Closed"
-                        className="w-32 mx-auto" 
+                        className="w-32 h-32 object-cover" // Fallback image
                       />
                     )}
                   </div>

@@ -124,7 +124,7 @@ func CoverUploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fileHeader, _, err := r.FormFile("coverImage")
+	fileHeader, _, err := r.FormFile("images")
 	if err != nil {
 		http.Error(w, "No file uploaded", http.StatusBadRequest)
 		return
