@@ -3,6 +3,11 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"io"
+	"os"
+	"path/filepath"
+	"strconv"
+	"fmt"
 
 	"photovault/config"
 	"photovault/utils"
@@ -58,7 +63,7 @@ func AddVault(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(map[string]string{"message": "Vault created successfully"})
+	json.NewEncoder(w).Encode(map[string]interface{}{"vaultId": newVault.ID})
 }
 
 func GetVaults(w http.ResponseWriter, r *http.Request) {
@@ -84,6 +89,7 @@ func GetVaults(w http.ResponseWriter, r *http.Request) {
 }
 
 func CoverUploadHandler(w http.ResponseWriter, r *http.Request) {
+
 	if r.Method == http.MethodOptions {
 		w.WriteHeader(http.StatusOK)
 		return
@@ -117,15 +123,14 @@ func CoverUploadHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Vault not found or forbidden", http.StatusForbidden)
 		return
 	}
-	
-	fileHeader, _, err := r.FormFile("image")
+
+	fileHeader, _, err := r.FormFile("coverImage")
 	if err != nil {
 		http.Error(w, "No file uploaded", http.StatusBadRequest)
 		return
 	}
 	defer fileHeader.Close()
-
-	filename := fmt.Sprintf("%d_%s", vaultId, "cover.jpg") // or use handler.Filename for original name
+	filename := fmt.Sprintf("%d_%s", vaultId, "cover.jpg")
 	dstPath := filepath.Join("uploads", filename)
 
 	dst, err := os.Create(dstPath)
@@ -153,6 +158,7 @@ func CoverUploadHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Link to vault
 	vault.CoverImageID = &coverImage.ID
+	vault.CoverImageURL = &filename
 	if err := config.DB.Save(&vault).Error; err != nil {
 		http.Error(w, "Failed to link cover image", http.StatusInternalServerError)
 		return

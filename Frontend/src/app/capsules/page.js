@@ -24,7 +24,7 @@ function CapsuleModal({ isOpen, onClose, onSubmit }) {
   };
 
   const handleSubmit = () => {
-    onSubmit({ name, description });
+    onSubmit({ name, description, coverImage, includeInCapsule});
     setName("");
     setDescription("");
     setCoverImage(null);
@@ -140,18 +140,37 @@ export default function CapsulesPage() {
     fetchCapsules();
   }, []);
 
-  const handleCreateCapsule = async ({ name, description }) => {
+  const handleCreateCapsule = async ({ name, description, coverImage, includeInCapsule}) => {
     setCreating(true);
     try {
       const token = localStorage.getItem("token");
-      await fetch("http://localhost:8080/api/addvaults", {
+      const vaultResponse = await fetch("http://localhost:8080/api/addvaults", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ Name: name, Description: description, CoverImgage: coverImage, IncludeInCapsule: includeInCapsule }),
+        body: JSON.stringify({ Name: name, Description: description}),
       });
+      
+    if (!vaultResponse.ok) {
+      throw new Error("Failed to create vault");
+    }
+
+    const vaultData = await vaultResponse.json();
+    const vaultId = vaultData.vaultId;
+    const formData = new FormData();
+    console.log(coverImage)
+    formData.append("coverImage", coverImage);
+    //formData.append("IncludeInCapsule", includeInCapsule);
+
+    await fetch(`http://localhost:8080/cover/upload/${vaultId}`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
+    });
       fetchCapsules();
     } catch (err) {
       console.error("Failed to create capsule:", err);
@@ -197,7 +216,7 @@ export default function CapsulesPage() {
             {capsules.map((capsule) => (
               <li
                 key={capsule.ID}
-                className="relative group p-4 rounded shadow-sm transition-transform duration-300 hover:scale-105"
+                className="p-4 rounded shadow-sm"
                 style={{
                   background: "var(--softbackground)",
                   border: `1px solid var(--border)`,
@@ -205,16 +224,19 @@ export default function CapsulesPage() {
               >
                 <Link href={`/view/${capsule.ID}`}>
                   <div className="relative inline-block mx-auto">
-                    <img
-                      src="/Vault-Closed.png"
-                      alt="Capsule Closed"
-                      className="transition-opacity duration-300 group-hover:opacity-0 w-32 mx-auto"
-                    />
-                    <img
-                      src="/Vault-Open.png"
-                      alt="Capsule Open"
-                      className="absolute top-0 left-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100 w-32 mx-auto"
-                    />
+                    {capsule.CoverImageURL ? (
+                      <img
+                        src={`http://localhost:8080/uploads/${capsule.CoverImageURL}`}
+                        alt="Capsule Cover"
+                        className="w-32 mx-auto" 
+                      />
+                    ) : (
+                      <img
+                        src="/Vault-Closed.png"
+                        alt="Capsule Closed"
+                        className="w-32 mx-auto" 
+                      />
+                    )}
                   </div>
                   <p className="text-center text-lg font-semibold mt-2">{capsule.Title}</p>
                   <p className="text-center text-sm" style={{ color: "var(--foreground)" }}>
