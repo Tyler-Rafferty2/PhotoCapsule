@@ -23,12 +23,3 @@ Photo Capsule is a modern web application that lets users create digital "capsul
 - **Hosting**: (Add here, e.g., Vercel / Netlify / Render)
 
 ---
-
-## 🚀 Getting Started
-
-### 1️⃣ Clone the repository
-
-```bash
-git clone https://github.com/yourusername/photo-capsule.git
-cd photo-capsule
-```

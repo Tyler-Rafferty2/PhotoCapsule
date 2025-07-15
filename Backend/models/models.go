@@ -17,6 +17,8 @@ type Vault struct {
 	UserID      uint      `gorm:"not null"`
 	Title       string    `gorm:"not null"`
 	Description string
+	CoverImageID  *uint
+	CoverImageURL *string
 	UnlockDate  *time.Time
 	CreatedAt   time.Time
 
@@ -30,4 +32,11 @@ type Upload struct {
 	UploadTime time.Time  `gorm:"autoCreateTime"`
 	DeletedAt  *time.Time `gorm:"default:null"`
 	OrderIndex int  	  `gorm:"not null;default:0"`
+}
+
+type CoverImage struct {
+	ID              uint      `gorm:"primaryKey"`
+	VaultID         uint      `gorm:"not null"`
+	Filename        string    `gorm:"not null"`
+	UploadTime       time.Time `gorm:"autoCreateTime"`
 }

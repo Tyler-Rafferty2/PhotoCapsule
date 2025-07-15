@@ -4,10 +4,121 @@ import { useEffect, useState } from "react";
 import Navbar from "@/components/Navbar";
 import Link from "next/link";
 
+function CapsuleModal({ isOpen, onClose, onSubmit }) {
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [coverImage, setCoverImage] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState("");
+  const [includeInCapsule, setIncludeInCapsule] = useState(false);
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    setCoverImage(file);
+
+    if (file) {
+      setPreviewUrl(URL.createObjectURL(file));
+    } else {
+      setPreviewUrl("");
+    }
+    setIncludeInCapsule(false);
+  };
+
+  const handleSubmit = () => {
+    onSubmit({ name, description });
+    setName("");
+    setDescription("");
+    setCoverImage(null);
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div
+      className="fixed inset-0 flex items-center justify-center z-50"
+      style={{
+        background: "rgba(0, 0, 0, 0.7)", // black translucent background
+      }}
+    >
+      <div className="backdrop-blur-md bg-white/70 p-6 rounded shadow-lg w-full max-w-sm">
+        <h2 className="text-xl font-bold mb-4">Create New Capsule</h2>
+        <input
+          type="text"
+          placeholder="Capsule Name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className="w-full mb-2 p-2 border rounded bg-white/80 backdrop-blur"
+        />
+        <textarea
+          placeholder="Description"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          className="w-full mb-4 p-2 border rounded bg-white/80 backdrop-blur"
+        />
+        <div>
+          <input type="file" accept="image/*" onChange={handleFileChange} />
+
+          {previewUrl && (
+            <div style={{ marginTop: "1rem" }}>
+              <img
+                src={previewUrl}
+                alt="Cover Preview"
+                style={{
+                  maxWidth: "300px",
+                  maxHeight: "200px",
+                  objectFit: "cover",
+                  borderRadius: "8px",
+                }}
+              />
+              <div style={{ marginTop: "0.5rem" }}>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={includeInCapsule}
+                    onChange={(e) => setIncludeInCapsule(e.target.checked)}
+                  />{" "}
+                  Include in capsule
+                </label>
+              </div>
+            </div>
+          )}
+        </div>
+        <div className="flex justify-end gap-2">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 border rounded"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSubmit}
+            className="px-4 py-2 rounded shadow transition-colors duration-200"
+            style={{
+              background: "var(--accent)",
+              color: "#fff",
+            }}
+            onMouseOver={(e) =>
+              (e.currentTarget.style.background = "var(--secondaccent)")
+            }
+            onMouseOut={(e) =>
+              (e.currentTarget.style.background = "var(--accent)")
+            }
+          >
+            Create
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+
+
 export default function CapsulesPage() {
   const [capsules, setCapsules] = useState([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const fetchCapsules = async () => {
     try {
@@ -29,7 +140,7 @@ export default function CapsulesPage() {
     fetchCapsules();
   }, []);
 
-  const handleCreateCapsule = async () => {
+  const handleCreateCapsule = async ({ name, description }) => {
     setCreating(true);
     try {
       const token = localStorage.getItem("token");
@@ -39,13 +150,14 @@ export default function CapsulesPage() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ Name: `Capsule ${capsules.length + 1}` }),
+        body: JSON.stringify({ Name: name, Description: description, CoverImgage: coverImage, IncludeInCapsule: includeInCapsule }),
       });
+      fetchCapsules();
     } catch (err) {
       console.error("Failed to create capsule:", err);
     } finally {
       setCreating(false);
-      fetchCapsules();
+      setIsModalOpen(false);
     }
   };
 
@@ -60,7 +172,7 @@ export default function CapsulesPage() {
           <h1 className="text-3xl font-bold ">📂 Your Capsules</h1>
 
           <button
-            onClick={handleCreateCapsule}
+            onClick={() => setIsModalOpen(true)}
             disabled={creating}
             className="px-5 py-3 rounded shadow transition-colors duration-200"
             style={{
@@ -114,6 +226,12 @@ export default function CapsulesPage() {
           </ul>
         )}
       </div>
+
+      <CapsuleModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSubmit={handleCreateCapsule}
+      />
     </>
   );
 }
