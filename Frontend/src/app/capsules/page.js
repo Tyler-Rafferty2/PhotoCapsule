@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Navbar from "@/components/Navbar";
 import Link from "next/link";
-
+import DndCapsules from "@/components/DndCapsules";
 
 
 function CapsuleModal({ isOpen, onClose, onSubmit }) {
@@ -252,40 +252,7 @@ export default function CapsulesPage() {
             No capsules yet. Click above to create one.
           </p>
         ) : (
-          <ul className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {capsules.map((capsule) => (
-              <li
-                key={capsule.ID}
-                className="p-4 rounded shadow-sm flex flex-col justify-center items-center" // Added flex for better centering
-                style={{
-                  background: "var(--softbackground)",
-                  border: `1px solid var(--border)`,
-                }}
-              >
-                <Link href={`/view/${capsule.ID}`}>
-                  <div className="relative flex justify-center items-center">
-                    {capsule.CoverImageURL ? (
-                      <img
-                        src={`http://localhost:8080/uploads/${capsule.CoverImageURL}`}
-                        alt="Capsule Cover"
-                        className="w-32 h-32 object-cover" // Ensure the image has fixed dimensions
-                      />
-                    ) : (
-                      <img
-                        src="/Vault-Closed.png"
-                        alt="Capsule Closed"
-                        className="w-32 h-32 object-cover" // Fallback image
-                      />
-                    )}
-                  </div>
-                  <p className="text-center text-lg font-semibold mt-2">{capsule.Title}</p>
-                  <p className="text-center text-sm" style={{ color: "var(--foreground)" }}>
-                    {capsule.Description}
-                  </p>
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <DndCapsules capsules={capsules} setCapsules={setCapsules} />
         )}
       </div>
 
