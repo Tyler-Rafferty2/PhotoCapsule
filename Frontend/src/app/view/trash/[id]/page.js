@@ -6,7 +6,7 @@ import Navbar from "@/components/Navbar";
 
 function LinkToHome() {
   return (
-    <div className="text-center">
+    <div className="text-center mt-8">
       <Link href="/" className="text-blue-500 hover:underline">
         Go home
       </Link>
@@ -46,7 +46,7 @@ export default function ViewPage() {
         },
       );
 
-      if (!res.ok) throw new Error("Trash failed");
+      if (!res.ok) throw new Error("Delete failed");
       fetchImages();
     } catch (err) {
       console.error(err);
@@ -63,7 +63,7 @@ export default function ViewPage() {
         },
       );
 
-      if (!res.ok) throw new Error("Trash failed");
+      if (!res.ok) throw new Error("Recover failed");
       fetchImages();
     } catch (err) {
       console.error(err);
@@ -81,60 +81,80 @@ export default function ViewPage() {
   return (
     <>
       <Navbar />
-      <div className="p-8 w-full space-y-4">
-        <div style={{ padding: "2rem" }}>
-          <h1
+      <div
+        className="pt-32 px-8 pb-16 max-w-7xl mx-auto space-y-8"
+        style={{ color: "var(--text)" }}
+      >
+        <h1 className="text-3xl font-bold mb-4">🗑️ Trash</h1>
+
+        {loading ? (
+          <p style={{ color: "var(--foreground)" }}>Loading images...</p>
+        ) : images.length === 0 ? (
+          <p style={{ color: "var(--foreground)" }}>No images in trash.</p>
+        ) : (
+          <div
+            className="grid gap-4"
             style={{
-              fontSize: "1.5rem",
-              fontWeight: "bold",
-              marginBottom: "1rem",
+              gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))",
             }}
           >
-            📸 Uploaded Images
-          </h1>
-
-          {loading ? (
-            <p>Loading images...</p>
-          ) : images.length === 0 ? (
-            <p>No images uploaded yet.</p>
-          ) : (
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))",
-                gap: "1rem",
-              }}
-            >
-              {images.map((img, idx) => (
-                <div
-                  key={idx}
-                  className="relative aspect-square overflow-hidden border transition-transform duration-200 hover:scale-105 group"
-                  style={{ border: "1px solid #ccc", padding: "1rem" }}
+            {images.map((img, idx) => (
+              <div
+                key={idx}
+                className="relative aspect-square overflow-hidden border rounded shadow transition-transform duration-200 hover:scale-105 group bg-white/80 backdrop-blur"
+              >
+                <button
+                  onClick={() => PermDel(img.id)}
+                  className="absolute top-2 right-2 px-3 py-1 rounded shadow text-xs transition-colors duration-200"
+                  style={{
+                    background: "var(--accent)",
+                    color: "#fff",
+                  }}
+                  onMouseOver={(e) =>
+                    (e.currentTarget.style.background = "var(--secondaccent)")
+                  }
+                  onMouseOut={(e) =>
+                    (e.currentTarget.style.background = "var(--accent)")
+                  }
                 >
-                  <button
-                    onClick={() => PermDel(img.id)}
-                    className="absolute top-1 right-1 bg-red-500 text-white text-xs px-2 py-1 rounded z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                  >
-                    Delete forever
-                  </button>
-                  <button
-                    onClick={() => Recover(img.id)}
-                    className="absolute top-1 left-1 bg-green-500 text-white text-xs px-2 py-1 rounded z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                  >
-                    Recover
-                  </button>
-                  <img
-                    src={`http://localhost:8080/uploads/${img.filename}`}
-                    style={{ width: "100%", height: "auto" }}
-                    alt={`Uploaded ${idx}`}
-                  />
-                </div>
-              ))}
-            </div>
-          )}
+                  Delete
+                </button>
+                <button
+                  onClick={() => Recover(img.id)}
+                  className="absolute top-2 left-2 px-3 py-1 rounded shadow text-xs transition-colors duration-200"
+                  style={{
+                    background: "var(--accent)",
+                    color: "#fff",
+                  }}
+                  onMouseOver={(e) =>
+                    (e.currentTarget.style.background = "var(--secondaccent)")
+                  }
+                  onMouseOut={(e) =>
+                    (e.currentTarget.style.background = "var(--accent)")
+                  }
+                >
+                  Recover
+                </button>
+                <img
+                  src={`http://localhost:8080/uploads/${img.filename}`}
+                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                  alt={`Trash ${idx}`}
+                />
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="flex gap-4 mt-8">
           <Link
             href={`/view/${id}`}
-            className="text-lg font-semibold hover:underline"
+            className="px-5 py-3 rounded shadow transition-colors duration-200"
+            style={{
+              background: "var(--accent)",
+              color: "#fff",
+            }}
+            onMouseOver={(e) => (e.currentTarget.style.background = "var(--secondaccent)")}
+            onMouseOut={(e) => (e.currentTarget.style.background = "var(--accent)")}
           >
             View Vault
           </Link>

@@ -17,61 +17,11 @@ function LinkToHome() {
   );
 }
 
-function UploadButton({ onClick, disabled, status }) {
-  return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      className="px-5 py-3 rounded shadow transition-colors duration-200 w-full"
-      style={{
-        background: "var(--accent)",
-        color: "#fff",
-      }}
-      onMouseOver={(e) => (e.currentTarget.style.background = "var(--secondaccent)")}
-      onMouseOut={(e) => (e.currentTarget.style.background = "var(--accent)")}
-    >
-      {status === "uploading" ? "Uploading..." : "Upload"}
-    </button>
-  );
-}
-
-function FileInput({ onSelect }) {
-  return (
-    <div>
-      <label
-        htmlFor="fileUpload"
-        className="cursor-pointer inline-block px-5 py-3 rounded shadow transition-colors duration-200"
-        style={{
-          background: "var(--accent)",
-          color: "#fff",
-        }}
-        onMouseOver={(e) => (e.currentTarget.style.background = "var(--secondaccent)")}
-        onMouseOut={(e) => (e.currentTarget.style.background = "var(--accent)")}
-      >
-        Upload your image
-      </label>
-      <input
-        id="fileUpload"
-        type="file"
-        accept="image/*"
-        multiple
-        onChange={(e) => {
-          const files = e.target.files;
-          if (files && files.length > 0) {
-            onSelect(Array.from(files));
-          }
-        }}
-        className="hidden"
-      />
-    </div>
-  );
-}
-
 function ImagePreview({ srcList }) {
   if (!srcList || srcList.length === 0) return null;
 
   return (
-    <div className="flex flex-wrap gap-4">
+    <div className="flex flex-wrap gap-4 mt-4">
       {srcList.map((src, idx) => (
         <img
           key={idx}
@@ -102,6 +52,9 @@ export default function ViewPage() {
   const [status, setStatus] = useState("idle");
   const [file, setFile] = useState([]);
   const [preview, setPreview] = useState([]);
+  const [releaseTime, setReleaseTime] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isTimeModalOpen, setIsTimeModalOpen] = useState(false);
 
   const handleFileSelect = (selectedFiles) => {
     const filesArray = Array.isArray(selectedFiles)
@@ -109,8 +62,8 @@ export default function ViewPage() {
       : [selectedFiles];
     const newPreviews = filesArray.map((file) => URL.createObjectURL(file));
 
-    setFile((prevFiles) => [...prevFiles, ...filesArray]);
-    setPreview((prevPreviews) => [...prevPreviews, ...newPreviews]);
+    setFile(filesArray);
+    setPreview(newPreviews);
     setStatus("idle");
   };
 
@@ -168,6 +121,7 @@ export default function ViewPage() {
       setPreview([]);
       setFile([]);
       setStatus("success");
+      setIsModalOpen(false);
       fetchImages();
     } catch (err) {
       console.error(err);
@@ -179,6 +133,59 @@ export default function ViewPage() {
     fetchImages();
   }, []);
 
+  const fetchVaultTime = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        console.error("No token found.");
+        return;
+      }
+
+      const res = await fetch(`http://localhost:8080/time/get/${id}`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`Request failed: ${text}`);
+      }
+
+      const data = await res.json();
+      console.log("Vault time data:", data);
+
+      if (data.release_time) {
+        const d = new Date(data.release_time);
+        const formatted = d.toLocaleString("en-US", {
+          month: "long",
+          day: "numeric",
+          year: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+          hour12: true,
+        });
+        setReleaseTime(formatted);
+      } else {
+        setReleaseTime("No time set");
+      }
+    } catch (err) {
+      console.error("Error fetching vault time:", err);
+      setReleaseTime("Error loading time");
+    }
+  };
+
+  useEffect(() => {
+    fetchVaultTime();
+  }, [id]);
+
+  useEffect(() => {
+  if (!isTimeModalOpen) {
+    fetchVaultTime();
+  }
+  }, [isTimeModalOpen]);
+
   return (
     <>
       <Navbar />
@@ -186,16 +193,38 @@ export default function ViewPage() {
         className="pt-32 px-8 pb-16 max-w-7xl mx-auto space-y-8"
         style={{ color: "var(--text)" }}
       >
-        <Time vaultId={id} />
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="px-5 py-3 rounded shadow transition-colors duration-200"
+            style={{
+              background: "var(--accent)",
+              color: "#fff",
+            }}
+            onMouseOver={(e) => (e.currentTarget.style.background = "var(--secondaccent)")}
+            onMouseOut={(e) => (e.currentTarget.style.background = "var(--accent)")}
+          >
+            ➕ Upload Image
+          </button>
 
-        <FileInput onSelect={handleFileSelect} />
-        <ImagePreview srcList={preview} />
-        <StatusMessage status={status} />
-        <UploadButton
-          onClick={handleUpload}
-          disabled={status === "uploading"}
-          status={status}
-        />
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-700">
+              {releaseTime}
+            </span>
+            <button
+              onClick={() => setIsTimeModalOpen(true)}
+              className="px-3 py-1 rounded shadow text-sm transition-colors duration-200"
+              style={{
+                background: "var(--accent)",
+                color: "#fff",
+              }}
+              onMouseOver={(e) => (e.currentTarget.style.background = "var(--secondaccent)")}
+              onMouseOut={(e) => (e.currentTarget.style.background = "var(--accent)")}
+            >
+              Edit Time
+            </button>
+          </div>
+        </div>
 
         <div className="space-y-4">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -230,6 +259,84 @@ export default function ViewPage() {
 
         <LinkToHome />
       </div>
+
+      {isModalOpen && (
+        <div
+          className="fixed inset-0 flex items-center justify-center z-50"
+          style={{ background: "rgba(0, 0, 0, 0.7)" }}
+        >
+          <div
+            className="backdrop-blur-md bg-white/70 p-6 rounded shadow-lg w-full max-w-sm"
+            style={{ maxHeight: "80vh", overflowY: "auto" }}
+          >
+            <h2 className="text-xl font-bold mb-4">Upload Images</h2>
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={(e) => {
+                const files = e.target.files;
+                if (files && files.length > 0) {
+                  handleFileSelect(Array.from(files));
+                }
+              }}
+              className="mb-4"
+            />
+            <ImagePreview srcList={preview} />
+            <StatusMessage status={status} />
+            <div className="flex justify-end gap-2 mt-4">
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="px-4 py-2 border rounded"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleUpload}
+                disabled={status === "uploading"}
+                className="px-5 py-3 rounded shadow transition-colors duration-200"
+                style={{
+                  background: "var(--accent)",
+                  color: "#fff",
+                }}
+                onMouseOver={(e) => (e.currentTarget.style.background = "var(--secondaccent)")}
+                onMouseOut={(e) => (e.currentTarget.style.background = "var(--accent)")}
+              >
+                {status === "uploading" ? "Uploading..." : "Upload"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isTimeModalOpen && (
+        <div
+          className="fixed inset-0 flex items-center justify-center z-50"
+          style={{ background: "rgba(0, 0, 0, 0.7)" }}
+        >
+          <div
+            className="backdrop-blur-md bg-white/70 p-8 rounded shadow-lg w-full max-w-xl"
+            style={{ height: "80vh", overflowY: "auto" }}
+          >
+            <h2 className="text-2xl font-bold mb-6 text-center">Edit Release Time</h2>
+            <Time vaultId={id} />
+            <div className="flex justify-end mt-6">
+              <button
+                onClick={() => setIsTimeModalOpen(false)}
+                className="px-5 py-3 rounded shadow transition-colors duration-200"
+                style={{
+                  background: "var(--accent)",
+                  color: "#fff",
+                }}
+                onMouseOver={(e) => (e.currentTarget.style.background = "var(--secondaccent)")}
+                onMouseOut={(e) => (e.currentTarget.style.background = "var(--accent)")}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
