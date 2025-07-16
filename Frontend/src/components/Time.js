@@ -103,6 +103,24 @@ export default function Time({ vaultId }) {
         parsedDate = new Date(today.getFullYear(), today.getMonth(), today.getDate(), h, 0);
       }
     }
+    // 300 for 3:00
+    else if (/^\d{3}$/.test(trimmed)) {
+      let h = parseInt(trimmed.slice(0, 1), 10);
+      let m = parseInt(trimmed.slice(1, 3), 10);
+
+      if (h >= 0 && h <= 23 && m >= 0 && m <= 59) {
+        parsedDate = new Date(today.getFullYear(), today.getMonth(), today.getDate(), h, m);
+      }
+    }
+    //1230 for 12:30
+    else if (/^\d{4}$/.test(trimmed)) {
+      let h = parseInt(trimmed.slice(0, 2), 10);
+      let m = parseInt(trimmed.slice(2, 4), 10);
+
+      if (h >= 0 && h <= 23 && m >= 0 && m <= 59) {
+        parsedDate = new Date(today.getFullYear(), today.getMonth(), today.getDate(), h, m);
+      }
+    }
 
     return parsedDate && !isNaN(parsedDate) ? parsedDate : null;
   };
@@ -177,7 +195,7 @@ export default function Time({ vaultId }) {
   };
 
   return (
-    <div className="p-4 border rounded-lg max-w-sm mx-auto space-y-4">
+    <div className="p-6 border rounded-lg max-w-sm mx-auto space-y-4 backdrop-blur-md bg-white/70">
       <h2 className="text-lg font-bold">Set Vault Release Time</h2>
 
       <div className="flex gap-4">
@@ -188,7 +206,7 @@ export default function Time({ vaultId }) {
             onChange={(d) => setDate(d)}
             dateFormat="MMMM d, yyyy"
             minDate={new Date()}
-            className="border p-2 w-full"
+            className="border p-2 w-full bg-white/80 backdrop-blur"
             renderCustomHeader={({ date, changeYear, changeMonth }) => {
               const monthNames = [
                 "January", "February", "March", "April", "May", "June",
@@ -226,8 +244,7 @@ export default function Time({ vaultId }) {
             value={inputValue}
             onChange={handleTimeInputChange}
             onBlur={handleTimeBlur}
-            className={`border p-2 w-full ${error ? "border-red-500" : ""}`}
-            placeholder=""
+            className={`border p-2 w-full bg-white/80 backdrop-blur ${error ? "border-red-500" : ""}`}
           />
           <DatePicker
             selected={time}
@@ -250,7 +267,13 @@ export default function Time({ vaultId }) {
 
       <button
         onClick={setTimeHandler}
-        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+        className="px-5 py-3 rounded shadow transition-colors duration-200"
+        style={{
+          background: "var(--accent)",
+          color: "#fff",
+        }}
+        onMouseOver={(e) => (e.currentTarget.style.background = "var(--secondaccent)")}
+        onMouseOut={(e) => (e.currentTarget.style.background = "var(--accent)")}
       >
         Set Time
       </button>

@@ -1,4 +1,5 @@
 "use client";
+
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
@@ -8,7 +9,7 @@ import Time from "@/components/Time";
 
 function LinkToHome() {
   return (
-    <div className="text-center">
+    <div className="text-center mt-8">
       <Link href="/" className="text-blue-500 hover:underline">
         Go home
       </Link>
@@ -21,11 +22,13 @@ function UploadButton({ onClick, disabled, status }) {
     <button
       onClick={onClick}
       disabled={disabled}
-      className={`w-full px-4 py-2 rounded text-white ${
-        disabled
-          ? "bg-gray-500 cursor-not-allowed"
-          : "bg-blue-600 hover:bg-blue-700"
-      }`}
+      className="px-5 py-3 rounded shadow transition-colors duration-200 w-full"
+      style={{
+        background: "var(--accent)",
+        color: "#fff",
+      }}
+      onMouseOver={(e) => (e.currentTarget.style.background = "var(--secondaccent)")}
+      onMouseOut={(e) => (e.currentTarget.style.background = "var(--accent)")}
     >
       {status === "uploading" ? "Uploading..." : "Upload"}
     </button>
@@ -37,7 +40,13 @@ function FileInput({ onSelect }) {
     <div>
       <label
         htmlFor="fileUpload"
-        className="cursor-pointer inline-block bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition"
+        className="cursor-pointer inline-block px-5 py-3 rounded shadow transition-colors duration-200"
+        style={{
+          background: "var(--accent)",
+          color: "#fff",
+        }}
+        onMouseOver={(e) => (e.currentTarget.style.background = "var(--secondaccent)")}
+        onMouseOut={(e) => (e.currentTarget.style.background = "var(--accent)")}
       >
         Upload your image
       </label>
@@ -49,10 +58,10 @@ function FileInput({ onSelect }) {
         onChange={(e) => {
           const files = e.target.files;
           if (files && files.length > 0) {
-            onSelect(Array.from(files)); // pass as an array of File objects
+            onSelect(Array.from(files));
           }
         }}
-        className="hidden" // hide default input
+        className="hidden"
       />
     </div>
   );
@@ -100,7 +109,7 @@ export default function ViewPage() {
       : [selectedFiles];
     const newPreviews = filesArray.map((file) => URL.createObjectURL(file));
 
-    setFile((prevFiles) => [...prevFiles, ...filesArray]); // if you're tracking files too
+    setFile((prevFiles) => [...prevFiles, ...filesArray]);
     setPreview((prevPreviews) => [...prevPreviews, ...newPreviews]);
     setStatus("idle");
   };
@@ -127,7 +136,6 @@ export default function ViewPage() {
       });
 
       const data = await res.json();
-      console.log("Fetched data:", data);
       setImages(data);
     } catch (err) {
       console.error("Failed to fetch images:", err);
@@ -156,29 +164,30 @@ export default function ViewPage() {
 
       if (!res.ok) throw new Error("Upload failed");
 
-      const data = await res.json();
-      setPreview(null);
+      await res.json();
+      setPreview([]);
+      setFile([]);
       setStatus("success");
+      fetchImages();
     } catch (err) {
       console.error(err);
       setStatus("error");
     }
-    fetchImages();
   };
 
   useEffect(() => {
     fetchImages();
   }, []);
 
-  useEffect(() => {
-    console.log("✅ Updated images:", images);
-  }, [images]);
-
   return (
     <>
       <Navbar />
-      <div className="p-8 w-full space-y-4">
+      <div
+        className="pt-32 px-8 pb-16 max-w-7xl mx-auto space-y-8"
+        style={{ color: "var(--text)" }}
+      >
         <Time vaultId={id} />
+
         <FileInput onSelect={handleFileSelect} />
         <ImagePreview srcList={preview} />
         <StatusMessage status={status} />
@@ -188,33 +197,28 @@ export default function ViewPage() {
           status={status}
         />
 
-        <div style={{ padding: "2rem" }}>
-          <div className="flex items-center justify-between space-x-4">
-            <h1
-              style={{
-                fontSize: "1.5rem",
-                fontWeight: "bold",
-                marginBottom: "1rem",
-              }}
-            >
-              Uploaded Images
-            </h1>
+        <div className="space-y-4">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <h1 className="text-3xl font-bold">📸 Uploaded Images</h1>
+
             <Link
               href={`/view/trash/${id}`}
-              className="inline-flex items-center gap-2 bg-red-600 text-white px-4 py-1 rounded hover:bg-red-700 transition"
+              className="px-5 py-3 rounded shadow transition-colors duration-200"
               style={{
-                fontSize: "1.5rem",
-                fontWeight: "bold",
-                marginBottom: "1rem",
+                background: "var(--accent)",
+                color: "#fff",
               }}
+              onMouseOver={(e) => (e.currentTarget.style.background = "var(--secondaccent)")}
+              onMouseOut={(e) => (e.currentTarget.style.background = "var(--accent)")}
             >
-              Go To Trash
+              🗑️ Go To Trash
             </Link>
           </div>
+
           {loading ? (
-            <p>Loading images...</p>
+            <p style={{ color: "var(--foreground)" }}>Loading images...</p>
           ) : images.length === 0 ? (
-            <p>No images uploaded yet.</p>
+            <p style={{ color: "var(--foreground)" }}>No images uploaded yet.</p>
           ) : (
             <Dnd
               images={images}
@@ -222,8 +226,9 @@ export default function ViewPage() {
               handleTrash={handleTrash}
             />
           )}
-          <LinkToHome />
         </div>
+
+        <LinkToHome />
       </div>
     </>
   );

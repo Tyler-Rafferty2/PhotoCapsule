@@ -35,6 +35,7 @@ export default function SignInForm() {
       setPassword("");
       setToken(data.token);
       localStorage.setItem("token", data.token);
+      //window.dispatchEvent(new Event("tokenChange"));
       router.push("/");
     } else {
       setStatus("error");

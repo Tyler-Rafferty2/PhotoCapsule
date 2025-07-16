@@ -1,11 +1,30 @@
 "use client";
 
+import {useState, useEffect} from "react"
 import Navbar from "@/components/Navbar";
 import Link from "next/link";
 import useSmoothScroll from "@/hooks/useSmoothScroll";
 
 // Hero Section Component
 const HeroSection = () => {
+
+  const [token, setToken] = useState("");
+
+  useEffect(() => {
+    // Set initial token on mount
+    setToken(localStorage.getItem("token") || "");
+
+    const handleTokenChange = () => {
+      setToken(localStorage.getItem("token") || "");
+    };
+
+    // Listen for custom event
+    window.addEventListener("tokenChange", handleTokenChange);
+
+    // Cleanup
+    return () => window.removeEventListener("tokenChange", handleTokenChange);
+  }, []);
+  
   return (
     <section className="flex flex-col md:flex-row items-center justify-between py-20 px-8 min-h-screen">
       <div className="flex-1 text-left">
@@ -16,13 +35,15 @@ const HeroSection = () => {
           Create a personal time capsule to keep your memories alive forever.
         </p>
         <div className="space-x-4">
-          <Link
-            href="/capsules"
-            className="inline-block text-white px-6 py-3 rounded shadow"
-            style={{ background: "var(--accent)" }}
-          >
-            View Your Capsules
-          </Link>
+          {localStorage.getItem("token") && (
+            <Link
+              href="/capsules"
+              className="inline-block text-white px-6 py-3 rounded shadow"
+              style={{ background: "var(--accent)" }}
+            >
+              View Your Capsules
+            </Link>
+          )}
           <Link
             href="/create"
             className="inline-block text-white px-6 py-3 rounded shadow"
