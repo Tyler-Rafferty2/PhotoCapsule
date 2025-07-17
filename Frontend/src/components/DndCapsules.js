@@ -106,7 +106,7 @@ function SortableCapsule({ capsule, isDragging }) {
       {...attributes}
       {...listeners}
       style={style}
-      className="p-4 rounded shadow-sm flex flex-col justify-center items-center cursor-pointer"
+      className="p-4 rounded shadow-sm flex flex-col justify-center items-center cursor-pointer transition-transform duration-200 transform hover:scale-105 hover:shadow-lg"
       onClick={handleClick}
     >
       <div className="relative flex justify-center items-center w-full">

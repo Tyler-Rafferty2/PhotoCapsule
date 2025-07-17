@@ -4,16 +4,6 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Navbar from "@/components/Navbar";
 
-function LinkToHome() {
-  return (
-    <div className="text-center mt-8">
-      <Link href="/" className="text-blue-500 hover:underline">
-        Go home
-      </Link>
-    </div>
-  );
-}
-
 export default function ViewPage() {
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -101,7 +91,7 @@ export default function ViewPage() {
             {images.map((img, idx) => (
               <div
                 key={idx}
-                className="relative aspect-square overflow-hidden border rounded shadow transition-transform duration-200 hover:scale-105 group bg-white/80 backdrop-blur"
+                className="relative aspect-square overflow-hidden border rounded shadow transition-transform duration-200 hover:scale-105 group bg-white/80 backdrop-blur hover:shadow-lg"
               >
                 <button
                   onClick={() => PermDel(img.id)}
@@ -158,7 +148,6 @@ export default function ViewPage() {
           >
             View Vault
           </Link>
-          <LinkToHome />
         </div>
       </div>
     </>

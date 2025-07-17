@@ -7,16 +7,6 @@ import Navbar from "@/components/Navbar";
 import Dnd from "@/components/Dnd";
 import Time from "@/components/Time";
 
-function LinkToHome() {
-  return (
-    <div className="text-center mt-8">
-      <Link href="/" className="text-blue-500 hover:underline">
-        Go home
-      </Link>
-    </div>
-  );
-}
-
 function ImagePreview({ srcList }) {
   if (!srcList || srcList.length === 0) return null;
 
@@ -66,6 +56,16 @@ export default function ViewPage() {
     setPreview(newPreviews);
     setStatus("idle");
   };
+
+  function LinkToHome() {
+    return (
+      <div className="text-center mt-8">
+        <Link href={`/capsules`} className="text-blue-500 hover:underline">
+          Go back to capsules
+        </Link>
+      </div>
+    );
+  }
 
   const handleTrash = async (img) => {
     try {

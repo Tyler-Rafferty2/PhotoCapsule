@@ -70,10 +70,9 @@ export default function ImageList({ images, setImages, handleTrash }) {
         strategy={rectSortingStrategy}
       >
         <div
+          className="grid gap-4"
           style={{
-            display: "grid",
             gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))",
-            gap: "1rem",
           }}
         >
           {images.map((img, idx) => (
@@ -106,9 +105,9 @@ function SortableImage({ id, img, idx, handleTrash, isDragging }) {
   const style = {
     transform: CSS.Transform.toString(transform),
     transition: transition ?? "transform 200ms cubic-bezier(0.25, 1, 0.5, 1)",
-    border: "1px solid #ccc",
-    padding: "1rem",
-    opacity: isDragging ? 0 : 1, // Hide original when dragging
+    opacity: isDragging ? 0 : 1,
+    background: "var(--softbackground)",
+    border: "1px solid var(--border)",
   };
 
   return (
@@ -116,39 +115,22 @@ function SortableImage({ id, img, idx, handleTrash, isDragging }) {
       ref={setNodeRef}
       style={style}
       {...attributes}
-      className="relative aspect-square overflow-hidden transition-transform duration-200 hover:scale-105 group"
+      className="group p-4 rounded shadow-sm flex flex-col justify-center items-center cursor-pointer transition-transform duration-200 transform hover:scale-105 hover:shadow-lg"
     >
-      <button
-        onClick={() => handleTrash(img.id)}
-        className="absolute top-1 right-1 bg-red-500 text-white text-xs px-2 py-1 rounded z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-      >
-        ✕
-      </button>
-      <img
-        {...listeners}
-        src={`http://localhost:8080/uploads/${img.filename}`}
-        style={{ width: "100%", height: "auto" }}
-        alt={`Uploaded ${idx}`}
-      />
-    </div>
-  );
-}
-
-function OverlayImage({ img, idx }) {
-  return (
-    <div
-      className="relative aspect-square overflow-hidden border transition-transform duration-200 group"
-      style={{
-        border: "1px solid #ccc",
-        padding: "1rem",
-        background: "black",
-      }}
-    >
-      <img
-        src={`http://localhost:8080/uploads/${img.filename}`}
-        style={{ width: "100%", height: "auto" }}
-        alt={`Uploaded ${idx}`}
-      />
+      <div className="relative w-full aspect-square overflow-hidden">
+        <button
+          onClick={() => handleTrash(id)}
+          className="absolute top-1 right-1 bg-red-500 text-white text-xs px-2 py-1 rounded z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+        >
+          ✕
+        </button>
+        <img
+          {...listeners}
+          src={`http://localhost:8080/uploads/${img.filename}`}
+          className="w-full h-full object-cover"
+          alt={`Uploaded ${idx}`}
+        />
+      </div>
     </div>
   );
 }
