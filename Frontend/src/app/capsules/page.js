@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { authFetch } from "@/utils/authFetch";
 import Navbar from "@/components/Navbar";
 import Link from "next/link";
 import DndCapsules from "@/components/DndCapsules";
@@ -125,8 +126,10 @@ export default function CapsulesPage() {
   const fetchCapsules = async () => {
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch("http://localhost:8080/api/getvaults", {
-        headers: { Authorization: `Bearer ${token}` },
+      // const res = await fetch("http://localhost:8080/api/getvaults", {
+      //   headers: { Authorization: `Bearer ${token}` },
+      // });
+      const res = await authFetch("http://localhost:8080/api/getvaults", {
       });
       const data = await res.json();
       console.log("Fetched capsules:", data);
@@ -146,14 +149,21 @@ export default function CapsulesPage() {
     setCreating(true);
     try {
       const token = localStorage.getItem("token");
-      const vaultResponse = await fetch("http://localhost:8080/api/addvaults", {
+      const vaultResponse = await authFetch("http://localhost:8080/api/addvaults", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ Name: name, Description: description}),
       });
+      // const vaultResponse = await fetch("http://localhost:8080/api/addvaults", {
+      //   method: "POST",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //     Authorization: `Bearer ${token}`,
+      //   },
+      //   body: JSON.stringify({ Name: name, Description: description}),
+      // });
       
     if (!vaultResponse.ok) {
       throw new Error("Failed to create vault");
@@ -166,19 +176,15 @@ export default function CapsulesPage() {
     formData.append("images", coverImage);
     //formData.append("IncludeInCapsule", includeInCapsule);
 
-    await fetch(`http://localhost:8080/cover/upload/${vaultId}`, {
+    await authFetch(`http://localhost:8080/cover/upload/${vaultId}`, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      body: formData,
+      body: formData, // ✅ no headers — browser sets Content-Type for FormData
     });
-    console.log(includeInCapsule)
-    if(includeInCapsule){
-      await fetch(`http://localhost:8080/upload/${vaultId}`, {
-          method: "POST",
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-          body: formData,
+
+    if (includeInCapsule) {
+      await authFetch(`http://localhost:8080/upload/${vaultId}`, {
+        method: "POST",
+        body: formData,
       });
     }
 
@@ -203,9 +209,8 @@ export default function CapsulesPage() {
       formData.append("images", f);
     });
     try {
-      const res = await fetch(`http://localhost:8080/upload/${id}`, {
+      const res = await authFetch(`http://localhost:8080/upload/${id}`, {
         method: "POST",
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         body: formData,
       });
 

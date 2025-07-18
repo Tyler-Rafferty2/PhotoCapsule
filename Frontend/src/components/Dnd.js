@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { authFetch } from "@/utils/authFetch";
 import {
   DndContext,
   closestCenter,
@@ -28,11 +29,10 @@ export default function ImageList({ images, setImages, handleTrash }) {
       order_index: index,
     }));
 
-    await fetch("http://localhost:8080/api/update-order", {
+    await authFetch("http://localhost:8080/api/update-order", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
+        "Content-Type": "application/json", // ✅ only set this, authFetch adds Authorization
       },
       body: JSON.stringify(payload),
     });

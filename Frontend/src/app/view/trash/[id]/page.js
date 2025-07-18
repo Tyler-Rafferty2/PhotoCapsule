@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Navbar from "@/components/Navbar";
+import { authFetch } from "@/utils/authFetch"; // ✅ new import
 
 export default function ViewPage() {
   const [images, setImages] = useState([]);
@@ -11,11 +12,7 @@ export default function ViewPage() {
 
   const fetchImages = async () => {
     try {
-      const token = localStorage.getItem("token");
-      const res = await fetch(`http://localhost:8080/images/trash/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
+      const res = await authFetch(`http://localhost:8080/images/trash/${id}`);
       const data = await res.json();
       console.log("Fetched data:", data);
       setImages(data);
@@ -28,12 +25,11 @@ export default function ViewPage() {
 
   const PermDel = async (img) => {
     try {
-      const res = await fetch(
+      const res = await authFetch(
         `http://localhost:8080/images/trash/delete/${img}`,
         {
           method: "DELETE",
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        },
+        }
       );
 
       if (!res.ok) throw new Error("Delete failed");
@@ -45,12 +41,11 @@ export default function ViewPage() {
 
   const Recover = async (img) => {
     try {
-      const res = await fetch(
+      const res = await authFetch(
         `http://localhost:8080/images/trash/recover/${img}`,
         {
           method: "PATCH",
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        },
+        }
       );
 
       if (!res.ok) throw new Error("Recover failed");
@@ -143,8 +138,12 @@ export default function ViewPage() {
               background: "var(--accent)",
               color: "#fff",
             }}
-            onMouseOver={(e) => (e.currentTarget.style.background = "var(--secondaccent)")}
-            onMouseOut={(e) => (e.currentTarget.style.background = "var(--accent)")}
+            onMouseOver={(e) =>
+              (e.currentTarget.style.background = "var(--secondaccent)")
+            }
+            onMouseOut={(e) =>
+              (e.currentTarget.style.background = "var(--accent)")
+            }
           >
             View Vault
           </Link>

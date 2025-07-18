@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { parse, format } from "date-fns";
+import { authFetch } from "@/utils/authFetch"; // ✅ NEW
 
 export default function Time({ vaultId }) {
   const [date, setDate] = useState(null);
@@ -10,32 +11,19 @@ export default function Time({ vaultId }) {
   const [error, setError] = useState("");
   const [status, setStatus] = useState("");
 
-  // Fetch existing release time on mount
   useEffect(() => {
     const fetchReleaseTime = async () => {
       try {
-        const token = localStorage.getItem("token");
-        if (!token) {
-          console.error("No token found.");
-          return;
-        }
-
-        const res = await fetch(`http://localhost:8080/time/get/${vaultId}`, {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const res = await authFetch(`http://localhost:8080/time/get/${vaultId}`);
         if (!res.ok) {
           const text = await res.text();
           throw new Error(`Failed to fetch time: ${text}`);
         }
 
         const data = await res.json();
-        console.log("fetched", data)
+        console.log("fetched", data);
         if (data.release_time) {
           const releaseDate = new Date(data.release_time);
-
           setDate(releaseDate);
           setTime(releaseDate);
           setInputValue(format(releaseDate, "h:mm aa"));
@@ -52,15 +40,9 @@ export default function Time({ vaultId }) {
     let parsedDate;
     const today = new Date();
     let trimmed = val.trim().toLowerCase();
-
-
-    // Remove any space before am/pm (important!)
     trimmed = trimmed.replace(/\s+(am|pm)$/, "$1");
-
-    // Normalize separators
     trimmed = trimmed.replace(/[-.\s]/g, ":");
 
-    // "hhmmam" or "hmmam"
     if (/^\d{3,4}(am|pm)$/.test(trimmed)) {
       const numPart = trimmed.slice(0, -2);
       const suffix = trimmed.slice(-2);
@@ -80,43 +62,29 @@ export default function Time({ vaultId }) {
       if (hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59) {
         parsedDate = new Date(today.getFullYear(), today.getMonth(), today.getDate(), hours, minutes);
       }
-    }
-    // "h:mmam" or "hh:mmam"
-    else if (/^\d{1,2}:\d{1,2}(am|pm)$/.test(trimmed)) {
+    } else if (/^\d{1,2}:\d{1,2}(am|pm)$/.test(trimmed)) {
       parsedDate = parse(trimmed, "h:mma", today);
-    }
-    // "h:mm" (24-hour)
-    else if (/^\d{1,2}:\d{1,2}$/.test(trimmed)) {
+    } else if (/^\d{1,2}:\d{1,2}$/.test(trimmed)) {
       const [h, m] = trimmed.split(":").map(Number);
       if (h >= 0 && h <= 23 && m >= 0 && m <= 59) {
         parsedDate = new Date(today.getFullYear(), today.getMonth(), today.getDate(), h, m);
       }
-    }
-    // "ham"
-    else if (/^\d{1,2}(am|pm)$/.test(trimmed)) {
+    } else if (/^\d{1,2}(am|pm)$/.test(trimmed)) {
       parsedDate = parse(trimmed, "ha", today);
-    }
-    // Just hour number
-    else if (/^\d{1,2}$/.test(trimmed)) {
+    } else if (/^\d{1,2}$/.test(trimmed)) {
       let h = parseInt(trimmed, 10);
       if (h >= 0 && h <= 23) {
         parsedDate = new Date(today.getFullYear(), today.getMonth(), today.getDate(), h, 0);
       }
-    }
-    // 300 for 3:00
-    else if (/^\d{3}$/.test(trimmed)) {
+    } else if (/^\d{3}$/.test(trimmed)) {
       let h = parseInt(trimmed.slice(0, 1), 10);
       let m = parseInt(trimmed.slice(1, 3), 10);
-
       if (h >= 0 && h <= 23 && m >= 0 && m <= 59) {
         parsedDate = new Date(today.getFullYear(), today.getMonth(), today.getDate(), h, m);
       }
-    }
-    //1230 for 12:30
-    else if (/^\d{4}$/.test(trimmed)) {
+    } else if (/^\d{4}$/.test(trimmed)) {
       let h = parseInt(trimmed.slice(0, 2), 10);
       let m = parseInt(trimmed.slice(2, 4), 10);
-
       if (h >= 0 && h <= 23 && m >= 0 && m <= 59) {
         parsedDate = new Date(today.getFullYear(), today.getMonth(), today.getDate(), h, m);
       }
@@ -149,12 +117,6 @@ export default function Time({ vaultId }) {
 
   const setTimeHandler = async () => {
     try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        setStatus("No token found — please sign in.");
-        return;
-      }
-
       const combinedDateTime = new Date(
         date.getFullYear(),
         date.getMonth(),
@@ -171,11 +133,10 @@ export default function Time({ vaultId }) {
 
       const isoTime = combinedDateTime.toISOString();
 
-      const res = await fetch(`http://localhost:8080/time/set/${vaultId}`, {
+      const res = await authFetch(`http://localhost:8080/time/set/${vaultId}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           release_time: isoTime,

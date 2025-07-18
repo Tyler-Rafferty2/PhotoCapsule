@@ -6,6 +6,7 @@ import { useParams } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import Dnd from "@/components/Dnd";
 import Time from "@/components/Time";
+import { authFetch } from "@/utils/authFetch"; // ✅ NEW
 
 function ImagePreview({ srcList }) {
   if (!srcList || srcList.length === 0) return null;
@@ -69,9 +70,8 @@ export default function ViewPage() {
 
   const handleTrash = async (img) => {
     try {
-      const res = await fetch(`http://localhost:8080/api/upload/trash/${img}`, {
+      const res = await authFetch(`http://localhost:8080/api/upload/trash/${img}`, {
         method: "PATCH",
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
 
       if (!res.ok) throw new Error("Trash failed");
@@ -83,11 +83,7 @@ export default function ViewPage() {
 
   const fetchImages = async () => {
     try {
-      const token = localStorage.getItem("token");
-      const res = await fetch(`http://localhost:8080/images/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
+      const res = await authFetch(`http://localhost:8080/images/${id}`);
       const data = await res.json();
       setImages(data);
     } catch (err) {
@@ -98,9 +94,7 @@ export default function ViewPage() {
   };
 
   const handleUpload = async () => {
-    if (file.length === 0) {
-      return;
-    }
+    if (file.length === 0) return;
 
     setStatus("uploading");
 
@@ -108,10 +102,10 @@ export default function ViewPage() {
     file.forEach((f) => {
       formData.append("images", f);
     });
+
     try {
-      const res = await fetch(`http://localhost:8080/upload/${id}`, {
+      const res = await authFetch(`http://localhost:8080/upload/${id}`, {
         method: "POST",
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         body: formData,
       });
 
@@ -135,27 +129,13 @@ export default function ViewPage() {
 
   const fetchVaultTime = async () => {
     try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        console.error("No token found.");
-        return;
-      }
-
-      const res = await fetch(`http://localhost:8080/time/get/${id}`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
+      const res = await authFetch(`http://localhost:8080/time/get/${id}`);
       if (!res.ok) {
         const text = await res.text();
         throw new Error(`Request failed: ${text}`);
       }
 
       const data = await res.json();
-      console.log("Vault time data:", data);
-
       if (data.release_time) {
         const d = new Date(data.release_time);
         const formatted = d.toLocaleString("en-US", {
@@ -181,9 +161,9 @@ export default function ViewPage() {
   }, [id]);
 
   useEffect(() => {
-  if (!isTimeModalOpen) {
-    fetchVaultTime();
-  }
+    if (!isTimeModalOpen) {
+      fetchVaultTime();
+    }
   }, [isTimeModalOpen]);
 
   return (

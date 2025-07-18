@@ -7,7 +7,6 @@ import useSmoothScroll from "@/hooks/useSmoothScroll";
 
 // Hero Section Component
 const HeroSection = () => {
-
   const [token, setToken] = useState("");
 
   useEffect(() => {
