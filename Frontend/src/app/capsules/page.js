@@ -31,6 +31,8 @@ function CapsuleModal({ isOpen, onClose, onSubmit }) {
     setName("");
     setDescription("");
     setCoverImage(null);
+    setPreviewUrl("")
+    setIncludeInCapsule(false)
   };
   
   if (!isOpen) return null;
