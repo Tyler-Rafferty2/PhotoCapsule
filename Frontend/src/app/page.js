@@ -44,7 +44,7 @@ const HeroSection = () => {
             </Link>
           )}
           <Link
-            href="/create"
+            href="/capsules?create=true"
             className="inline-block text-white px-6 py-3 rounded shadow"
             style={{ background: "var(--accent)" }}
           >

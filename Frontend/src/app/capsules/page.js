@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import { authFetch } from "@/utils/authFetch";
 import Navbar from "@/components/Navbar";
-import Link from "next/link";
 import DndCapsules from "@/components/DndCapsules";
+import { useSearchParams } from "next/navigation";
 
 
 function CapsuleModal({ isOpen, onClose, onSubmit }) {
@@ -118,6 +118,16 @@ function CapsuleModal({ isOpen, onClose, onSubmit }) {
 
 
 export default function CapsulesPage() {
+
+  const searchParams = useSearchParams();
+  const create = searchParams.get("create");
+
+  useEffect(() => {
+    if (create === "true") {
+      setIsModalOpen(true); // or trigger the button logic
+    }
+  }, [create]);
+
   const [capsules, setCapsules] = useState([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
@@ -126,9 +136,6 @@ export default function CapsulesPage() {
   const fetchCapsules = async () => {
     try {
       const token = localStorage.getItem("token");
-      // const res = await fetch("http://localhost:8080/api/getvaults", {
-      //   headers: { Authorization: `Bearer ${token}` },
-      // });
       const res = await authFetch("http://localhost:8080/api/getvaults", {
       });
       const data = await res.json();
@@ -156,15 +163,6 @@ export default function CapsulesPage() {
         },
         body: JSON.stringify({ Name: name, Description: description}),
       });
-      // const vaultResponse = await fetch("http://localhost:8080/api/addvaults", {
-      //   method: "POST",
-      //   headers: {
-      //     "Content-Type": "application/json",
-      //     Authorization: `Bearer ${token}`,
-      //   },
-      //   body: JSON.stringify({ Name: name, Description: description}),
-      // });
-      
     if (!vaultResponse.ok) {
       throw new Error("Failed to create vault");
     }
