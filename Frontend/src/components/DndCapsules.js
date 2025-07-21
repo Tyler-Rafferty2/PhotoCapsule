@@ -82,7 +82,7 @@ export default function DndCapsules({ capsules, setCapsules }) {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         capsule={selectedCapsule}
-        // onSubmit={handleCreateCapsule}
+        setCapsules={setCapsules}
       />
     </DndContext>
   );
@@ -163,7 +163,7 @@ function SortableCapsule({ capsule, isDragging, isModalOpen, setIsModalOpen, set
   );
 }
 
-function DeleteModal({ onClose, capsule, isOpen }) {
+function DeleteModal({ onClose, capsule, isOpen, setCapsules }) {
   const [userInput, setUserInput] = useState(""); // State to store the user's input
   const [isValid, setIsValid] = useState(false); // To check if the input matches the title
 
@@ -190,7 +190,11 @@ function DeleteModal({ onClose, capsule, isOpen }) {
           "Content-Type": "application/json",
         }
       });
-
+      const res = await authFetch("http://localhost:8080/api/getvaults", {
+      });
+      const data = await res.json();
+      console.log("Fetched capsules:", data);
+      setCapsules(data);
       if (!response.ok) {
         throw new Error("Failed to delete vault");
       }
