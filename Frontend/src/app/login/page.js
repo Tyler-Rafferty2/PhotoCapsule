@@ -6,11 +6,14 @@ import { useState } from "react";
 
 import { useRouter } from "next/navigation";
 
+import { useAuth } from "@/context/authContext";
+
 export default function SignInForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [status, setStatus] = useState("idle"); // idle | loading | success | error
   const [token, setToken] = useState(null);
+  const { setIsLoggedIn } = useAuth();
 
   const router = useRouter();
 
@@ -35,6 +38,7 @@ export default function SignInForm() {
       setPassword("");
       setToken(data.token);
       localStorage.setItem("token", data.token);
+      setIsLoggedIn(true);
       //window.dispatchEvent(new Event("tokenChange"));
       router.push("/");
     } else {
