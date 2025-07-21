@@ -5,12 +5,12 @@ import { createContext, useContext, useState, useEffect } from "react";
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("token"));
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
     const handleStorageChange = () => {
       if (typeof window !== "undefined") {
-      setIsLoggedIn(!!localStorage.getItem("token"));
+        setIsLoggedIn(!!localStorage.getItem("token"));
     }
     };
 

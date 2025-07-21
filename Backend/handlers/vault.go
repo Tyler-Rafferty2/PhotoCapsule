@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"fmt"
+	"log"
 
 	"photovault/config"
 	"photovault/utils"
@@ -168,4 +169,86 @@ func CoverUploadHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]string{
 		"message": "Cover image uploaded and linked successfully",
 	})
+}
+
+func DeleteVault(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodDelete {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// Get user information from the token
+	userId, _, err := utils.GetUserFromToken(r)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	// Extract the vault ID from the URL
+	vaultIdStr := strings.TrimPrefix(r.URL.Path, "/vault/delete/")
+	vaultId, err := strconv.ParseUint(vaultIdStr, 10, 64)
+	if err != nil {
+		http.Error(w, "Invalid vault ID", http.StatusBadRequest)
+		return
+	}
+
+	// Find the vault in the database
+	var vault models.Vault
+	if err := config.DB.First(&vault, vaultId).Error; err != nil {
+		http.Error(w, "Vault not found", http.StatusNotFound)
+		return
+	}
+
+	// Ensure the vault belongs to the current user
+	if vault.UserID != userId {
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
+
+	// Delete the associated cover image
+	if vault.CoverImageID != nil {
+		var coverImage models.CoverImage
+		if err := config.DB.First(&coverImage, vault.CoverImageID).Error; err == nil {
+			// Delete the cover image file from the filesystem
+			coverImagePath := filepath.Join("uploads", coverImage.Filename)
+			if err := os.Remove(coverImagePath); err != nil {
+				http.Error(w, "Failed to delete cover image file", http.StatusInternalServerError)
+				return
+			}
+
+			// Delete the cover image record from the database
+			if err := config.DB.Delete(&coverImage).Error; err != nil {
+				http.Error(w, "Failed to delete cover image record", http.StatusInternalServerError)
+				return
+			}
+		}
+	}
+
+	// Delete associated images (if any)
+	var images []models.Upload
+	if err := config.DB.Where("vault_id = ?", vault.ID).Find(&images).Error; err == nil {
+		for _, image := range images {
+			// Delete image file from the filesystem
+			imagePath := filepath.Join("uploads", image.Filename)
+			if err := os.Remove(imagePath); err != nil {
+				http.Error(w, "Failed to delete image file", http.StatusInternalServerError)
+				return
+			}
+
+			// Delete the image record from the database
+			if err := config.DB.Delete(&image).Error; err != nil {
+				http.Error(w, "Failed to delete image record", http.StatusInternalServerError)
+				return
+			}
+		}
+	}
+	// Delete the vault record from the database
+	if err := config.DB.Delete(&vault).Error; err != nil {
+		http.Error(w, "Failed to delete vault", http.StatusInternalServerError)
+		return
+	}
+
+	// Send response
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{"message": "Vault and associated data deleted successfully"})
 }

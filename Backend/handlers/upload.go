@@ -181,7 +181,7 @@ func UpdateOrder(w http.ResponseWriter, r *http.Request) {
 }
 
 func TrashUpload(w http.ResponseWriter, r *http.Request) {
-	log.Println("in TrashUpload")
+	
 	if r.Method != http.MethodPatch {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
