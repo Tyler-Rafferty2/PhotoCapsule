@@ -46,6 +46,25 @@ export default function ViewPage() {
   const [releaseTime, setReleaseTime] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isTimeModalOpen, setIsTimeModalOpen] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [capsule, setCapsule] = useState(null)
+
+  const getVault = async (id) =>{
+    try {
+      const res = await authFetch(`http://localhost:8080/vault/${id}`, {
+      });
+      const data = await res.json();
+      console.log("Fetched capsules:", data);
+      setCapsule(data);
+    } catch (error) {
+      console.error("Error:", error);
+    }
+    console.log(capsule)
+  }
+  useEffect(() => {
+    console.log("is using effect")
+    getVault(id);
+  }, [id]);
 
   const handleFileSelect = (selectedFiles) => {
     const filesArray = Array.isArray(selectedFiles)
@@ -156,6 +175,35 @@ export default function ViewPage() {
     }
   };
 
+  const addUsers = async () => {
+    try {
+      const res = await authFetch(`http://localhost:8080/time/get/${id}`);
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`Request failed: ${text}`);
+      }
+
+      const data = await res.json();
+      if (data.release_time) {
+        const d = new Date(data.release_time);
+        const formatted = d.toLocaleString("en-US", {
+          month: "long",
+          day: "numeric",
+          year: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+          hour12: true,
+        });
+        setReleaseTime(formatted);
+      } else {
+        setReleaseTime("No time set");
+      }
+    } catch (err) {
+      console.error("Error fetching vault time:", err);
+      setReleaseTime("Error loading time");
+    }
+  };
+
   useEffect(() => {
     fetchVaultTime();
   }, [id]);
@@ -173,27 +221,12 @@ export default function ViewPage() {
         className="pt-32 px-8 pb-16 max-w-7xl mx-auto space-y-8"
         style={{ color: "var(--text)" }}
       >
-        <div className="flex items-center gap-4">
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="px-5 py-3 rounded shadow transition-colors duration-200"
-            style={{
-              background: "var(--accent)",
-              color: "#fff",
-            }}
-            onMouseOver={(e) => (e.currentTarget.style.background = "var(--secondaccent)")}
-            onMouseOut={(e) => (e.currentTarget.style.background = "var(--accent)")}
-          >
-            ➕ Upload Image
-          </button>
-
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-700">
-              {releaseTime}
-            </span>
+        <div className="flex items-center justify-between w-full">
+          {/* Left group: Upload + Edit Time */}
+          <div className="flex items-center gap-4">
             <button
-              onClick={() => setIsTimeModalOpen(true)}
-              className="px-3 py-1 rounded shadow text-sm transition-colors duration-200"
+              onClick={() => setIsModalOpen(true)}
+              className="px-5 py-3 rounded shadow transition-colors duration-200 text-sm"
               style={{
                 background: "var(--accent)",
                 color: "#fff",
@@ -201,11 +234,42 @@ export default function ViewPage() {
               onMouseOver={(e) => (e.currentTarget.style.background = "var(--secondaccent)")}
               onMouseOut={(e) => (e.currentTarget.style.background = "var(--accent)")}
             >
-              Edit Time
+              ➕ Upload Image
+            </button>
+
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-700">{releaseTime}</span>
+              <button
+                onClick={() => setIsTimeModalOpen(true)}
+                className="px-5 py-3 rounded shadow transition-colors duration-200 text-sm"
+                style={{
+                  background: "var(--accent)",
+                  color: "#fff",
+                }}
+                onMouseOver={(e) => (e.currentTarget.style.background = "var(--secondaccent)")}
+                onMouseOut={(e) => (e.currentTarget.style.background = "var(--accent)")}
+              >
+                Edit Time
+              </button>
+            </div>
+          </div>
+
+          {/* Right: Share button */}
+          <div>
+            <button
+              onClick={() => setIsShareModalOpen(true)}
+              className="px-5 py-3 rounded shadow text-sm transition-colors duration-200"
+              style={{
+                background: "var(--accent)",
+                color: "#fff",
+              }}
+              onMouseOver={(e) => (e.currentTarget.style.background = "var(--secondaccent)")}
+              onMouseOut={(e) => (e.currentTarget.style.background = "var(--accent)")}
+            >
+              Share
             </button>
           </div>
         </div>
-
         <div className="space-y-4">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <h1 className="text-3xl font-bold">📸 Uploaded Images</h1>
@@ -303,6 +367,34 @@ export default function ViewPage() {
             <div className="flex justify-end mt-6">
               <button
                 onClick={() => setIsTimeModalOpen(false)}
+                className="px-5 py-3 rounded shadow transition-colors duration-200"
+                style={{
+                  background: "var(--accent)",
+                  color: "#fff",
+                }}
+                onMouseOver={(e) => (e.currentTarget.style.background = "var(--secondaccent)")}
+                onMouseOut={(e) => (e.currentTarget.style.background = "var(--accent)")}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isShareModalOpen && (
+        <div
+          className="fixed inset-0 flex items-center justify-center z-50"
+          style={{ background: "rgba(0, 0, 0, 0.7)" }}
+        >
+          <div
+            className="backdrop-blur-md bg-white/70 p-8 rounded shadow-lg w-full max-w-xl"
+            style={{ height: "80vh", overflowY: "auto" }}
+          >
+            <h2 className="text-2xl font-bold mb-6 text-center">Share "{capsule.Title}"</h2>
+            <div className="flex justify-end mt-6">
+              <button
+                onClick={() => setIsShareModalOpen(false)}
                 className="px-5 py-3 rounded shadow transition-colors duration-200"
                 style={{
                   background: "var(--accent)",

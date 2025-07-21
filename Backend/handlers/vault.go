@@ -252,3 +252,38 @@ func DeleteVault(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]string{"message": "Vault and associated data deleted successfully"})
 }
+
+func GetVaultByID(w http.ResponseWriter, r *http.Request) {
+	log.Println("in vaultID")
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	vaultIdStr := strings.TrimPrefix(r.URL.Path, "/vault/")
+	vaultId, err := strconv.ParseUint(vaultIdStr, 10, 64)
+	if err != nil {
+		http.Error(w, "Invalid vault ID", http.StatusBadRequest)
+		return
+	}
+
+	userId, _, err := utils.GetUserFromToken(r)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	var vault models.Vault
+	if err := config.DB.First(&vault, vaultId).Error; err != nil {
+		http.Error(w, "Vault not found", http.StatusNotFound)
+		return
+	}
+
+	if vault.UserID != userId {
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(vault)
+}
