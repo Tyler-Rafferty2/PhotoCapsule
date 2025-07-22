@@ -173,82 +173,94 @@ func CoverUploadHandler(w http.ResponseWriter, r *http.Request) {
 
 func DeleteVault(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodDelete {
+		log.Printf("Invalid method: %s", r.Method)
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
-	// Get user information from the token
 	userId, _, err := utils.GetUserFromToken(r)
 	if err != nil {
+		log.Printf("Unauthorized access: %v", err)
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
-	// Extract the vault ID from the URL
 	vaultIdStr := strings.TrimPrefix(r.URL.Path, "/vault/delete/")
 	vaultId, err := strconv.ParseUint(vaultIdStr, 10, 64)
 	if err != nil {
+		log.Printf("Invalid vault ID: %v", err)
 		http.Error(w, "Invalid vault ID", http.StatusBadRequest)
 		return
 	}
 
-	// Find the vault in the database
 	var vault models.Vault
 	if err := config.DB.First(&vault, vaultId).Error; err != nil {
+		log.Printf("Vault not found [vaultId=%d]: %v", vaultId, err)
 		http.Error(w, "Vault not found", http.StatusNotFound)
 		return
 	}
 
-	// Ensure the vault belongs to the current user
 	if vault.UserID != userId {
+		log.Printf("Forbidden: user %d tried to delete vault %d belonging to user %d", userId, vault.ID, vault.UserID)
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
 	}
 
-	// Delete the associated cover image
 	if vault.CoverImageID != nil {
 		var coverImage models.CoverImage
 		if err := config.DB.First(&coverImage, vault.CoverImageID).Error; err == nil {
-			// Delete the cover image file from the filesystem
 			coverImagePath := filepath.Join("uploads", coverImage.Filename)
+
+			// Attempt to delete file, but only log failure if it doesn't exist
 			if err := os.Remove(coverImagePath); err != nil {
-				http.Error(w, "Failed to delete cover image file", http.StatusInternalServerError)
-				return
+				if os.IsNotExist(err) {
+					log.Printf("Cover image file not found (probably already deleted): %s", coverImagePath)
+				} else {
+					log.Printf("Failed to delete cover image file: %v", err)
+					// Don’t abort
+				}
 			}
 
-			// Delete the cover image record from the database
+			// Attempt to delete DB record regardless
 			if err := config.DB.Delete(&coverImage).Error; err != nil {
-				http.Error(w, "Failed to delete cover image record", http.StatusInternalServerError)
-				return
+				log.Printf("Failed to delete cover image record: %v", err)
+				// Don’t abort
 			}
+		} else {
+			log.Printf("Cover image record not found: %v", err)
 		}
 	}
 
-	// Delete associated images (if any)
 	var images []models.Upload
-	if err := config.DB.Where("vault_id = ?", vault.ID).Find(&images).Error; err == nil {
+	if err := config.DB.Where("vault_id = ?", vault.ID).Find(&images).Error; err != nil {
+		log.Printf("Failed to query images: %v", err)
+	} else {
 		for _, image := range images {
-			// Delete image file from the filesystem
 			imagePath := filepath.Join("uploads", image.Filename)
+
 			if err := os.Remove(imagePath); err != nil {
-				http.Error(w, "Failed to delete image file", http.StatusInternalServerError)
-				return
+				if os.IsNotExist(err) {
+					log.Printf("Image file not found (probably already deleted): %s", imagePath)
+				} else {
+					log.Printf("Failed to delete image file %s: %v", image.Filename, err)
+					// Don’t abort
+				}
 			}
 
-			// Delete the image record from the database
 			if err := config.DB.Delete(&image).Error; err != nil {
-				http.Error(w, "Failed to delete image record", http.StatusInternalServerError)
-				return
+				log.Printf("Failed to delete image record for %s: %v", image.Filename, err)
+				// Don’t abort
 			}
 		}
 	}
-	// Delete the vault record from the database
+
 	if err := config.DB.Delete(&vault).Error; err != nil {
+		log.Printf("Failed to delete vault record [vaultId=%d]: %v", vault.ID, err)
 		http.Error(w, "Failed to delete vault", http.StatusInternalServerError)
 		return
 	}
 
-	// Send response
+	log.Printf("Vault %d and associated data deleted by user %d", vault.ID, userId)
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]string{"message": "Vault and associated data deleted successfully"})
 }

@@ -23,6 +23,28 @@ export default function ImageList({ images, setImages, handleTrash }) {
 
   const sensors = useSensors(useSensor(PointerSensor));
 
+  function OverlayImage({ img }) {
+    return (
+      <div
+        className="p-4 rounded shadow-sm flex flex-col justify-center items-center"
+        style={{
+          background: "var(--softbackground)",
+          border: "1px solid var(--border)",
+        }}
+      >
+        <div className="relative w-full aspect-square overflow-hidden">
+          <img
+            src={`http://localhost:8080/uploads/${img.filename}`}
+            className="w-full h-full object-cover"
+            alt="Overlay"
+          />
+        </div>
+      </div>
+    );
+  }
+
+
+
   const updateOrder = async (orderedImages) => {
     const payload = orderedImages.map((img, index) => ({
       id: img.id,
@@ -32,7 +54,7 @@ export default function ImageList({ images, setImages, handleTrash }) {
     await authFetch("http://localhost:8080/api/update-order", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json", // ✅ only set this, authFetch adds Authorization
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(payload),
     });
