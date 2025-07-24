@@ -9,6 +9,8 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 	"github.com/joho/godotenv"
+	"crypto/rand"
+	"encoding/hex"
 
 	"photovault/config"
 	"photovault/models"
@@ -31,7 +33,7 @@ func createJWT(userID uint, email string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"user_id": userID,
 		"email":   email,
-		"exp":     time.Now().Add(24 * time.Hour).Unix(), // expires in 1 day
+		"exp":     time.Now().Add(1 * time.Minute).Unix(), // expires in 15 minutes
 	})
 
 	err := godotenv.Load()
@@ -87,6 +89,30 @@ func SignupHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]string{"message": "User created successfully"})
 }
 
+func createRefreshToken(userID uint, userEmail string) (string, error) {
+	// Generate a secure random 32-byte token
+	tokenBytes := make([]byte, 32)
+	_, err := rand.Read(tokenBytes)
+	if err != nil {
+		return "", err
+	}
+	token := hex.EncodeToString(tokenBytes)
+
+	refreshToken := models.RefreshToken{
+		UserID:    userID,
+		Email: userEmail,
+		TokenHash:     token,
+		ExpiresAt: time.Now().Add(7 * 24 * time.Hour),
+		IsRevoked: false,
+	}
+
+	if err := config.DB.Create(&refreshToken).Error; err != nil {
+		return "", err
+	}
+
+	return token, nil
+}
+
 func SigninHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -110,6 +136,24 @@ func SigninHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	//This needs to have the refresh token logic in it
+	refreshToken, err := createRefreshToken(user.ID, user.Email)
+	log.Println(refreshToken)
+	if err != nil {
+		http.Error(w, "Failed to generate refresh token", http.StatusInternalServerError)
+		return
+	}
+	
+	http.SetCookie(w, &http.Cookie{
+		Name:     "refresh_token",
+		Value:    refreshToken,
+		HttpOnly: true,
+		Secure:   false,              //Switch this if on HTTPS
+		Path:     "/",
+		SameSite: http.SameSiteLaxMode,
+		Expires:  time.Now().Add(7 * 24 * time.Hour), // match token expiry
+	})
+
 	w.WriteHeader(http.StatusOK)
 	token, err := createJWT(user.ID, user.Email)
 	if err != nil {
@@ -123,3 +167,61 @@ func SigninHandler(w http.ResponseWriter, r *http.Request) {
 		"token":   token,
 	})
 }
+
+func RefreshHandler(w http.ResponseWriter, r *http.Request) {
+	// Get the cookie
+
+	cookie, err := r.Cookie("refresh_token")
+	if err != nil {
+		http.Error(w, "Refresh token not provided", http.StatusUnauthorized)
+		return
+	}
+	refreshToken := cookie.Value
+
+	// Look up the token in the DB
+	var tokenRecord models.RefreshToken
+	if err := config.DB.Where("token = ?", refreshToken).First(&tokenRecord).Error; err != nil {
+		http.Error(w, "Invalid refresh token", http.StatusUnauthorized)
+		return
+	}
+	
+	// Check if expired
+	if tokenRecord.ExpiresAt.Before(time.Now()) {
+		http.Error(w, "Refresh token expired", http.StatusUnauthorized)
+		return
+	}
+
+	// (Optional) Rotate the refresh token
+	newRefreshToken, err := createRefreshToken(tokenRecord.UserID, tokenRecord.Email)
+	if err != nil {
+		http.Error(w, "Could not rotate refresh token", http.StatusInternalServerError)
+		return
+	}
+
+	// Delete the old refresh token (optional if rotating)
+	config.DB.Delete(&tokenRecord)
+
+	// Set new refresh token in cookie
+	http.SetCookie(w, &http.Cookie{
+		Name:     "refresh_token",
+		Value:    newRefreshToken,
+		HttpOnly: true,
+		Secure:   true,
+		Path:     "/",
+		SameSite: http.SameSiteLaxMode,
+		Expires:  time.Now().Add(7 * 24 * time.Hour),
+	})
+
+	// Create new access token
+	accessToken, err := createJWT(tokenRecord.UserID, tokenRecord.Email)
+	if err != nil {
+		http.Error(w, "Could not generate access token", http.StatusInternalServerError)
+		return
+	}
+
+	// Send access token in response body
+	json.NewEncoder(w).Encode(map[string]string{
+		"access_token": accessToken,
+	})
+}
+

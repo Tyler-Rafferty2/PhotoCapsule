@@ -38,5 +38,13 @@ type CoverImage struct {
 	ID              uint      `gorm:"primaryKey"`
 	VaultID         uint      `gorm:"not null"`
 	Filename        string    `gorm:"not null"`
-	UploadTime       time.Time `gorm:"autoCreateTime"`
+	UploadTime      time.Time `gorm:"autoCreateTime"`
+}
+
+type RefreshToken struct {
+    UserID      uint   `gorm:"not null"`
+	Email        string    `gorm:"unique;not null"`
+    TokenHash   string `gorm:"not null;uniqueIndex"`
+    ExpiresAt   time.Time `gorm:"not null"`
+    IsRevoked   bool   `gorm:"default:false"`
 }
