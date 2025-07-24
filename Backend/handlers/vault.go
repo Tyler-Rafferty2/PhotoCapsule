@@ -299,3 +299,44 @@ func GetVaultByID(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(vault)
 }
+
+func TitleAndDescChange(w http.ResponseWriter, r *http.Request) {
+	log.Println("we are in title and change desc")
+	if r.Method != http.MethodPatch {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	idStr := strings.TrimPrefix(r.URL.Path, "/vault/changeTitleAndDesc/")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Error(w, "Invalid vault ID", http.StatusBadRequest)
+		return
+	}
+
+	var vault models.Vault
+	if err := config.DB.First(&vault, id).Error; err != nil {
+		http.Error(w, "Vault not found", http.StatusNotFound)
+		return
+	}
+
+	var input struct {
+		Title       string `json:"Title"`
+		Description string `json:"Description"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	vault.Title = input.Title
+	vault.Description = input.Description
+
+	if err := config.DB.Save(&vault).Error; err != nil {
+		http.Error(w, "Failed to update vault", http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(vault)
+}

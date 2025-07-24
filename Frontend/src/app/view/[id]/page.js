@@ -1,12 +1,73 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import Dnd from "@/components/Dnd";
 import Time from "@/components/Time";
 import { authFetch } from "@/utils/authFetch"; // ✅ NEW
+
+function ShareModal({setIsShareModalOpen,capsule}){
+  return(
+    <div
+          className="fixed inset-0 flex items-center justify-center z-50"
+          style={{ background: "rgba(0, 0, 0, 0.7)" }}
+        >
+          <div
+            className="backdrop-blur-md bg-white/70 p-8 rounded shadow-lg w-full max-w-xl"
+            style={{ height: "80vh", overflowY: "auto" }}
+          >
+            <h2 className="text-2xl font-bold mb-6 text-center">Share "{capsule.Title}"</h2>
+            <div className="flex justify-end mt-6">
+              <button
+                onClick={() => setIsShareModalOpen(false)}
+                className="px-5 py-3 rounded shadow transition-colors duration-200"
+                style={{
+                  background: "var(--accent)",
+                  color: "#fff",
+                }}
+                onMouseOver={(e) => (e.currentTarget.style.background = "var(--secondaccent)")}
+                onMouseOut={(e) => (e.currentTarget.style.background = "var(--accent)")}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+  );
+}
+
+function TimeModal({setIsTimeModalOpen,id}){
+  return(
+    <div
+          className="fixed inset-0 flex items-center justify-center z-50"
+          style={{ background: "rgba(0, 0, 0, 0.7)" }}
+        >
+          <div
+            className="backdrop-blur-md bg-white/70 p-8 rounded shadow-lg w-full max-w-xl"
+            style={{ height: "80vh", overflowY: "auto" }}
+          >
+            <h2 className="text-2xl font-bold mb-6 text-center">Edit Release Time</h2>
+            <Time vaultId={id} />
+            <div className="flex justify-end mt-6">
+              <button
+                onClick={() => setIsTimeModalOpen(false)}
+                className="px-5 py-3 rounded shadow transition-colors duration-200"
+                style={{
+                  background: "var(--accent)",
+                  color: "#fff",
+                }}
+                onMouseOver={(e) => (e.currentTarget.style.background = "var(--secondaccent)")}
+                onMouseOut={(e) => (e.currentTarget.style.background = "var(--accent)")}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+  );
+}
 
 function ImagePreview({ srcList }) {
   if (!srcList || srcList.length === 0) return null;
@@ -25,28 +86,203 @@ function ImagePreview({ srcList }) {
   );
 }
 
-function StatusMessage({ status }) {
-  if (status === "success") {
+function StatusMessage({ uploadStatus }) {
+  if (uploadStatus === "success") {
     return (
       <p className="text-green-600 text-sm text-center">✅ Upload successful</p>
     );
-  } else if (status === "error") {
+  } else if (uploadStatus === "error") {
     return <p className="text-red-600 text-sm text-center">❌ Upload failed</p>;
   }
   return null;
 }
 
+function ImageUploadModal({setIsImageModalOpen,preview,uploadStatus,handleUpload,handleFileSelect}){
+  return(
+    <div
+          className="fixed inset-0 flex items-center justify-center z-50"
+          style={{ background: "rgba(0, 0, 0, 0.7)" }}
+        >
+          <div
+            className="backdrop-blur-md bg-white/70 p-6 rounded shadow-lg w-full max-w-sm"
+            style={{ maxHeight: "80vh", overflowY: "auto" }}
+          >
+            <h2 className="text-xl font-bold mb-4">Upload Images</h2>
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={(e) => {
+                const files = e.target.files;
+                if (files && files.length > 0) {
+                  handleFileSelect(Array.from(files));
+                }
+              }}
+              className="mb-4"
+            />
+            <ImagePreview srcList={preview} />
+            <StatusMessage uploadStatus={uploadStatus} />
+            <div className="flex justify-end gap-2 mt-4">
+              <button
+                onClick={() => setIsImageModalOpen(false)}
+                className="px-4 py-2 border rounded"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleUpload}
+                disabled={uploadStatus === "uploading"}
+                className="px-5 py-3 rounded shadow transition-colors duration-200"
+                style={{
+                  background: "var(--accent)",
+                  color: "#fff",
+                }}
+                onMouseOver={(e) => (e.currentTarget.style.background = "var(--secondaccent)")}
+                onMouseOut={(e) => (e.currentTarget.style.background = "var(--accent)")}
+              >
+                {uploadStatus === "uploading" ? "Uploading..." : "Upload"}
+              </button>
+            </div>
+          </div>
+        </div>
+  );
+}
+
+function CapsuleSettingModal({ setIsCapulseSettingOpen, capsule, setCapsule }) {
+  // State to store the title and description for editing
+  const [title, setTitle] = useState(capsule?.Title || "");
+  const [description, setDescription] = useState(capsule?.Description || "");
+
+  // Reference to the description textarea for auto-resizing
+  const descriptionRef = useRef(null);
+
+  // Automatically adjust the height of the description textarea
+  useEffect(() => {
+    if (descriptionRef.current) {
+      descriptionRef.current.style.height = "auto"; // Reset the height
+      descriptionRef.current.style.height = `${descriptionRef.current.scrollHeight}px`; // Set the height to match the content
+    }
+  }, [description]); // Run the effect whenever description changes
+
+  const updateVault = async (id, updatedFields) => {
+    try {
+      const response = await authFetch(`http://localhost:8080/vault/changeTitleAndDesc/${id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updatedFields), // { Title: "...", Description: "..." }
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText);
+      }
+
+      const data = await response.json();
+      console.log("Vault updated:", data);
+      return data
+    } catch (err) {
+      console.error("Failed to update vault:", err.message);
+    }
+  };
+
+  const handleSave = async () => {
+    const updated = await updateVault(capsule.ID, {
+      Title: title,
+      Description: description,
+    });
+    if (updated) {
+      setCapsule(updated); // ✅ set with the updated vault
+    }
+    setIsCapulseSettingOpen(false); // ✅ then close modal
+  };
+
+  return (
+    <div
+      className="fixed inset-0 flex items-center justify-center z-50"
+      style={{ background: "rgba(0, 0, 0, 0.7)" }}
+    >
+      <div
+        className="backdrop-blur-md bg-white/70 p-8 rounded shadow-lg w-full max-w-xl"
+        style={{ height: "80vh", overflowY: "auto" }}
+      >
+        <h2 className="text-2xl font-bold mb-6 text-center">Settings</h2>
+
+        {/* Title and Description fields */}
+        <div className="mb-4">
+          <label className="block text-sm font-semibold mb-2" htmlFor="title">
+            Title
+          </label>
+          <input
+            id="title"
+            type="text"
+            className="w-full p-3 rounded border"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+          />
+        </div>
+
+        <div className="mb-4">
+          <label className="block text-sm font-semibold mb-2" htmlFor="description">
+            Description
+          </label>
+          <textarea
+            ref={descriptionRef}
+            id="description"
+            className="w-full p-3 rounded border"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            style={{ resize: "none", overflow: "hidden" }} // Disables manual resizing and hides overflow
+          />
+        </div>
+
+        <div className="flex justify-end mt-6">
+          <button
+            onClick={() => setIsCapulseSettingOpen(false)}
+            className="px-5 py-3 rounded shadow transition-colors duration-200"
+            style={{
+              background: "var(--accent)",
+              color: "#fff",
+            }}
+            onMouseOver={(e) => (e.currentTarget.style.background = "var(--secondaccent)")}
+            onMouseOut={(e) => (e.currentTarget.style.background = "var(--accent)")}
+          >
+            Close
+          </button>
+          <button
+            onClick={handleSave}
+            className="px-5 py-3 rounded shadow transition-colors duration-200 ml-2"
+            style={{
+              background: "var(--accent)",
+              color: "#fff",
+            }}
+            onMouseOver={(e) => (e.currentTarget.style.background = "var(--secondaccent)")}
+            onMouseOut={(e) => (e.currentTarget.style.background = "var(--accent)")}
+          >
+            Save
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+
+
 export default function ViewPage() {
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(true);
   const { id } = useParams();
-  const [status, setStatus] = useState("idle");
+  const [uploadStatus, setUploadStatus] = useState("idle");
   const [file, setFile] = useState([]);
   const [preview, setPreview] = useState([]);
   const [releaseTime, setReleaseTime] = useState("");
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const [isTimeModalOpen, setIsTimeModalOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [isCapulseSettingOpen, setIsCapulseSettingOpen] = useState(false);
   const [capsule, setCapsule] = useState(null)
 
   const getVault = async (id) =>{
@@ -74,7 +310,7 @@ export default function ViewPage() {
 
     setFile(filesArray);
     setPreview(newPreviews);
-    setStatus("idle");
+    setUploadStatus("idle");
   };
 
   function LinkToHome() {
@@ -115,7 +351,7 @@ export default function ViewPage() {
   const handleUpload = async () => {
     if (file.length === 0) return;
 
-    setStatus("uploading");
+    setUploadStatus("uploading");
 
     const formData = new FormData();
     file.forEach((f) => {
@@ -133,12 +369,12 @@ export default function ViewPage() {
       await res.json();
       setPreview([]);
       setFile([]);
-      setStatus("success");
-      setIsModalOpen(false);
+      setUploadStatus("success");
+      setIsImageModalOpen(false);
       fetchImages();
     } catch (err) {
       console.error(err);
-      setStatus("error");
+      setUploadStatus("error");
     }
   };
 
@@ -221,11 +457,32 @@ export default function ViewPage() {
         className="pt-32 px-8 pb-16 max-w-7xl mx-auto space-y-8"
         style={{ color: "var(--text)" }}
       >
+          {capsule != null && (
+            <>
+              <div className="relative px-8 max-w-7xl mx-auto">
+                <h2 className="text-3xl font-bold mb-2 text-center">{capsule.Title}</h2>
+                <button
+                  onClick={() => setIsCapulseSettingOpen(true)}
+                  className="absolute top-0 right-4 px-5 py-3 rounded shadow transition-colors duration-200 text-sm"
+                  style={{
+                    background: "var(--accent)",
+                    color: "#fff",
+                  }}
+                  onMouseOver={(e) => (e.currentTarget.style.background = "var(--secondaccent)")}
+                  onMouseOut={(e) => (e.currentTarget.style.background = "var(--accent)")}
+                  aria-label="Edit capsule"
+                >
+                  ⚙️
+                </button>
+              </div>
+              <p className="text-lg text-gray-600 mb-8 text-center">{capsule.Description}</p>
+            </>
+          )}
         <div className="flex items-center justify-between w-full">
           {/* Left group: Upload + Edit Time */}
           <div className="flex items-center gap-4">
             <button
-              onClick={() => setIsModalOpen(true)}
+              onClick={() => setIsImageModalOpen(true)}
               className="px-5 py-3 rounded shadow transition-colors duration-200 text-sm"
               style={{
                 background: "var(--accent)",
@@ -304,110 +561,36 @@ export default function ViewPage() {
         <LinkToHome />
       </div>
 
-      {isModalOpen && (
-        <div
-          className="fixed inset-0 flex items-center justify-center z-50"
-          style={{ background: "rgba(0, 0, 0, 0.7)" }}
-        >
-          <div
-            className="backdrop-blur-md bg-white/70 p-6 rounded shadow-lg w-full max-w-sm"
-            style={{ maxHeight: "80vh", overflowY: "auto" }}
-          >
-            <h2 className="text-xl font-bold mb-4">Upload Images</h2>
-            <input
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={(e) => {
-                const files = e.target.files;
-                if (files && files.length > 0) {
-                  handleFileSelect(Array.from(files));
-                }
-              }}
-              className="mb-4"
-            />
-            <ImagePreview srcList={preview} />
-            <StatusMessage status={status} />
-            <div className="flex justify-end gap-2 mt-4">
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="px-4 py-2 border rounded"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleUpload}
-                disabled={status === "uploading"}
-                className="px-5 py-3 rounded shadow transition-colors duration-200"
-                style={{
-                  background: "var(--accent)",
-                  color: "#fff",
-                }}
-                onMouseOver={(e) => (e.currentTarget.style.background = "var(--secondaccent)")}
-                onMouseOut={(e) => (e.currentTarget.style.background = "var(--accent)")}
-              >
-                {status === "uploading" ? "Uploading..." : "Upload"}
-              </button>
-            </div>
-          </div>
-        </div>
+      {isImageModalOpen && (
+        <ImageUploadModal
+          setIsImageModalOpen={setIsImageModalOpen}
+          preview={preview}
+          uploadStatus={uploadStatus}
+          handleUpload={handleUpload}        
+          handleFileSelect={handleFileSelect}
+          />
       )}
 
       {isTimeModalOpen && (
-        <div
-          className="fixed inset-0 flex items-center justify-center z-50"
-          style={{ background: "rgba(0, 0, 0, 0.7)" }}
-        >
-          <div
-            className="backdrop-blur-md bg-white/70 p-8 rounded shadow-lg w-full max-w-xl"
-            style={{ height: "80vh", overflowY: "auto" }}
-          >
-            <h2 className="text-2xl font-bold mb-6 text-center">Edit Release Time</h2>
-            <Time vaultId={id} />
-            <div className="flex justify-end mt-6">
-              <button
-                onClick={() => setIsTimeModalOpen(false)}
-                className="px-5 py-3 rounded shadow transition-colors duration-200"
-                style={{
-                  background: "var(--accent)",
-                  color: "#fff",
-                }}
-                onMouseOver={(e) => (e.currentTarget.style.background = "var(--secondaccent)")}
-                onMouseOut={(e) => (e.currentTarget.style.background = "var(--accent)")}
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
+        <TimeModal
+          setIsTimeModalOpen={setIsTimeModalOpen}
+          id={capsule.ID}
+        />
       )}
 
       {isShareModalOpen && (
-        <div
-          className="fixed inset-0 flex items-center justify-center z-50"
-          style={{ background: "rgba(0, 0, 0, 0.7)" }}
-        >
-          <div
-            className="backdrop-blur-md bg-white/70 p-8 rounded shadow-lg w-full max-w-xl"
-            style={{ height: "80vh", overflowY: "auto" }}
-          >
-            <h2 className="text-2xl font-bold mb-6 text-center">Share "{capsule.Title}"</h2>
-            <div className="flex justify-end mt-6">
-              <button
-                onClick={() => setIsShareModalOpen(false)}
-                className="px-5 py-3 rounded shadow transition-colors duration-200"
-                style={{
-                  background: "var(--accent)",
-                  color: "#fff",
-                }}
-                onMouseOver={(e) => (e.currentTarget.style.background = "var(--secondaccent)")}
-                onMouseOut={(e) => (e.currentTarget.style.background = "var(--accent)")}
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
+        <ShareModal
+          setIsShareModalOpen={setIsShareModalOpen}
+          capsule={capsule}
+        />
+      )}
+
+      {isCapulseSettingOpen && (
+        <CapsuleSettingModal
+          setIsCapulseSettingOpen={setIsCapulseSettingOpen}
+          capsule={capsule}
+          setCapsule={setCapsule}
+        />
       )}
     </>
   );
