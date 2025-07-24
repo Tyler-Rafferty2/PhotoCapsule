@@ -171,7 +171,7 @@ function CapsuleSettingModal({ setIsCapulseSettingOpen, capsule, setCapsule }) {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(updatedFields), // { Title: "...", Description: "..." }
+        body: JSON.stringify(updatedFields),
       });
 
       if (!response.ok) {
