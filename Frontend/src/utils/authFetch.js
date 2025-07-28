@@ -31,13 +31,13 @@ async function tryRefreshToken() {
 }
 
 export async function authFetch(url, options = {}) {
-  const token = localStorage.getItem("token");
+  let token = localStorage.getItem("token");
   //console.log(token)
 
   if (!token || isTokenExpired(token)) {
     await tryRefreshToken()
   }
-
+  token = localStorage.getItem("token");
   if (!token || isTokenExpired(token)) {
     console.warn("Token expired or missing");
     throw new Error("Unauthorized");

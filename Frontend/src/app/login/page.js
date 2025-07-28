@@ -20,6 +20,7 @@ export default function SignInForm() {
     try {
       const res = await fetch("http://localhost:8080/signin", {
         method: "POST",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${localStorage.getItem("token")}`,
