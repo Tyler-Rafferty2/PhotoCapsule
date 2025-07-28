@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { authFetch } from "@/utils/authFetch";
 import Navbar from "@/components/Navbar";
 import DndCapsules from "@/components/DndCapsules";
@@ -14,6 +14,8 @@ function CapsuleModal({ isOpen, onClose, onSubmit }) {
   const [previewUrl, setPreviewUrl] = useState("");
   const [includeInCapsule, setIncludeInCapsule] = useState(false);
 
+  const fileInputRef = useRef(null);
+
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     setCoverImage(file);
@@ -24,6 +26,10 @@ function CapsuleModal({ isOpen, onClose, onSubmit }) {
       setPreviewUrl("");
     }
     setIncludeInCapsule(false);
+  };
+
+  const handleButtonClick = () => {
+    fileInputRef.current?.click();
   };
 
   const handleSubmit = () => {
@@ -60,7 +66,31 @@ function CapsuleModal({ isOpen, onClose, onSubmit }) {
           className="w-full mb-4 p-2 border rounded bg-white/80 backdrop-blur"
         />
         <div>
-          <input type="file" accept="image/*" onChange={handleFileChange} />
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+            ref={fileInputRef}
+            style={{ display: "none" }}
+          />
+
+          {/* Custom styled button to open file chooser */}
+          <button
+            type="button"
+            onClick={handleButtonClick}
+            style={{
+              background: "var(--accent)",
+              color: "#fff",
+              border: "none",
+              padding: "8px 12px",
+              borderRadius: "4px",
+              cursor: "pointer",
+              fontSize: "1rem",
+              marginBottom: "16px",
+            }}
+          >
+            Upload Cover Image
+          </button>
 
           {previewUrl && (
             <div style={{ marginTop: "1rem" }}>

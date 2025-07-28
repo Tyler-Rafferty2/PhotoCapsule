@@ -97,54 +97,93 @@ function StatusMessage({ uploadStatus }) {
   return null;
 }
 
-function ImageUploadModal({setIsImageModalOpen,preview,uploadStatus,handleUpload,handleFileSelect}){
-  return(
+function ImageUploadModal({
+  setIsImageModalOpen,
+  preview,
+  uploadStatus,
+  handleUpload,
+  handleFileSelect,
+}) {
+  const fileInputRef = useRef(null);
+
+  const handleButtonClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  return (
     <div
-          className="fixed inset-0 flex items-center justify-center z-50"
-          style={{ background: "rgba(0, 0, 0, 0.7)" }}
+      className="fixed inset-0 flex items-center justify-center z-50"
+      style={{ background: "rgba(0, 0, 0, 0.7)" }}
+    >
+      <div
+        className="backdrop-blur-md bg-white/70 p-6 rounded shadow-lg w-full max-w-sm"
+        style={{ maxHeight: "80vh", overflowY: "auto" }}
+      >
+        <h2 className="text-xl font-bold mb-4">Upload Images</h2>
+
+        {/* Hidden file input */}
+        <input
+          type="file"
+          accept="image/*"
+          multiple
+          ref={fileInputRef}
+          style={{ display: "none" }}
+          onChange={(e) => {
+            const files = e.target.files;
+            if (files && files.length > 0) {
+              handleFileSelect(Array.from(files));
+            }
+          }}
+        />
+
+        {/* Styled file upload button with bottom spacing */}
+        <button
+          type="button"
+          onClick={handleButtonClick}
+          style={{
+            background: "var(--accent)",
+            color: "#fff",
+            border: "none",
+            padding: "8px 12px",
+            borderRadius: "4px",
+            cursor: "pointer",
+            fontSize: "1rem",
+            marginBottom: "1rem",
+          }}
         >
-          <div
-            className="backdrop-blur-md bg-white/70 p-6 rounded shadow-lg w-full max-w-sm"
-            style={{ maxHeight: "80vh", overflowY: "auto" }}
+          Choose Images
+        </button>
+
+        <ImagePreview srcList={preview} />
+        <StatusMessage uploadStatus={uploadStatus} />
+
+        <div className="flex justify-end gap-2 mt-4">
+          <button
+            onClick={() => setIsImageModalOpen(false)}
+            className="px-4 py-2 border rounded"
           >
-            <h2 className="text-xl font-bold mb-4">Upload Images</h2>
-            <input
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={(e) => {
-                const files = e.target.files;
-                if (files && files.length > 0) {
-                  handleFileSelect(Array.from(files));
-                }
-              }}
-              className="mb-4"
-            />
-            <ImagePreview srcList={preview} />
-            <StatusMessage uploadStatus={uploadStatus} />
-            <div className="flex justify-end gap-2 mt-4">
-              <button
-                onClick={() => setIsImageModalOpen(false)}
-                className="px-4 py-2 border rounded"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleUpload}
-                disabled={uploadStatus === "uploading"}
-                className="px-5 py-3 rounded shadow transition-colors duration-200"
-                style={{
-                  background: "var(--accent)",
-                  color: "#fff",
-                }}
-                onMouseOver={(e) => (e.currentTarget.style.background = "var(--secondaccent)")}
-                onMouseOut={(e) => (e.currentTarget.style.background = "var(--accent)")}
-              >
-                {uploadStatus === "uploading" ? "Uploading..." : "Upload"}
-              </button>
-            </div>
-          </div>
+            Cancel
+          </button>
+          <button
+            onClick={handleUpload}
+            disabled={uploadStatus === "uploading"}
+            className="px-5 py-3 rounded shadow transition-colors duration-200"
+            style={{
+              background: "var(--accent)",
+              color: "#fff",
+            }}
+            onMouseOver={(e) =>
+              (e.currentTarget.style.background = "var(--secondaccent)")
+            }
+            onMouseOut={(e) =>
+              (e.currentTarget.style.background = "var(--accent)")
+            }
+          >
+            {uploadStatus === "uploading" ? "Uploading..." : "Upload"}
+          </button>
         </div>
+      </div>
+    </div>
   );
 }
 
