@@ -212,7 +212,7 @@ func RefreshHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Delete the old refresh token (optional if rotating)
-	config.DB.Delete(&tokenRecord)
+	config.DB.Where("token_hash = ?", tokenRecord.TokenHash).Delete(&models.RefreshToken{})
 
 	// Set new refresh token in cookie
 	http.SetCookie(w, &http.Cookie{
