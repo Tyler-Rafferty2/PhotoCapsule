@@ -56,6 +56,7 @@ func AddVault(w http.ResponseWriter, r *http.Request) {
 		Title:       req.Name,
 		UserID:      userId,
 		Description: req.Description,
+		Status:      "open",
 	}
 
 	if err := config.DB.Create(&newVault).Error; err != nil {

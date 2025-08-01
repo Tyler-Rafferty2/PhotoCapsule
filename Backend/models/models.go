@@ -21,6 +21,7 @@ type Vault struct {
 	CoverImageURL *string
 	UnlockDate  *time.Time
 	CreatedAt   time.Time
+	Status      string
 
 	Uploads []Upload `gorm:"foreignKey:VaultID"`
 }
