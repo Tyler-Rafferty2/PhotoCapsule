@@ -34,7 +34,7 @@ func createJWT(userID uint, email string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"user_id": userID,
 		"email":   email,
-		"exp":     time.Now().Add(1 * time.Minute).Unix(), // expires in 15 minutes
+		"exp":     time.Now().Add(15 * time.Minute).Unix(), // expires in 15 minutes
 	})
 
 	err := godotenv.Load()

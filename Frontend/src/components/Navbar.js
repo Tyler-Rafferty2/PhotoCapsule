@@ -32,9 +32,11 @@ export default function Navbar() {
       style={{
         background: "var(--softbackground)",
         color: "var(--text)",
+        borderBottom: "2px solid rgba(0, 0, 0, 0.1)",
       }}
-      className={`fixed top-0 left-0 w-full z-50 shadow-md transition-all duration-300 ${
-        isScrolled ? "py-1" : "py-4"
+      className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
+        // isScrolled ? "py-1" : "py-4"
+        "py-1"
       }`}
     >
       <div className=" flex items-center justify-between">
@@ -44,7 +46,7 @@ export default function Navbar() {
             alt="Photo Capsule Logo"
             className="h-12 w-12 object-contain"
           />
-          <span className="text-3xl font-bold tracking-tight">Photo Capsule</span>
+          <span className="text-xl font-bold tracking-tight">Photo Capsule</span>
         </Link>
 
         <div className="flex items-center space-x-6 px-4">

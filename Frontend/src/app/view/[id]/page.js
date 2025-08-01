@@ -353,7 +353,7 @@ function BuryModal({ setIsBuryModalOpen, capsule}) {
       <div className="backdrop-blur-md bg-white/70 p-6 rounded shadow-lg w-full max-w-sm relative">
         {/* Modal Content */}
         <h2 className="text-center text-lg font-semibold mt-2">
-          Are you sure you want to delete "{capsule.Title}"?
+          Are you sure you want to bury "{capsule.Title}"?
         </h2>
         
         {/* Input for confirmation */}
@@ -378,7 +378,11 @@ function BuryModal({ setIsBuryModalOpen, capsule}) {
             setIsValid(false);
             setIsBuryModalOpen(false); // Close the modal
           }}
-          className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-2 cursor-pointer"
+          className="absolute top-2 right-2 p-2 rounded cursor-pointer"
+          style={{
+              background: "var(--accent)",
+              color: "#fff",
+          }}
         >
           X
         </button>
@@ -387,9 +391,13 @@ function BuryModal({ setIsBuryModalOpen, capsule}) {
         <button
           onClick={buryCapsule}
           disabled={!isValid} // Disable button if input does not match the title
-          className={`mt-4 w-full p-2 rounded bg-red-500 text-white ${!isValid ? "opacity-50 cursor-not-allowed" : ""}`}
+          className={`mt-4 w-full p-2 rounded ${!isValid ? "opacity-50 cursor-not-allowed" : ""}`}
+          style={{
+              background: "var(--accent)",
+              color: "#fff",
+          }}
         >
-          Confirm Deletion
+          Confirm Bury
         </button>
       </div>
     </div>

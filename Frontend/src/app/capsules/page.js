@@ -147,6 +147,49 @@ function CapsuleModal({ isOpen, onClose, onSubmit }) {
 }
 
 
+function Sidebar() {
+  const [selected, setSelected] = useState("all");
+
+  const items = [
+    { id: "all", label: "📁 All Capsules" },
+    { id: "buried", label: "📥 Buried" },
+    { id: "opened", label: "📤 Opened" },
+    { id: "shared", label: "🤝 Shared With Me" },
+    { id: "trash", label: "🗑️ Trash" },
+  ];
+
+  return (
+    <aside
+      className="fixed top-0 left-0 h-screen w-42 px-4 space-y-4 pt-16"
+      style={{
+        background: "var(--softbackground)",
+        color: "var(--text)",
+        borderRight: "2px solid rgba(0, 0, 0, 0.1)",
+      }}
+    >
+      <h2 className="text-xl font-semibold pt-4">View</h2>
+      <ul className="space-y-1 text-sm">
+        {items.map(({ id, label }) => (
+          <li key={id}>
+            <button
+              onClick={() => setSelected(id)}
+              className={`w-full text-left py-2 rounded transition 
+                ${
+                  selected === id
+                    ? "bg-white bg-opacity-20 border border-white border-opacity-30 shadow-sm"
+                    : "hover:underline"
+                }`}
+              style={{ outline: "none" }}
+            >
+              {label}
+            </button>
+          </li>
+        ))}
+      </ul>
+    </aside>
+  );
+}
+
 
 
 export default function CapsulesPage() {
@@ -258,37 +301,46 @@ export default function CapsulesPage() {
   return (
     <>
       <Navbar />
-      <div
-        className="pt-32 px-8 pb-16 max-w-7xl mx-auto space-y-8"
-        style={{ color: "var(--text)" }}
-      >
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <h1 className="text-3xl font-bold ">📂 Your Capsules</h1>
 
-          <button
-            onClick={() => setIsModalOpen(true)}
-            disabled={creating}
-            className="px-5 py-3 rounded shadow transition-colors duration-200"
-            style={{
-              background: "var(--accent)",
-              color: "#fff",
-            }}
-            onMouseOver={(e) => (e.currentTarget.style.background = "var(--secondaccent)")}
-            onMouseOut={(e) => (e.currentTarget.style.background = "var(--accent)")}
-          >
-            {creating ? "Creating..." : "➕ Create Capsule"}
-          </button>
-        </div>
+      {/* Layout container under navbar */}
+      <div className="flex">
+        <Sidebar/>
+        
 
-        {loading ? (
-          <p style={{ color: "var(--foreground)" }}>Loading capsules...</p>
-        ) : capsules.length === 0 ? (
-          <p style={{ color: "var(--foreground)" }}>
-            No capsules yet. Click above to create one.
-          </p>
-        ) : (
-          <DndCapsules capsules={capsules} setCapsules={setCapsules} />
-        )}
+        {/* Main content pushed right by sidebar width */}
+        <main
+          className="pl-50 pt-32 px-8 pb-16 flex-1 max-w-7xl mx-auto space-y-8"
+          style={{ color: "var(--text)" }}
+        >
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <h1 className="text-3xl font-bold">📂 Your Capsules</h1>
+            <button
+              onClick={() => setIsModalOpen(true)}
+              disabled={creating}
+              className="px-5 py-3 rounded shadow transition-colors duration-200"
+              style={{
+                background: "var(--accent)",
+                color: "#fff",
+              }}
+              onMouseOver={(e) =>
+                (e.currentTarget.style.background = "var(--secondaccent)")}
+              onMouseOut={(e) =>
+                (e.currentTarget.style.background = "var(--accent)")}
+            >
+              {creating ? "Creating..." : "➕ Create Capsule"}
+            </button>
+          </div>
+
+          {loading ? (
+            <p style={{ color: "var(--foreground)" }}>Loading capsules...</p>
+          ) : capsules.length === 0 ? (
+            <p style={{ color: "var(--foreground)" }}>
+              No capsules yet. Click above to create one.
+            </p>
+          ) : (
+            <DndCapsules capsules={capsules} setCapsules={setCapsules} />
+          )}
+        </main>
       </div>
 
       <CapsuleModal

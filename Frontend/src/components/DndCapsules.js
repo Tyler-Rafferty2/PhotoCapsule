@@ -159,6 +159,9 @@ function SortableCapsule({ capsule, isDragging, isModalOpen, setIsModalOpen, set
       <p className="text-center text-sm" style={{ color: "var(--foreground)" }}>
         {capsule.Description}
       </p>
+      <p className="text-center text-sm" style={{ color: "var(--foreground)" }}>
+        {capsule.Status}
+      </p>
     </li>
   );
 }
@@ -244,7 +247,7 @@ function DeleteModal({ onClose, capsule, isOpen, setCapsules }) {
             setIsValid(false);
             onClose(); // Close the modal
           }}
-          className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-2 cursor-pointer"
+          className="absolute top-2 right-2 bg-red-500 text-white rounded p-2 cursor-pointer"
         >
           X
         </button>
