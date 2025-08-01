@@ -341,3 +341,41 @@ func TitleAndDescChange(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(vault)
 }
+
+func ChangeCapsuleStatus(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPatch {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	idStr := strings.TrimPrefix(r.URL.Path, "/vault/changeTitleAndDesc/")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Error(w, "Invalid vault ID", http.StatusBadRequest)
+		return
+	}
+
+	var vault models.Vault
+	if err := config.DB.First(&vault, id).Error; err != nil {
+		http.Error(w, "Vault not found", http.StatusNotFound)
+		return
+	}
+
+	var input struct {
+		Status       string `json:"Status"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	vault.Status = input.Status
+
+	if err := config.DB.Save(&vault).Error; err != nil {
+		http.Error(w, "Failed to update vault", http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(vault)
+}
