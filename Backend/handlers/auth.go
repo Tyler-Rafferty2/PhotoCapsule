@@ -182,7 +182,7 @@ func SigninHandler(w http.ResponseWriter, r *http.Request) {
 
 func RefreshHandler(w http.ResponseWriter, r *http.Request) {
 	// Get the cookie
-
+	log.Print("Refreshing")
 	cookie, err := r.Cookie("refresh_token")
 	if err != nil {
 		http.Error(w, "Refresh token not provided", http.StatusUnauthorized)

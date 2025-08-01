@@ -1,33 +1,46 @@
 // utils/authFetch.js
 import { isTokenExpired } from "./tokenUtils";
 
+
+let isRefreshing = false;
+let refreshPromise = null;
+
 async function tryRefreshToken() {
-  try {
-    const res = await fetch("http://localhost:8080/auth/refresh", {
-      method: "POST",
-      credentials: "include", // 🔑 ensures cookies (like refresh_token) are sent
-    });
+  if (!isRefreshing) {
+    isRefreshing = true;
+    refreshPromise = (async () => {
+      try {
+        const res = await fetch("http://localhost:8080/auth/refresh", {
+          method: "POST",
+          credentials: "include",
+        });
 
-    if (!res.ok) {
-      const text = await res.text(); // read the error message
-      console.error("Refresh failed:", res.status, text); // e.g. 
-    }
+        if (!res.ok) {
+          const text = await res.text();
+          console.error("Refresh failed:", res.status, text);
+          throw new Error("Refresh failed");
+        }
 
-    const data = await res.json();
-    const accessToken = data.access_token;
+        const data = await res.json();
+        const accessToken = data.access_token;
 
-    if (accessToken) {
-      localStorage.setItem("token", accessToken);
-      console.log("Access token refreshed.");
-    } else {
-      throw new Error("No access token returned");
-    }
-  } catch (err) {
-    console.error("Refresh failed:", err);
-    // Optionally redirect to login or clear localStorage
-    localStorage.removeItem("token");
-    // window.location.href = "/login";
+        if (accessToken) {
+          localStorage.setItem("token", accessToken);
+          console.log("Access token refreshed.");
+        } else {
+          throw new Error("No access token returned");
+        }
+      } catch (err) {
+        console.error("Refresh failed:", err);
+        localStorage.removeItem("token");
+        throw err;
+      } finally {
+        isRefreshing = false;
+      }
+    })();
   }
+
+  return refreshPromise;
 }
 
 export async function authFetch(url, options = {}) {
