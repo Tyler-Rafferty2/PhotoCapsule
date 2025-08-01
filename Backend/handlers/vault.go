@@ -348,7 +348,7 @@ func ChangeCapsuleStatus(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	idStr := strings.TrimPrefix(r.URL.Path, "/vault/changeTitleAndDesc/")
+	idStr := strings.TrimPrefix(r.URL.Path, "/vault/changeStatus/")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		http.Error(w, "Invalid vault ID", http.StatusBadRequest)

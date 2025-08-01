@@ -307,7 +307,94 @@ function CapsuleSettingModal({ setIsCapulseSettingOpen, capsule, setCapsule }) {
   );
 }
 
+function BuryModal({ setIsBuryModalOpen, capsule}) {
+  const [userInput, setUserInput] = useState(""); // State to store the user's input
+  const [isValid, setIsValid] = useState(false); // To check if the input matches the title
 
+  // Function to handle input change
+  const handleInputChange = (e) => {
+    setUserInput(e.target.value);
+    // Validate if the user input matches the capsule title
+    if (e.target.value === capsule.Title) {
+      setIsValid(true);
+    } else {
+      setIsValid(false);
+    }
+  };
+
+  const  buryCapsule = async () => {
+    // Call the patch function, passing capsule ID or any necessary data
+    setUserInput("")
+    setIsValid(false);
+    console.log(`Burying capsule with ID: ${capsule.ID}`);
+    try {
+      const response = await authFetch(`http://localhost:8080/vault/changeStatus/${capsule.ID}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({Status: "buried"}),
+      });
+      const result = await response.json();
+      console.log(result.message);  // You can display a success message or handle further logic here
+    } catch (error) {
+      console.error("Error:", error);
+    }
+      setIsBuryModalOpen(false); // Close the modal after deletion
+  };
+
+  return (
+    <div
+      className="fixed inset-0 flex items-center justify-center z-50"
+      style={{
+        background: "rgba(0, 0, 0, 0.7)", // black translucent background
+      }}
+    >
+      <div className="backdrop-blur-md bg-white/70 p-6 rounded shadow-lg w-full max-w-sm relative">
+        {/* Modal Content */}
+        <h2 className="text-center text-lg font-semibold mt-2">
+          Are you sure you want to delete "{capsule.Title}"?
+        </h2>
+        
+        {/* Input for confirmation */}
+        <p className="text-center text-sm mt-2">Type the title to confirm:</p>
+        <input
+          type="text"
+          value={userInput}
+          onChange={handleInputChange}
+          placeholder="Type the title"
+          className="w-full p-2 border rounded mt-2"
+        />
+
+        {/* Validation message */}
+        {userInput && userInput !== capsule.Title && (
+          <p className="text-red-500 text-sm mt-2">Title does not match. Please type it correctly.</p>
+        )}
+
+        {/* Close Button */}
+        <button
+          onClick={() => {
+            setUserInput(""); // Reset the input
+            setIsValid(false);
+            setIsBuryModalOpen(false); // Close the modal
+          }}
+          className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-2 cursor-pointer"
+        >
+          X
+        </button>
+
+        {/* Confirm Delete Button */}
+        <button
+          onClick={buryCapsule}
+          disabled={!isValid} // Disable button if input does not match the title
+          className={`mt-4 w-full p-2 rounded bg-red-500 text-white ${!isValid ? "opacity-50 cursor-not-allowed" : ""}`}
+        >
+          Confirm Deletion
+        </button>
+      </div>
+    </div>
+  );
+}
 
 
 export default function ViewPage() {
@@ -322,6 +409,7 @@ export default function ViewPage() {
   const [isTimeModalOpen, setIsTimeModalOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isCapulseSettingOpen, setIsCapulseSettingOpen] = useState(false);
+  const [isBuryModalOpen, setIsBuryModalOpen] = useState(false);
   const [capsule, setCapsule] = useState(null)
 
   const getVault = async (id) =>{
@@ -551,7 +639,19 @@ export default function ViewPage() {
           </div>
 
           {/* Right: Share button */}
-          <div>
+          <div className="flex gap-8">
+              <button
+                onClick={() => setIsBuryModalOpen(true)}
+                className="px-5 py-3 rounded shadow transition-colors duration-200 text-sm"
+                style={{
+                  background: "var(--accent)",
+                  color: "#fff",
+                }}
+                onMouseOver={(e) => (e.currentTarget.style.background = "var(--secondaccent)")}
+                onMouseOut={(e) => (e.currentTarget.style.background = "var(--accent)")}
+              >
+                Bury Capsule
+              </button>
             <button
               onClick={() => setIsShareModalOpen(true)}
               className="px-5 py-3 rounded shadow text-sm transition-colors duration-200"
@@ -631,6 +731,13 @@ export default function ViewPage() {
           setCapsule={setCapsule}
         />
       )}
+      {isBuryModalOpen && (
+        <BuryModal
+          setIsBuryModalOpen={setIsBuryModalOpen}
+          capsule={capsule}
+        />
+      )}
+      
     </>
   );
 }
