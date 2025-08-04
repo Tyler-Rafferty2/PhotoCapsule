@@ -103,3 +103,21 @@ func CreateRefreshToken(userID uint, userEmail string) (string, error) {
 
 	return token, nil
 }
+
+func InvalidateRefreshToken(token string) error {
+
+	result := config.DB.Model(&models.RefreshToken{}).Where("token_hash = ?", token).Updates(map[string]interface{}{"IsRevoked": true})
+
+    // Check for a database error.
+    if result.Error != nil {
+        return fmt.Errorf("failed to update token record: %w", result.Error)
+    }
+
+    // Check if any rows were actually updated.
+    if result.RowsAffected == 0 {
+        return fmt.Errorf("no token record found to update")
+    }
+
+    fmt.Printf("[DB] Successfully revoked token.\n")
+    return nil
+}

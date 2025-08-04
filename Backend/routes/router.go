@@ -12,6 +12,7 @@ func SetupRoutes() *http.ServeMux {
 	// Public routes with CORS
 	mux.HandleFunc("/signup", middleware.WithCORS(handlers.SignupHandler))
 	mux.HandleFunc("/signin", middleware.WithCORS(handlers.SigninHandler))
+	mux.HandleFunc("/logout", middleware.WithCORS(handlers.LogoutHandler))
 	mux.HandleFunc("/verify", middleware.WithCORS(handlers.VerifyEmailHandler))
 
 	mux.HandleFunc("/auth/refresh", middleware.WithCORS(handlers.RefreshHandler))

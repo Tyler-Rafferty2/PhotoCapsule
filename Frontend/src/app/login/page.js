@@ -9,8 +9,9 @@ export default function SignInForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [status, setStatus] = useState("idle");
-  const [token, setToken] = useState(null);
-  const { setIsLoggedIn } = useAuth();
+  
+  // 1. Destructure the `login` function from your new AuthContext
+  const { login } = useAuth(); 
   const router = useRouter();
 
   const handleSignIn = async (e) => {
@@ -23,7 +24,8 @@ export default function SignInForm() {
         credentials: "include",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          // 2. Removed the incorrect Authorization header.
+          // This header is for protected routes, not the sign-in endpoint.
         },
         body: JSON.stringify({ email, password }),
       });
@@ -31,9 +33,11 @@ export default function SignInForm() {
       if (!res.ok) throw new Error(await res.text());
 
       const data = await res.json();
-      localStorage.setItem("token", data.token);
-      setToken(data.token);
-      setIsLoggedIn(true);
+
+      // 3. Use the `login` function from the AuthContext to handle everything.
+      // This will store the token, decode it, set the user, and update all state.
+      login(data.token); 
+      
       setStatus("success");
       setEmail("");
       setPassword("");
@@ -46,6 +50,7 @@ export default function SignInForm() {
 
   return (
     <>
+      {/* 4. Navbar will now correctly handle its own loading state */}
       <Navbar />
       <div className="pt-32 px-6 pb-16 max-w-7xl mx-auto flex justify-center">
         <div className="backdrop-blur-md bg-white/70 p-8 rounded shadow-lg w-full max-w-md">

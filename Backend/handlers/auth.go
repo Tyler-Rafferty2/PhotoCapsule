@@ -97,7 +97,7 @@ func SigninHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "You must verify your account before signing in", http.StatusUnauthorized)
 		return
 	}
-	
+
 	// 1. Generate both tokens first
 	accessToken, err := utils.CreateJWT(user.ID, user.Email)
 	if err != nil {
@@ -155,6 +155,12 @@ func RefreshHandler(w http.ResponseWriter, r *http.Request) {
 	// Check if expired
 	if tokenRecord.ExpiresAt.Before(time.Now()) {
 		http.Error(w, "Refresh token expired", http.StatusUnauthorized)
+		return
+	}
+
+	// Check if revoked
+	if tokenRecord.IsRevoked {
+		http.Error(w, "Refresh token revoked", http.StatusUnauthorized)
 		return
 	}
 
@@ -218,5 +224,46 @@ func VerifyEmailHandler(w http.ResponseWriter, r *http.Request) {
     config.DB.Save(&user)
 
     w.Write([]byte("Email verified! You can now log in."))
+}
+
+func LogoutHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	cookie, err := r.Cookie("refresh_token")
+
+	if err == http.ErrNoCookie {
+		log.Println("[Logout] No refresh token cookie found.")
+	} else if err != nil {
+		http.Error(w, "Bad Request", http.StatusBadRequest)
+		return
+	}
+
+	if err == nil {
+		token := cookie.Value
+
+		if dbErr := utils.InvalidateRefreshToken(token); dbErr != nil {
+			log.Println("[Logout Error] Database invalidation failed: %v\n", dbErr)
+		}
+	}
+
+	expiredCookie := http.Cookie{
+		Name:     "refresh_token",
+		Value:    "",
+		Path:     "/", // This should match the path of the original cookie
+		Expires:  time.Now().Add(-1 * time.Hour), // Set a time in the past
+		HttpOnly: true,
+		Secure:   false, // Use true in production with HTTPS
+		SameSite: http.SameSiteNoneMode, // Or appropriate SameSite setting
+	}
+	http.SetCookie(w, &expiredCookie)
+
+	w.Header().Set("Content-Type", "application/json")
+	response := map[string]string{"message": "Logout successful"}
+	json.NewEncoder(w).Encode(response)
+
+	log.Println("[Logout] Refresh token and cookie cleared successfully.")
 }
 

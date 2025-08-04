@@ -34,7 +34,7 @@ const HeroSection = () => {
           Create a personal time capsule to keep your memories alive forever.
         </p>
         <div className="space-x-4">
-          {localStorage.getItem("token") && (
+          {token && (
             <Link
               href="/capsules"
               className="inline-block text-white px-6 py-3 rounded shadow"
