@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { authFetch } from "@/utils/authFetch";
 import Navbar from "@/components/Navbar";
 import DndCapsules from "@/components/DndCapsules";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 
 
 function CapsuleModal({ isOpen, onClose, onSubmit }) {
@@ -146,21 +146,67 @@ function CapsuleModal({ isOpen, onClose, onSubmit }) {
   );
 }
 
+function CapsuleList({capsules, sortFunc}){
+  const router = useRouter();
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      {capsules.
+      filter(sortFunc).
+      map((capsule) => (
+        <div
+          key={capsule.id}
+          onClick={() => {router.push(`/view/${capsule.ID}`);}}
+          style = {{
+              background: "var(--softbackground)",
+              border: "1px solid var(--border)",
+              cursor: 'pointer',
+          }}
+          className="p-4 rounded shadow-sm flex flex-col justify-center items-center cursor-pointer transition-transform duration-200 transform hover:scale-105 hover:shadow-lg group relative bg-white/70"
+        >
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleTrash(capsule);
+            }}
+            className="absolute top-1 right-1 bg-red-500 text-white text-xs px-2 py-1 rounded z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer"
+          >
+            ✕
+          </button>
 
-function Sidebar() {
-  const [selected, setSelected] = useState("all");
+          <div className="relative flex justify-center items-center w-full">
+            {capsule.CoverImageURL ? (
+              <img
+                src={`http://localhost:8080/uploads/${capsule.CoverImageURL}`}
+                alt="Capsule Cover"
+                className="w-32 h-32 object-cover"
+              />
+            ) : (
+              <img
+                src="/Vault-Closed.png"
+                alt="Capsule Closed"
+                className="w-32 h-32 object-cover"
+              />
+            )}
+          </div>
 
-  const items = [
-    { id: "all", label: "📁 All Capsules" },
-    { id: "buried", label: "📥 Buried" },
-    { id: "opened", label: "📤 Opened" },
-    { id: "shared", label: "🤝 Shared With Me" },
-    { id: "trash", label: "🗑️ Trash" },
-  ];
+          <p className="text-center text-lg font-semibold mt-2">{capsule.Title}</p>
+          <p className="text-center text-sm" style={{ color: "var(--foreground)" }}>
+            {capsule.Description}
+          </p>
+          <p className="text-center text-sm" style={{ color: "var(--foreground)" }}>
+            {capsule.Status}
+          </p>
+        </div>
+      ))}
+    </div>
+  );
+}
 
+function Sidebar({selected, setSelected, items}) {
+  console.log(items)
   return (
     <aside
-      className="fixed top-0 left-0 h-screen w-42 px-4 space-y-4 pt-16"
+      className="fixed top-0 left-0 h-screen w-42 px-2 space-y-4 pt-16"
       style={{
         background: "var(--softbackground)",
         color: "var(--text)",
@@ -169,19 +215,19 @@ function Sidebar() {
     >
       <h2 className="text-xl font-semibold pt-4">View</h2>
       <ul className="space-y-1 text-sm">
-        {items.map(({ id, label }) => (
-          <li key={id}>
+        {items.map((item) => (
+          <li key={item.id}>
             <button
-              onClick={() => setSelected(id)}
-              className={`w-full text-left py-2 rounded transition 
+              onClick={() => setSelected(item)}
+              className={`w-full text-left py-2 rounded transition
                 ${
-                  selected === id
+                  selected.id === item.id
                     ? "bg-white bg-opacity-20 border border-white border-opacity-30 shadow-sm"
-                    : "hover:underline"
+                    : "hover:bg-white hover:bg-opacity-20 hover:border hover:border-white hover:border-opacity-30 hover:shadow-sm"
                 }`}
               style={{ outline: "none" }}
             >
-              {label}
+              {item.label}
             </button>
           </li>
         ))}
@@ -207,6 +253,36 @@ export default function CapsulesPage() {
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const items = [
+    {
+      id: "all",
+      label: "📁 All Capsules",
+      filterFn: () => true,
+    },
+    {
+      id: "buried",
+      label: "📥 Buried",
+      filterFn: (capsule) => capsule.Status === "buried",
+    },
+    {
+      id: "opened",
+      label: "📤 Opened",
+      filterFn: (capsule) => capsule.Status === "open",
+    },
+    // {
+    //   id: "shared",
+    //   label: "🤝 Shared With Me",
+    //   filterFn: (capsule) => capsule.IsShared === true, // adjust this depending on your data model
+    // },
+    // {
+    //   id: "trash",
+    //   label: "🗑️ Trash",
+    //   filterFn: (capsule) => capsule.Status === "Trash",
+    // },
+  ];
+
+  const [selected, setSelected] = useState(items[0]);
 
   const fetchCapsules = async () => {
     try {
@@ -297,14 +373,18 @@ export default function CapsulesPage() {
       setStatus("error");
     }
   };
-
+  console.log(selected)
   return (
     <>
       <Navbar />
 
       {/* Layout container under navbar */}
       <div className="flex">
-        <Sidebar/>
+        <Sidebar
+        selected={selected}
+        setSelected={setSelected}
+        items={items}
+        />
         
 
         {/* Main content pushed right by sidebar width */}
@@ -338,7 +418,10 @@ export default function CapsulesPage() {
               No capsules yet. Click above to create one.
             </p>
           ) : (
-            <DndCapsules capsules={capsules} setCapsules={setCapsules} />
+            <CapsuleList 
+            capsules={capsules} 
+            sortFunc={selected.filterFn}
+            />
           )}
         </main>
       </div>
