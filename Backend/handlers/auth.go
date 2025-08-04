@@ -6,15 +6,11 @@ import (
 	"time"
 	"log"
 
-	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
-	"github.com/joho/godotenv"
-	"crypto/rand"
-	"encoding/hex"
-	 "gorm.io/gorm/clause"
 
 	"photovault/config"
 	"photovault/models"
+	"photovault/utils"
 
 )
 
@@ -26,30 +22,6 @@ type SignupRequest struct {
 type SigninRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
-}
-
-var jwtSecret []byte;
-
-func createJWT(userID uint, email string) (string, error) {
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"user_id": userID,
-		"email":   email,
-		"exp":     time.Now().Add(15 * time.Minute).Unix(), // expires in 15 minutes
-	})
-
-	err := godotenv.Load()
-	if err != nil {
-		log.Println("No .env file found; using OS env vars only")
-	}
-
-	secret := config.GetEnv("secret_token", "")
-	if secret == "" {
-		log.Fatal("Token not set. Please define secret_token in environment variables.")
-	}
-
-	jwtSecret = []byte(secret)
-
-	return token.SignedString(jwtSecret)
 }
 
 func SignupHandler(w http.ResponseWriter, r *http.Request) {
@@ -76,9 +48,17 @@ func SignupHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	tokenVerify, err := utils.GenerateToken(32)
+	if err != nil {
+		log.Println("Failed to generate token:", err)
+		// handle error
+	}
+
 	newUser := models.User{
 		Email:        req.Email,
 		PasswordHash: string(hashedPassword),
+		VerificationToken: tokenVerify, 
+    	TokenExpiresAt:    time.Now().Add(30 * time.Minute),
 	}
 
 	if err := config.DB.Create(&newUser).Error; err != nil {
@@ -89,36 +69,6 @@ func SignupHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(map[string]string{"message": "User created successfully"})
 }
-
-func createRefreshToken(userID uint, userEmail string) (string, error) {
-	// Generate a secure random 32-byte token
-	tokenBytes := make([]byte, 32)
-	_, err := rand.Read(tokenBytes)
-	if err != nil {
-		return "", err
-	}
-	token := hex.EncodeToString(tokenBytes)
-
-	refreshToken := models.RefreshToken{
-		UserID:    userID,
-		Email:     userEmail,
-		TokenHash: token,
-		ExpiresAt: time.Now().Add(7 * 24 * time.Hour),
-		IsRevoked: false,
-	}
-
-	err = config.DB.Clauses(clause.OnConflict{
-		Columns:   []clause.Column{{Name: "email"}},
-		UpdateAll: true,
-	}).Create(&refreshToken).Error
-
-	if err != nil {
-		return "", err
-	}
-
-	return token, nil
-}
-
 
 func SigninHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
@@ -143,14 +93,19 @@ func SigninHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !user.IsVerified {
+		http.Error(w, "You must verify your account before signing in", http.StatusUnauthorized)
+		return
+	}
+	
 	// 1. Generate both tokens first
-	accessToken, err := createJWT(user.ID, user.Email)
+	accessToken, err := utils.CreateJWT(user.ID, user.Email)
 	if err != nil {
 		http.Error(w, "Failed to generate token", http.StatusInternalServerError)
 		return
 	}
 
-	refreshToken, err := createRefreshToken(user.ID, user.Email)
+	refreshToken, err := utils.CreateRefreshToken(user.ID, user.Email)
 	if err != nil {
 		http.Error(w, "Failed to generate refresh token", http.StatusInternalServerError)
 		return
@@ -205,7 +160,7 @@ func RefreshHandler(w http.ResponseWriter, r *http.Request) {
 
 
 	// (Optional) Rotate the refresh token
-	newRefreshToken, err := createRefreshToken(tokenRecord.UserID, tokenRecord.Email)
+	newRefreshToken, err := utils.CreateRefreshToken(tokenRecord.UserID, tokenRecord.Email)
 	if err != nil {
 		http.Error(w, "Could not rotate refresh token", http.StatusInternalServerError)
 		return
@@ -226,7 +181,7 @@ func RefreshHandler(w http.ResponseWriter, r *http.Request) {
 	})
 
 	// Create new access token
-	accessToken, err := createJWT(tokenRecord.UserID, tokenRecord.Email)
+	accessToken, err := utils.CreateJWT(tokenRecord.UserID, tokenRecord.Email)
 	if err != nil {
 		http.Error(w, "Could not generate access token", http.StatusInternalServerError)
 		return
@@ -236,5 +191,32 @@ func RefreshHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]string{
 		"access_token": accessToken,
 	})
+}
+
+func VerifyEmailHandler(w http.ResponseWriter, r *http.Request) {
+	log.Println("verifying")
+    token := r.URL.Query().Get("token")
+    if token == "" {
+        http.Error(w, "Missing token", http.StatusBadRequest)
+        return
+    }
+
+    // If hashed, hash the token here
+    // hashedToken := HashToken(token)
+	
+    var user models.User
+    err := config.DB.Where("verification_token = ?", token).First(&user).Error
+    if err != nil || user.TokenExpiresAt.Before(time.Now()) || user.IsVerified {
+        http.Error(w, "Invalid or expired token", http.StatusBadRequest)
+        return
+    }
+
+    user.IsVerified = true
+    user.VerificationToken = ""
+    user.TokenExpiresAt = time.Time{}
+
+    config.DB.Save(&user)
+
+    w.Write([]byte("Email verified! You can now log in."))
 }
 

@@ -7,9 +7,14 @@ import (
 type User struct {
 	ID           uint      `gorm:"primaryKey"`
 	Email        string    `gorm:"unique;not null"`
+	DisplayName     string
 	PasswordHash string    `gorm:"not null"`
 	CreatedAt    time.Time `gorm:"autoCreateTime"`
 	Vaults       []Vault   `gorm:"foreignKey:UserID"`
+	
+    IsVerified      bool      `gorm:"default:false"`     
+    VerificationToken string  `gorm:"size:64"`          
+    TokenExpiresAt  time.Time
 }
 
 type Vault struct {
