@@ -39,6 +39,7 @@ export const AuthProvider = ({ children }) => {
       // It's okay if the fetch fails, the user is still logged out locally.
     }
     router.push(`/`);
+    router.refresh();
   }, []);
 
 
@@ -92,6 +93,7 @@ export const AuthProvider = ({ children }) => {
 
   // 2. Define clear actions instead of exposing the setter
   const login = (token) => {
+    console.log("Logging in");
     try {
         const decoded = jwtDecode(token);
         localStorage.setItem("token", token);

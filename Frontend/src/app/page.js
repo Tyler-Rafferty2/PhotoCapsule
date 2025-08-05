@@ -39,6 +39,8 @@ const HeroSection = () => {
               href="/capsules"
               className="inline-block text-white px-6 py-3 rounded shadow"
               style={{ background: "var(--accent)" }}
+              onMouseOver={(e) => (e.currentTarget.style.background = "var(--secondaccent)")}
+              onMouseOut={(e) => (e.currentTarget.style.background = "var(--accent)")}
             >
               View Your Capsules
             </Link>
@@ -47,6 +49,8 @@ const HeroSection = () => {
             href="/capsules?create=true"
             className="inline-block text-white px-6 py-3 rounded shadow"
             style={{ background: "var(--accent)" }}
+            onMouseOver={(e) => (e.currentTarget.style.background = "var(--secondaccent)")}
+            onMouseOut={(e) => (e.currentTarget.style.background = "var(--accent)")}
           >
             Create a Capsule
           </Link>

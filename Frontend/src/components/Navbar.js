@@ -1,14 +1,88 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import ThemeToggle from "./ThemeToggle";
 import { useAuth } from "@/context/authContext";
 
+
+function UserModal({ setIsUserModalOpen, user, logout }) {
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target)
+      ) {
+        setIsUserModalOpen(false);
+      }
+    }
+
+    function handleEscape(event) {
+      if (event.key === "Escape") {
+        setIsUserModalOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleEscape);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [setIsUserModalOpen]);
+
+  return (
+    <div
+      ref={dropdownRef}
+      className="absolute right-0 mt-2 w-64 rounded-md shadow-lg z-50"
+      style={{
+        background: "var(--softbackground)",
+        color: "var(--text)",
+        border: "2px solid rgba(0, 0, 0, 0.3)",
+      }}
+    >
+      <div className="p-4 text-sm text-gray-800">
+        <div className="font-semibold mb-2">User Info</div>
+        <div className="mb-2">
+          <span className="font-medium">Email:</span> {user?.email}
+        </div>
+        <button
+          style={{
+                  background: "var(--accent)",
+                  color: "#fff",
+          }}
+          onClick={() => setIsUserModalOpen(false)}
+          className="w-full mt-3 px-4 py-2 text-white rounded transition"
+          onMouseOver={(e) => (e.currentTarget.style.background = "var(--secondaccent)")}
+          onMouseOut={(e) => (e.currentTarget.style.background = "var(--accent)")}
+        >
+          Close
+        </button>
+        <button
+          style={{
+                  background: "var(--accent)",
+                  color: "#fff",
+          }}
+          onClick={logout}
+          className="w-full mt-3 px-4 py-2 text-white rounded transition"
+          onMouseOver={(e) => (e.currentTarget.style.background = "var(--secondaccent)")}
+          onMouseOut={(e) => (e.currentTarget.style.background = "var(--accent)")}
+        >
+          Logout
+        </button>
+      </div>
+    </div>
+  );
+}
+
+
 export default function Navbar() {
   // 1. Consume the new, correct context values
-  const { isAuthenticated, isLoading, logout } = useAuth();
+  const { isAuthenticated, isLoading, logout, user } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isUserModalOpen, setIsUserModalOpen] = useState(false)
 
   useEffect(() => {
     // 2. Keep the UI-specific logic (scroll event)
@@ -19,7 +93,6 @@ export default function Navbar() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
-
   // 3. Remove the manual `useEffect` for localStorage and the `handleLogout` function.
   // The logout function is now provided by the context.
   
@@ -75,17 +148,26 @@ export default function Navbar() {
         <div className="flex items-center space-x-6 px-4">
           <ThemeToggle />
           <div className="flex items-center space-x-4 text-sm">
-            {isAuthenticated ? ( // Use isAuthenticated instead of isLoggedIn
+            {isAuthenticated ? ( 
               <>
                 <Link href="/capsules" className="hover:underline">
                   Capsules
                 </Link>
-                <button
-                  onClick={logout} // Use the logout function from the context
-                  className="hover:underline"
-                >
-                  Log Out
-                </button>
+                <div className="relative">
+                  <button
+                    onClick={() => setIsUserModalOpen(true)}
+                    className="hover:underline"
+                  >
+                    User Info
+                  </button>
+                  {isUserModalOpen && (
+                    <UserModal
+                      setIsUserModalOpen={setIsUserModalOpen}
+                      user={user}
+                      logout={logout}
+                    />
+                  )}
+                </div>
               </>
             ) : (
               <>

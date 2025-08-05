@@ -47,7 +47,7 @@ function CapsuleModal({ isOpen, onClose, onSubmit }) {
     <div
       className="fixed inset-0 flex items-center justify-center z-50"
       style={{
-        background: "rgba(0, 0, 0, 0.7)", // black translucent background
+        background: "rgba(0, 0, 0, 0.7)", 
       }}
     >
       <div className="backdrop-blur-md bg-white/70 p-6 rounded shadow-lg w-full max-w-sm">
