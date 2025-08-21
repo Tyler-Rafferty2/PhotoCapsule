@@ -315,14 +315,14 @@ function BuryModal({ setIsBuryModalOpen, capsule}) {
   const handleInputChange = (e) => {
     setUserInput(e.target.value);
     // Validate if the user input matches the capsule title
-    if (e.target.value === capsule.Title) {
+    if (e.target.value === capsule.Title && capsule.UnlockDate != null) {
       setIsValid(true);
-    } else {
+    }else {
       setIsValid(false);
     }
   };
 
-  const  buryCapsule = async () => {
+  const buryCapsule = async () => {
     // Call the patch function, passing capsule ID or any necessary data
     setUserInput("")
     setIsValid(false);
@@ -366,10 +366,19 @@ function BuryModal({ setIsBuryModalOpen, capsule}) {
           className="w-full p-2 border rounded mt-2"
         />
 
+        {capsule.UnlockDate === null ? (
+          <p className="text-red-500 text-sm mt-2">
+            An unlock date must be set before burying.
+          </p>
+        ) : userInput && userInput !== capsule.Title ? (
+          <p className="text-red-500 text-sm mt-2">
+            Title does not match. Please type it correctly.
+          </p>
+        ) : null}
+
+
         {/* Validation message */}
-        {userInput && userInput !== capsule.Title && (
-          <p className="text-red-500 text-sm mt-2">Title does not match. Please type it correctly.</p>
-        )}
+        
 
         {/* Close Button */}
         <button
