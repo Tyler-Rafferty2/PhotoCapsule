@@ -7,7 +7,7 @@ import DndCapsules from "@/components/DndCapsules";
 import { useSearchParams, useRouter } from "next/navigation";
 
 
-function CapsuleModal({ isOpen, onClose, onSubmit }) {
+function CapsuleModal({ isOpen, onClose, onSubmit, capsuleError, setCapsuleError }) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [coverImage, setCoverImage] = useState(null);
@@ -15,6 +15,32 @@ function CapsuleModal({ isOpen, onClose, onSubmit }) {
   const [includeInCapsule, setIncludeInCapsule] = useState(false);
 
   const fileInputRef = useRef(null);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+
+      if (
+          dropdownRef.current &&
+          !dropdownRef.current.contains(event.target)
+        ) {
+          onClose();
+        }
+      }
+
+      function handleEscape(event) {
+        if (event.key === "Escape") {
+          onClose();
+        }
+      }
+
+      document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener("keydown", handleEscape);
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+        document.removeEventListener("keydown", handleEscape);
+      };
+    }, [onClose]);
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -33,24 +59,31 @@ function CapsuleModal({ isOpen, onClose, onSubmit }) {
   };
 
   const handleSubmit = () => {
-    onSubmit({ name, description, coverImage, includeInCapsule});
-    setName("");
-    setDescription("");
-    setCoverImage(null);
-    setPreviewUrl("")
-    setIncludeInCapsule(false)
+    if(name == ""){
+      setCapsuleError("Please input a name")
+    }else{
+      onSubmit({ name, description, coverImage, includeInCapsule,setCapsuleError});
+      setName("");
+      setDescription("");
+      setCoverImage(null);
+      setPreviewUrl("")
+      setIncludeInCapsule(false)
+      setCapsuleError(null)
+    }
   };
   
   if (!isOpen) return null;
 
   return (
+    
     <div
       className="fixed inset-0 flex items-center justify-center z-50"
       style={{
         background: "rgba(0, 0, 0, 0.7)", 
       }}
     >
-      <div className="backdrop-blur-md bg-white/70 p-6 rounded shadow-lg w-full max-w-sm">
+      <div className="backdrop-blur-md bg-white/70 p-6 rounded shadow-lg w-full max-w-sm" ref={dropdownRef}>
+        
         <h2 className="text-xl font-bold mb-4">Create New Capsule</h2>
         <input
           type="text"
@@ -117,6 +150,11 @@ function CapsuleModal({ isOpen, onClose, onSubmit }) {
             </div>
           )}
         </div>
+        <div className="">
+        {capsuleError && (
+          <h2 className="text-red-500 text-sm mt-2">{capsuleError}</h2>
+        )}
+        </div>
         <div className="flex justify-end gap-2">
           <button
             onClick={onClose}
@@ -146,7 +184,7 @@ function CapsuleModal({ isOpen, onClose, onSubmit }) {
   );
 }
 
-function DeleteModal({ onClose, currentCapsule, isOpen, setCapsules,}) {
+function DeleteModal({ onClose, currentCapsule, isOpen, setCapsules}) {
   const [userInput, setUserInput] = useState(""); // State to store the user's input
   const [isValid, setIsValid] = useState(false); // To check if the input matches the title
 
@@ -160,6 +198,33 @@ function DeleteModal({ onClose, currentCapsule, isOpen, setCapsules,}) {
       setIsValid(false);
     }
   };
+
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+
+      if (
+          dropdownRef.current &&
+          !dropdownRef.current.contains(event.target)
+        ) {
+          onClose();
+        }
+      }
+
+      function handleEscape(event) {
+        if (event.key === "Escape") {
+          onClose();
+        }
+      }
+
+      document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener("keydown", handleEscape);
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+        document.removeEventListener("keydown", handleEscape);
+      };
+    }, [onClose]);
 
   const  handleDelete = async () => {
     // Call the delete function, passing capsule ID or any necessary data
@@ -199,7 +264,7 @@ function DeleteModal({ onClose, currentCapsule, isOpen, setCapsules,}) {
         background: "rgba(0, 0, 0, 0.7)", // black translucent background
       }}
     >
-      <div className="backdrop-blur-md bg-white/70 p-6 rounded shadow-lg w-full max-w-sm relative">
+      <div className="backdrop-blur-md bg-white/70 p-6 rounded shadow-lg w-full max-w-sm relative" ref={dropdownRef}>
         {/* Modal Content */}
         <h2 className="text-center text-lg font-semibold mt-2">
           Are you sure you want to delete "{currentCapsule.Title}"?
@@ -355,6 +420,7 @@ export default function CapsulesPage() {
   const [creating, setCreating] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [capsuleError, setCapsuleError] = useState("");
 
   const items = [
     {
@@ -405,8 +471,9 @@ export default function CapsulesPage() {
     fetchCapsules();
   }, []);
 
-  const handleCreateCapsule = async ({ name, description, coverImage, includeInCapsule}) => {
+  const handleCreateCapsule = async ({ name, description, coverImage, includeInCapsule, setCapsuleError}) => {
     setCreating(true);
+    
     try {
       const token = localStorage.getItem("token");
       const vaultResponse = await authFetch("http://localhost:8080/api/addvaults", {
@@ -417,7 +484,8 @@ export default function CapsulesPage() {
         body: JSON.stringify({ Name: name, Description: description}),
       });
     if (!vaultResponse.ok) {
-      throw new Error("Failed to create vault");
+      setCapsuleError(vaultResponse.statusText)
+      throw new Error("Failed to create vault", vaultResponse);
     }
 
     const vaultData = await vaultResponse.json();
@@ -531,6 +599,8 @@ export default function CapsulesPage() {
       </div>
 
       <CapsuleModal
+        capsuleError={capsuleError}
+        setCapsuleError={setCapsuleError}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSubmit={handleCreateCapsule}

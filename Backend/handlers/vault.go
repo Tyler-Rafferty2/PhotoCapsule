@@ -34,8 +34,7 @@ func AddVault(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
-
-	if strings.TrimSpace(req.Name) == "" {
+	if req.Name == ""{
 		http.Error(w, "Missing vault name", http.StatusBadRequest)
 		return
 	}
@@ -48,7 +47,7 @@ func AddVault(w http.ResponseWriter, r *http.Request) {
 
 	var existing models.Vault
 	if err := config.DB.Where("title = ? AND user_id = ?", req.Name, userId).First(&existing).Error; err == nil {
-		http.Error(w, "Vault already exists", http.StatusConflict)
+		http.Error(w, "Vault name already used", http.StatusConflict)
 		return
 	}
 
