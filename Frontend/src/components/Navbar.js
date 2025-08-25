@@ -4,34 +4,14 @@ import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import ThemeToggle from "./ThemeToggle";
 import { useAuth } from "@/context/authContext";
+import { useOnClickOutside } from "@/hooks/useOnClickOutside";
 
 
 function UserModal({ setIsUserModalOpen, user, logout }) {
+
+  
   const dropdownRef = useRef(null);
-
-  useEffect(() => {
-    function handleClickOutside(event) {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target)
-      ) {
-        setIsUserModalOpen(false);
-      }
-    }
-
-    function handleEscape(event) {
-      if (event.key === "Escape") {
-        setIsUserModalOpen(false);
-      }
-    }
-
-    document.addEventListener("mousedown", handleClickOutside);
-    document.addEventListener("keydown", handleEscape);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-      document.removeEventListener("keydown", handleEscape);
-    };
-  }, [setIsUserModalOpen]);
+  useOnClickOutside(dropdownRef, () => setIsUserModalOpen(false));
 
   return (
     <div

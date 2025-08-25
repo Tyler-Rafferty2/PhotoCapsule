@@ -6,7 +6,8 @@ import { useParams } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import Dnd from "@/components/Dnd";
 import Time from "@/components/Time";
-import { authFetch } from "@/utils/authFetch"; // ✅ NEW
+import { authFetch } from "@/utils/authFetch";
+import { useOnClickOutside } from "@/hooks/useOnClickOutside";
 
 function ShareModal({setIsShareModalOpen,capsule}){
   return(
@@ -39,6 +40,9 @@ function ShareModal({setIsShareModalOpen,capsule}){
 }
 
 function TimeModal({setIsTimeModalOpen,id}){
+  const modalRef = useRef(null);
+  useOnClickOutside(modalRef, () => setIsTimeModalOpen(false));
+
   return(
     <div
           className="fixed inset-0 flex items-center justify-center z-50"
@@ -47,6 +51,7 @@ function TimeModal({setIsTimeModalOpen,id}){
           <div
             className="backdrop-blur-md bg-white/70 p-8 rounded shadow-lg w-full max-w-xl"
             style={{ height: "80vh", overflowY: "auto" }}
+            ref={modalRef}
           >
             <h2 className="text-2xl font-bold mb-6 text-center">Edit Release Time</h2>
             <Time vaultId={id} />
@@ -106,6 +111,9 @@ function ImageUploadModal({
 }) {
   const fileInputRef = useRef(null);
 
+  const modalRef = useRef(null);
+  useOnClickOutside(modalRef, () => setIsImageModalOpen(false));
+
   const handleButtonClick = () => {
     fileInputRef.current?.click();
   };
@@ -118,6 +126,7 @@ function ImageUploadModal({
       <div
         className="backdrop-blur-md bg-white/70 p-6 rounded shadow-lg w-full max-w-sm"
         style={{ maxHeight: "80vh", overflowY: "auto" }}
+        ref={modalRef}
       >
         <h2 className="text-xl font-bold mb-4">Upload Images</h2>
 
@@ -192,6 +201,10 @@ function CapsuleSettingModal({ setIsCapulseSettingOpen, capsule, setCapsule }) {
   const [title, setTitle] = useState(capsule?.Title || "");
   const [description, setDescription] = useState(capsule?.Description || "");
 
+
+  const modalRef = useRef(null);
+  useOnClickOutside(modalRef, () => setIsCapulseSettingOpen(false));
+
   // Reference to the description textarea for auto-resizing
   const descriptionRef = useRef(null);
 
@@ -245,6 +258,7 @@ function CapsuleSettingModal({ setIsCapulseSettingOpen, capsule, setCapsule }) {
       <div
         className="backdrop-blur-md bg-white/70 p-8 rounded shadow-lg w-full max-w-xl"
         style={{ height: "80vh", overflowY: "auto" }}
+        ref={modalRef}
       >
         <h2 className="text-2xl font-bold mb-6 text-center">Settings</h2>
 
@@ -311,6 +325,9 @@ function BuryModal({ setIsBuryModalOpen, capsule}) {
   const [userInput, setUserInput] = useState(""); // State to store the user's input
   const [isValid, setIsValid] = useState(false); // To check if the input matches the title
 
+  const modalRef = useRef(null);
+  useOnClickOutside(modalRef, () => setIsBuryModalOpen(false));
+
   // Function to handle input change
   const handleInputChange = (e) => {
     setUserInput(e.target.value);
@@ -350,7 +367,7 @@ function BuryModal({ setIsBuryModalOpen, capsule}) {
         background: "rgba(0, 0, 0, 0.7)", // black translucent background
       }}
     >
-      <div className="backdrop-blur-md bg-white/70 p-6 rounded shadow-lg w-full max-w-sm relative">
+      <div className="backdrop-blur-md bg-white/70 p-6 rounded shadow-lg w-full max-w-sm relative" ref={modalRef}>
         {/* Modal Content */}
         <h2 className="text-center text-lg font-semibold mt-2">
           Are you sure you want to bury "{capsule.Title}"?
@@ -669,7 +686,7 @@ export default function ViewPage() {
               >
                 Bury Capsule
               </button>
-            <button
+            {/* <button
               onClick={() => setIsShareModalOpen(true)}
               className="px-5 py-3 rounded shadow text-sm transition-colors duration-200"
               style={{
@@ -680,7 +697,7 @@ export default function ViewPage() {
               onMouseOut={(e) => (e.currentTarget.style.background = "var(--accent)")}
             >
               Share
-            </button>
+            </button> */}
           </div>
         </div>
         <div className="space-y-4">

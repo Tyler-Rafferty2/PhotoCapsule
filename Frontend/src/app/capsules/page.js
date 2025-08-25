@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import { authFetch } from "@/utils/authFetch";
 import Navbar from "@/components/Navbar";
-import DndCapsules from "@/components/DndCapsules";
+import { useOnClickOutside } from "@/hooks/useOnClickOutside";
 import { useSearchParams, useRouter } from "next/navigation";
 
 
@@ -15,32 +15,9 @@ function CapsuleModal({ isOpen, onClose, onSubmit, capsuleError, setCapsuleError
   const [includeInCapsule, setIncludeInCapsule] = useState(false);
 
   const fileInputRef = useRef(null);
-  const dropdownRef = useRef(null);
 
-  useEffect(() => {
-    function handleClickOutside(event) {
-
-      if (
-          dropdownRef.current &&
-          !dropdownRef.current.contains(event.target)
-        ) {
-          onClose();
-        }
-      }
-
-      function handleEscape(event) {
-        if (event.key === "Escape") {
-          onClose();
-        }
-      }
-
-      document.addEventListener("mousedown", handleClickOutside);
-      document.addEventListener("keydown", handleEscape);
-      return () => {
-        document.removeEventListener("mousedown", handleClickOutside);
-        document.removeEventListener("keydown", handleEscape);
-      };
-    }, [onClose]);
+  const modalRef = useRef(null);
+  useOnClickOutside(modalRef, onClose);
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -82,7 +59,7 @@ function CapsuleModal({ isOpen, onClose, onSubmit, capsuleError, setCapsuleError
         background: "rgba(0, 0, 0, 0.7)", 
       }}
     >
-      <div className="backdrop-blur-md bg-white/70 p-6 rounded shadow-lg w-full max-w-sm" ref={dropdownRef}>
+      <div className="backdrop-blur-md bg-white/70 p-6 rounded shadow-lg w-full max-w-sm" ref={modalRef}>
         
         <h2 className="text-xl font-bold mb-4">Create New Capsule</h2>
         <input
@@ -199,32 +176,8 @@ function DeleteModal({ onClose, currentCapsule, isOpen, setCapsules}) {
     }
   };
 
-  const dropdownRef = useRef(null);
-
-  useEffect(() => {
-    function handleClickOutside(event) {
-
-      if (
-          dropdownRef.current &&
-          !dropdownRef.current.contains(event.target)
-        ) {
-          onClose();
-        }
-      }
-
-      function handleEscape(event) {
-        if (event.key === "Escape") {
-          onClose();
-        }
-      }
-
-      document.addEventListener("mousedown", handleClickOutside);
-      document.addEventListener("keydown", handleEscape);
-      return () => {
-        document.removeEventListener("mousedown", handleClickOutside);
-        document.removeEventListener("keydown", handleEscape);
-      };
-    }, [onClose]);
+  const modalRef = useRef(null);
+  useOnClickOutside(modalRef, onClose);
 
   const  handleDelete = async () => {
     // Call the delete function, passing capsule ID or any necessary data
@@ -264,7 +217,7 @@ function DeleteModal({ onClose, currentCapsule, isOpen, setCapsules}) {
         background: "rgba(0, 0, 0, 0.7)", // black translucent background
       }}
     >
-      <div className="backdrop-blur-md bg-white/70 p-6 rounded shadow-lg w-full max-w-sm relative" ref={dropdownRef}>
+      <div className="backdrop-blur-md bg-white/70 p-6 rounded shadow-lg w-full max-w-sm relative" ref={modalRef}>
         {/* Modal Content */}
         <h2 className="text-center text-lg font-semibold mt-2">
           Are you sure you want to delete "{currentCapsule.Title}"?
