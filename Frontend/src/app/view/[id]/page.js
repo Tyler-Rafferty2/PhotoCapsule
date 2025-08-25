@@ -122,6 +122,14 @@ function ImageUploadModal({
     fileInputRef.current?.click();
   };
 
+  const handleDrop = (e) => {
+    e.preventDefault();
+    const files = Array.from(e.dataTransfer.files);
+    if (files.length) handleFileSelect(files);
+  };
+
+  const handleDragOver = (e) => e.preventDefault();
+
   return (
     <div
       className="fixed inset-0 flex items-center justify-center z-50"
@@ -150,7 +158,7 @@ function ImageUploadModal({
         />
 
         {/* Styled file upload button with bottom spacing */}
-        <button
+        {/* <button
           type="button"
           onClick={handleButtonClick}
           style={{
@@ -165,8 +173,36 @@ function ImageUploadModal({
           }}
         >
           {preview.length === 0 ? "Choose Images" : "Add More Images"}
-        </button>
-        <ImagePreview srcList={preview} />
+        </button> */}
+
+        
+        {/* Drag & Drop / Default Zone */}
+        <div
+          onDrop={handleDrop}
+          onDragOver={handleDragOver}
+          className={`border-2 border-dashed rounded p-4 mb-4 flex flex-wrap gap-2 justify-start`}
+          style={{
+            minHeight: preview.length === 0 ? "150px" : "auto", // default zone height
+            width: "100%",
+            backgroundColor: "#f9f9f9",
+            cursor: "pointer",
+          }}
+          onClick={handleButtonClick} // allow click to select as well
+        >
+          {preview.length === 0 ? (
+            <span className="text-gray-500 m-auto">Drag & drop images here or click to select</span>
+          ) : (
+            preview.map((src, index) => (
+              <img
+                key={index}
+                src={src}
+                alt={`preview-${index}`}
+                className="h-24 w-24 object-cover rounded"
+              />
+            ))
+          )}
+        </div>
+        {/* <ImagePreview srcList={preview} /> */}
         <StatusMessage uploadStatus={uploadStatus} />
 
         <div className="flex justify-end gap-2 mt-4">
@@ -483,7 +519,6 @@ export default function ViewPage() {
 
     const newPreviews = filesArray.map((file) => URL.createObjectURL(file));
 
-    // Append to existing state
     setFile((prevFiles) => [...prevFiles, ...filesArray]);
     setPreview((prevPreviews) => [...prevPreviews, ...newPreviews]);
     setUploadStatus("idle");
