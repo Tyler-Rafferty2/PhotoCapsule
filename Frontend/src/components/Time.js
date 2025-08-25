@@ -4,7 +4,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import { parse, format } from "date-fns";
 import { authFetch } from "@/utils/authFetch"; // ✅ NEW
 
-export default function Time({ vaultId }) {
+export default function Time({ vaultId, setCapsule }) {
   const [date, setDate] = useState(null);
   const [time, setTime] = useState(null);
   const [inputValue, setInputValue] = useState("");
@@ -149,6 +149,16 @@ export default function Time({ vaultId }) {
       }
 
       setStatus("Time successfully set!");
+
+      try {
+        const res = await authFetch(`http://localhost:8080/vault/${vaultId}`, {
+        });
+        const data = await res.json();
+        console.log("Fetched capsules:", data);
+        setCapsule(data);
+      } catch (error) {
+        console.error("Error:", error);
+      }
     } catch (err) {
       console.error("Failed to set time:", err);
       setStatus(`Error: ${err.message}`);

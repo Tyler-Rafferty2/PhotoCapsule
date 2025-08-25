@@ -28,7 +28,7 @@ function UserModal({ setIsUserModalOpen, user, logout }) {
         <div className="mb-2">
           <span className="font-medium">Email:</span> {user?.email}
         </div>
-        <button
+        {/* <button
           style={{
                   background: "var(--accent)",
                   color: "#fff",
@@ -39,7 +39,7 @@ function UserModal({ setIsUserModalOpen, user, logout }) {
           onMouseOut={(e) => (e.currentTarget.style.background = "var(--accent)")}
         >
           Close
-        </button>
+        </button> */}
         <button
           style={{
                   background: "var(--accent)",

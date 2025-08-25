@@ -39,7 +39,7 @@ function ShareModal({setIsShareModalOpen,capsule}){
   );
 }
 
-function TimeModal({setIsTimeModalOpen,id}){
+function TimeModal({setIsTimeModalOpen,id,setCapsule}){
   const modalRef = useRef(null);
   useOnClickOutside(modalRef, () => setIsTimeModalOpen(false));
 
@@ -54,7 +54,7 @@ function TimeModal({setIsTimeModalOpen,id}){
             ref={modalRef}
           >
             <h2 className="text-2xl font-bold mb-6 text-center">Edit Release Time</h2>
-            <Time vaultId={id} />
+            <Time vaultId={id} setCapsule={setCapsule}/>
             <div className="flex justify-end mt-6">
               <button
                 onClick={() => setIsTimeModalOpen(false)}
@@ -799,6 +799,7 @@ export default function ViewPage() {
         <TimeModal
           setIsTimeModalOpen={setIsTimeModalOpen}
           id={capsule.ID}
+          setCapsule={setCapsule}
         />
       )}
 
