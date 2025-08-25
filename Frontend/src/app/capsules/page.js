@@ -217,7 +217,7 @@ function DeleteModal({ onClose, currentCapsule, isOpen, setCapsules}) {
         background: "rgba(0, 0, 0, 0.7)", // black translucent background
       }}
     >
-      <div className="backdrop-blur-md bg-white/70 p-6 rounded shadow-lg w-full max-w-sm relative" ref={modalRef}>
+      <div className="backdrop-blur-md bg-white/70 p-6 pt-10 rounded shadow-lg w-full max-w-sm relative" ref={modalRef}>
         {/* Modal Content */}
         <h2 className="text-center text-lg font-semibold mt-2">
           Are you sure you want to delete "{currentCapsule.Title}"?

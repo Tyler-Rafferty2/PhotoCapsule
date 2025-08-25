@@ -106,13 +106,14 @@ function ImageUploadModal({
   setIsImageModalOpen,
   preview,
   uploadStatus,
+  setUploadStatus,
   handleUpload,
   handleFileSelect,
 }) {
   const fileInputRef = useRef(null);
 
   const modalRef = useRef(null);
-  useOnClickOutside(modalRef, () => setIsImageModalOpen(false));
+  useOnClickOutside(modalRef, () => setIsImageModalOpen(false), () => setUploadStatus("idle"));
 
   const handleButtonClick = () => {
     fileInputRef.current?.click();
@@ -168,7 +169,9 @@ function ImageUploadModal({
 
         <div className="flex justify-end gap-2 mt-4">
           <button
-            onClick={() => setIsImageModalOpen(false)}
+            onClick={() => {
+              setIsImageModalOpen(false)
+              setUploadStatus("idle")}}
             className="px-4 py-2 border rounded"
           >
             Cancel
@@ -530,7 +533,7 @@ export default function ViewPage() {
       await res.json();
       setPreview([]);
       setFile([]);
-      setUploadStatus("success");
+      setUploadStatus("idle")
       setIsImageModalOpen(false);
       fetchImages();
     } catch (err) {
@@ -739,6 +742,7 @@ export default function ViewPage() {
           setIsImageModalOpen={setIsImageModalOpen}
           preview={preview}
           uploadStatus={uploadStatus}
+          setUploadStatus={setUploadStatus}
           handleUpload={handleUpload}        
           handleFileSelect={handleFileSelect}
           />
