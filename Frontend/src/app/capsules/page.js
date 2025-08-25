@@ -17,7 +17,7 @@ function CapsuleModal({ isOpen, onClose, onSubmit, capsuleError, setCapsuleError
   const fileInputRef = useRef(null);
 
   const modalRef = useRef(null);
-  useOnClickOutside(modalRef, onClose);
+  useOnClickOutside(modalRef, onClose, () => setCapsuleError(null));
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -424,9 +424,9 @@ export default function CapsulesPage() {
     fetchCapsules();
   }, []);
 
-  const handleCreateCapsule = async ({ name, description, coverImage, includeInCapsule, setCapsuleError}) => {
+  const handleCreateCapsule = async ({ name, description, coverImage, includeInCapsule, setCapsuleError }) => {
     setCreating(true);
-    
+
     try {
       const token = localStorage.getItem("token");
       const vaultResponse = await authFetch("http://localhost:8080/api/addvaults", {
@@ -434,40 +434,47 @@ export default function CapsulesPage() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ Name: name, Description: description}),
+        body: JSON.stringify({ Name: name, Description: description }),
       });
-    if (!vaultResponse.ok) {
-      setCapsuleError(vaultResponse.statusText)
-      throw new Error("Failed to create vault", vaultResponse);
-    }
 
-    const vaultData = await vaultResponse.json();
-    const vaultId = vaultData.vaultId;
-    const formData = new FormData();
-    console.log(coverImage)
-    formData.append("images", coverImage);
-    //formData.append("IncludeInCapsule", includeInCapsule);
+      if (!vaultResponse.ok) {
+        const errorText = await vaultResponse.text();
+        setCapsuleError(errorText || "Failed to create vault");
+        return; // stop here and keep modal open
+      }
 
-    await authFetch(`http://localhost:8080/cover/upload/${vaultId}`, {
-      method: "POST",
-      body: formData, // ✅ no headers — browser sets Content-Type for FormData
-    });
+      const vaultData = await vaultResponse.json();
+      const vaultId = vaultData.vaultId;
 
-    if (includeInCapsule) {
-      await authFetch(`http://localhost:8080/upload/${vaultId}`, {
-        method: "POST",
-        body: formData,
-      });
-    }
+      const formData = new FormData();
+      formData.append("images", coverImage);
 
+      if (includeInCapsule) {
+        const uploadResponse = await authFetch(`http://localhost:8080/upload/${vaultId}`, {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!uploadResponse.ok) {
+          const errorText = await uploadResponse.text();
+          setCapsuleError(errorText || "Failed to upload image to capsule");
+          return; // stop here and keep modal open
+        }
+      }
+
+      // ✅ Success path
       fetchCapsules();
+      setCapsuleError(null)
+      setIsModalOpen(false); // only close modal on success
+
     } catch (err) {
       console.error("Failed to create capsule:", err);
+      setCapsuleError("Unexpected error occurred. Please try again.");
     } finally {
       setCreating(false);
-      setIsModalOpen(false);
     }
   };
+
 
   const handleUpload = async () => {
     if (file.length === 0) {

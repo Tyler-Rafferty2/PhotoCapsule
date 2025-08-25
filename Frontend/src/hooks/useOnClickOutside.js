@@ -6,17 +6,20 @@ import { useEffect } from "react";
  *
  * @param {React.RefObject} ref - The ref to the element you want to detect outside clicks for.
  * @param {Function} onClose - Callback to close the component.
+ * @param {Function} [beforeClose] - Optional function to run before closing.
  */
-export function useOnClickOutside(ref, onClose) {
+export function useOnClickOutside(ref, onClose, beforeClose) {
   useEffect(() => {
     function handleClickOutside(event) {
       if (ref.current && !ref.current.contains(event.target)) {
+        if (beforeClose) beforeClose();
         onClose();
       }
     }
 
     function handleEscape(event) {
       if (event.key === "Escape") {
+        if (beforeClose) beforeClose();
         onClose();
       }
     }
