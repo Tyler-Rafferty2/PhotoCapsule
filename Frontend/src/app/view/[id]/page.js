@@ -113,7 +113,10 @@ function ImageUploadModal({
   const fileInputRef = useRef(null);
 
   const modalRef = useRef(null);
-  useOnClickOutside(modalRef, () => setIsImageModalOpen(false), () => setUploadStatus("idle"));
+  useOnClickOutside(modalRef, () => setIsImageModalOpen(false), () => {
+    setUploadStatus("idle")
+    handleFileSelect(null);
+  });
 
   const handleButtonClick = () => {
     fileInputRef.current?.click();
@@ -125,7 +128,7 @@ function ImageUploadModal({
       style={{ background: "rgba(0, 0, 0, 0.7)" }}
     >
       <div
-        className="backdrop-blur-md bg-white/70 p-6 rounded shadow-lg w-full max-w-sm"
+        className="backdrop-blur-md bg-white/70 p-6 rounded shadow-lg w-full max-w-[80vw]"
         style={{ maxHeight: "80vh", overflowY: "auto" }}
         ref={modalRef}
       >
@@ -161,9 +164,8 @@ function ImageUploadModal({
             marginBottom: "1rem",
           }}
         >
-          Choose Images
+          {preview.length === 0 ? "Choose Images" : "Add More Images"}
         </button>
-
         <ImagePreview srcList={preview} />
         <StatusMessage uploadStatus={uploadStatus} />
 
@@ -171,7 +173,8 @@ function ImageUploadModal({
           <button
             onClick={() => {
               setIsImageModalOpen(false)
-              setUploadStatus("idle")}}
+              setUploadStatus("idle")
+              handleFileSelect(null)}}
             className="px-4 py-2 border rounded"
           >
             Cancel
@@ -467,13 +470,22 @@ export default function ViewPage() {
   }, [id]);
 
   const handleFileSelect = (selectedFiles) => {
+    if (!selectedFiles) {
+      // Clear the file and preview states
+      setFile([]);
+      setPreview([]);
+      setUploadStatus("idle");
+      return;
+    }
     const filesArray = Array.isArray(selectedFiles)
-      ? selectedFiles
-      : [selectedFiles];
+    ? selectedFiles
+    : [selectedFiles];
+
     const newPreviews = filesArray.map((file) => URL.createObjectURL(file));
 
-    setFile(filesArray);
-    setPreview(newPreviews);
+    // Append to existing state
+    setFile((prevFiles) => [...prevFiles, ...filesArray]);
+    setPreview((prevPreviews) => [...prevPreviews, ...newPreviews]);
     setUploadStatus("idle");
   };
 
