@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { authFetch } from "@/utils/authFetch";
 import {
   DndContext,
@@ -123,6 +123,7 @@ function SortableImage({ id, img, idx, handleTrash, isDragging }) {
       id,
       animateLayoutChanges: defaultAnimateLayoutChanges,
     });
+  const [src, setSrc] = useState(null)
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -131,6 +132,20 @@ function SortableImage({ id, img, idx, handleTrash, isDragging }) {
     background: "var(--softbackground)",
     border: "1px solid var(--border)",
   };
+  console.log(img.url)
+  var res;
+  useEffect(() => {
+    const fetchImage = async () => {
+      const token = localStorage.getItem('token')
+      const res = await fetch(`http://localhost:8080${img.url}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      const blob = await res.blob()
+      setSrc(URL.createObjectURL(blob))
+    }
+
+    fetchImage()
+  }, [img.url])
 
   return (
     <div
@@ -148,7 +163,7 @@ function SortableImage({ id, img, idx, handleTrash, isDragging }) {
         </button>
         <img
           {...listeners}
-          src={`http://localhost:8080/uploads/${img.filename}`}
+          src={src}
           className="w-full h-full object-cover"
           alt={`Uploaded ${idx}`}
         />

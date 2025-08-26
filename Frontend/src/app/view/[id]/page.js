@@ -556,8 +556,11 @@ export default function ViewPage() {
       console.error("Failed to fetch images:", err);
     } finally {
       setLoading(false);
+      console.log(images)
     }
+    
   };
+  
 
   const handleUpload = async () => {
     if (file.length === 0) return;

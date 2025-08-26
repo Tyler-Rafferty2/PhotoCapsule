@@ -17,10 +17,12 @@ func SetupRoutes() *http.ServeMux {
 
 	mux.HandleFunc("/auth/refresh", middleware.WithCORS(handlers.RefreshHandler))
 	mux.Handle("/uploads/", http.StripPrefix("/uploads/", http.FileServer(http.Dir("uploads"))))
+	mux.HandleFunc("/image/", middleware.WithCORS(middleware.AuthMiddleware(handlers.GetImageHandler)))
 
 	// Authenticated routes with CORS
 	mux.HandleFunc("/upload/", middleware.WithCORS(middleware.AuthMiddleware(handlers.UploadHandler)))
 	mux.HandleFunc("/cover/upload/", middleware.WithCORS(middleware.AuthMiddleware(handlers.CoverUploadHandler)))
+	mux.HandleFunc("/cover/display/", middleware.WithCORS(middleware.AuthMiddleware(handlers.CoverUploadHandler)))
 
 	mux.HandleFunc("/images/trash/recover/", middleware.WithCORS(middleware.AuthMiddleware(handlers.TrashRecover)))
 	mux.HandleFunc("/images/trash/delete/", middleware.WithCORS(middleware.AuthMiddleware(handlers.TrashDelete)))

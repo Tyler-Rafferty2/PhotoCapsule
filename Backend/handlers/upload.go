@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 	"log"
+	"fmt"
 
 	"photovault/config"
 	"photovault/models"
@@ -19,6 +20,7 @@ import (
 type UploadResponse struct {
 	ID       uint   `json:"id"`
 	Filename string `json:"filename"`
+	URL      string `json:"url"`
 }
 
 type OrderUpdate struct {
@@ -147,14 +149,81 @@ func ImagesHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	responses := []UploadResponse{}
+	url := "/image/"
 	for _, u := range uploads {
 		responses = append(responses, UploadResponse{
 			ID:       u.ID,
 			Filename: u.Filename,
+			URL:	  url + strconv.Itoa(int(u.ID)),
 		})
 	}
 	json.NewEncoder(w).Encode(responses)
 }
+
+func GetImageHandler(w http.ResponseWriter, r *http.Request) {
+        // 1. Get the logged-in user
+		log.Println("in image")
+		userID, _, err := utils.GetUserFromToken(r)
+        if err != nil {
+            http.Error(w, "Unauthorized", http.StatusUnauthorized)
+            return
+        }
+
+        // 2. Get image ID from URL
+		vaultIdStr := strings.TrimPrefix(r.URL.Path, "/image/")
+		imageID, err := strconv.ParseUint(vaultIdStr, 10, 64)
+		if err != nil {
+			http.Error(w, "Invalid vault ID", http.StatusBadRequest)
+			return
+		}
+
+        // 3. Look up image in DB
+		log.Println("before")
+        var img models.Upload
+		if err := config.DB.Preload("Vault").First(&img, "id = ?", imageID).Error; err != nil {
+			log.Println(err)
+			log.Println("in errir")
+            http.Error(w, "Not Found", http.StatusNotFound)
+            return
+        }
+		log.Println("after")
+        // 4. Check ownership via Vault
+        if img.Vault.UserID != userID {
+            http.Error(w, "Forbidden", http.StatusForbidden)
+            return
+        }
+
+        // if err := config.DB.First(&img, "id = ?", imageID).Error; err != nil {
+        //     http.Error(w, "Not Found", http.StatusNotFound)
+        //     return
+        // }
+
+        // // 4. Check ownership
+        // if img. != userID {
+        //     http.Error(w, "Forbidden", http.StatusForbidden)
+        //     return
+        // }
+		
+		cwd, _ := os.Getwd()
+		fmt.Println("Current working directory:", cwd)
+		filePath := fmt.Sprintf("/go/uploads/%s", img.Filename)
+		log.Println(filePath)
+
+		dirPath := "/go/uploads" // your directory
+		files, err := os.ReadDir(dirPath)
+		if err != nil {
+			fmt.Println("Error reading directory:", err)
+			return
+		}
+
+		fmt.Println("Files in", dirPath, ":")
+		for _, f := range files {
+			fmt.Println("-", f.Name())
+		}
+        // 5. Serve the file
+        http.ServeFile(w, r, filePath)
+}
+
 
 func UpdateOrder(w http.ResponseWriter, r *http.Request) {
 

@@ -23,6 +23,11 @@ type NewVaultRequest struct {
 	IncludeInCapsule bool   `json:"IncludeInCapsule"`
 }
 
+type CoverImageResponse struct {
+	ID       uint   `json:"id"`
+	Filename string `json:"filename"`
+}
+
 func AddVault(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -170,6 +175,45 @@ func CoverUploadHandler(w http.ResponseWriter, r *http.Request) {
 		"message": "Cover image uploaded and linked successfully",
 	})
 }
+
+// func CoverHandler(w http.ResponseWriter, r *http.Request) {
+// 	if r.Method != http.MethodGet {
+// 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+// 		return
+// 	}
+
+// 	vaultIdStr := strings.TrimPrefix(r.URL.Path, "/cover/display/")
+// 	vaultId, err := strconv.ParseUint(vaultIdStr, 10, 64)
+// 	if err != nil {
+// 		http.Error(w, "Invalid vault ID", http.StatusBadRequest)
+// 		return
+// 	}
+
+// 	userId, _, err := utils.GetUserFromToken(r)
+// 	if err != nil {
+// 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+// 		return
+// 	}
+
+// 	var vault models.Vault
+// 	if err := config.DB.First(&vault, vaultId).Error; err != nil || vault.UserID != userId {
+// 		http.Error(w, "Vault not found or forbidden", http.StatusForbidden)
+// 		return
+// 	}
+
+// 	coverImage := models.CoverImage{}
+// 	if err := config.DB.First("vault_id = ?", vaultId).Find(&coverImage).Error; err != nil {
+// 		http.Error(w, "Failed to retrieve coverImage", http.StatusInternalServerError)
+// 		return
+// 	}
+
+// 	response := CoverImageResponse{}
+// 	response = CoverImageResponse{
+// 		ID:       u.ID,
+// 		Filename: u.Filename,
+// 	}
+// 	json.NewEncoder(w).Encode(response)
+// }
 
 func DeleteVault(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodDelete {
