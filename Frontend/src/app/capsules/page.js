@@ -270,73 +270,85 @@ function CapsuleList({setCurrentCapsule,capsules, sortFunc,setIsDeleteModalOpen}
       {capsules.
       filter(sortFunc).
       map((capsule) => {
-  const isBuried = capsule.Status === "buried";
+        const isBuried = capsule.Status === "buried";
+        const [src, setSrc] = useState(null)
+        useEffect(() => {
+          const fetchImage = async () => {
+            const token = localStorage.getItem('token')
+            const res = await fetch(`http://localhost:8080/image/cover/${capsule.CoverImageID}`, {
+              headers: { Authorization: `Bearer ${token}` }
+            })
+            const blob = await res.blob()
+            setSrc(URL.createObjectURL(blob))
+          }
+          fetchImage()
+        }, [])
 
-  return (
-    <div
-      key={capsule.id}
-      onClick={() => {
-        if (!isBuried) {
-          router.push(`/view/${capsule.ID}`);
-        }
-      }}
-      style={{
-        background: "var(--softbackground)",
-        border: "1px solid var(--border)",
-        cursor: isBuried ? "" : "pointer",
-        opacity: isBuried ? 0.5 : 1, // grayed out effect
-      }}
-      className="p-4 rounded shadow-sm flex flex-col justify-center items-center transition-transform duration-200 transform hover:scale-105 hover:shadow-lg group relative bg-white/70"
-    >
-      {/* Delete button */}
-      {!isBuried && (
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            setIsDeleteModalOpen(true);
-            setCurrentCapsule(capsule);
+      return (
+        <div
+          key={capsule.id}
+          onClick={() => {
+            if (!isBuried) {
+              router.push(`/view/${capsule.ID}`);
+            }
           }}
-          className="absolute top-1 right-1 bg-red-500 text-white text-xs px-2 py-1 rounded z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer"
+          style={{
+            background: "var(--softbackground)",
+            border: "1px solid var(--border)",
+            cursor: isBuried ? "" : "pointer",
+            opacity: isBuried ? 0.5 : 1, // grayed out effect
+          }}
+          className="p-4 rounded shadow-sm flex flex-col justify-center items-center transition-transform duration-200 transform hover:scale-105 hover:shadow-lg group relative bg-white/70"
         >
-          ✕
-        </button>
-      )}
+          {/* Delete button */}
+          {!isBuried && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsDeleteModalOpen(true);
+                setCurrentCapsule(capsule);
+              }}
+              className="absolute top-1 right-1 bg-red-500 text-white text-xs px-2 py-1 rounded z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer"
+            >
+              ✕
+            </button>
+          )}
 
-      {/* Image */}
-      <div className="relative flex justify-center items-center w-full">
-        {capsule.CoverImageURL ? (
-          <img
-            src={`http://localhost:8080/uploads/${capsule.CoverImageURL}`}
-            alt="Capsule Cover"
-            className="w-32 h-32 object-cover"
-          />
-        ) : (
-          <img
-            src="/Vault-Closed.png"
-            alt="Capsule Closed"
-            className="w-32 h-32 object-cover"
-          />
-        )}
-      </div>
+          {/* Image */}
+          <div className="relative flex justify-center items-center w-full">
+            {capsule.CoverImageID ? (
+              <img
+                src={src}
+                alt="Capsule Cover"
+                className="w-32 h-32 object-cover"
+              />
+            ) : (
+              <img
+                src="/Vault-Closed.png"
+                alt="Capsule Closed"
+                className="w-32 h-32 object-cover"
+              />
+            )}
+          </div>
 
-      {/* Text */}
-      <p className="text-center text-lg font-semibold mt-2">{capsule.Title}</p>
-      <p className="text-center text-sm" style={{ color: "var(--foreground)" }}>
-        {capsule.Description}
-      </p>
+          {/* Text */}
+          <p className="text-center text-lg font-semibold mt-2">{capsule.Title}</p>
+          <p className="text-center text-sm" style={{ color: "var(--foreground)" }}>
+            {capsule.Description}
+          </p>
 
-      {isBuried ? (
-        <p className="text-center text-sm text-gray-600">
-          Unlocks on {new Date(capsule.UnlockDate).toLocaleString()}
-        </p>
-      ) : (
-        <p className="text-center text-sm" style={{ color: "var(--foreground)" }}>
-          {capsule.Status}
-        </p>
-      )}
-    </div>
-  );
-  })}
+          {isBuried ? (
+            <p className="text-center text-sm text-gray-600">
+              Unlocks on {new Date(capsule.UnlockDate).toLocaleString()}
+            </p>
+          ) : (
+            <p className="text-center text-sm" style={{ color: "var(--foreground)" }}>
+              {capsule.Status}
+            </p>
+          )}
+        </div>
+      );
+      })}
     </div>
   );
 }

@@ -186,6 +186,7 @@ func GetImageHandler(w http.ResponseWriter, r *http.Request) {
             http.Error(w, "Not Found", http.StatusNotFound)
             return
         }
+
 		log.Println("after")
         // 4. Check ownership via Vault
         if img.Vault.UserID != userID {
@@ -313,10 +314,12 @@ func TrashHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	responses := []UploadResponse{}
+	url := "/image/"
 	for _, u := range uploads {
 		responses = append(responses, UploadResponse{
 			ID:       u.ID,
 			Filename: u.Filename,
+			URL:	  url + strconv.Itoa(int(u.ID)),
 		})
 	}
 	json.NewEncoder(w).Encode(responses)

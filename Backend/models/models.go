@@ -44,6 +44,7 @@ type Upload struct {
 type CoverImage struct {
 	ID              uint      `gorm:"primaryKey"`
 	VaultID         uint      `gorm:"not null"`
+	Vault      Vault      `gorm:"foreignKey:VaultID"`
 	Filename        string    `gorm:"not null"`
 	UploadTime      time.Time `gorm:"autoCreateTime"`
 }

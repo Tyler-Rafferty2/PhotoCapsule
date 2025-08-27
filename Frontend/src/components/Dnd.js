@@ -133,7 +133,7 @@ function SortableImage({ id, img, idx, handleTrash, isDragging }) {
     border: "1px solid var(--border)",
   };
   console.log(img.url)
-  var res;
+
   useEffect(() => {
     const fetchImage = async () => {
       const token = localStorage.getItem('token')

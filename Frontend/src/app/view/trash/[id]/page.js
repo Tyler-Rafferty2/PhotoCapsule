@@ -15,7 +15,19 @@ export default function ViewPage() {
       const res = await authFetch(`http://localhost:8080/images/trash/${id}`);
       const data = await res.json();
       console.log("Fetched data:", data);
-      setImages(data);
+
+      // fetch each image as blob
+      const withUrls = await Promise.all(
+        data.map(async (img) => {
+          const imageRes = await authFetch(`http://localhost:8080${img.url}`); 
+          const blob = await imageRes.blob();
+          const objectUrl = URL.createObjectURL(blob);
+
+          return { ...img, objectUrl };
+        })
+      );
+
+      setImages(withUrls);
     } catch (err) {
       console.error("Failed to fetch images:", err);
     } finally {
@@ -121,7 +133,7 @@ export default function ViewPage() {
                   Recover
                 </button>
                 <img
-                  src={`http://localhost:8080/uploads/${img.filename}`}
+                  src={img.objectUrl}
                   style={{ width: "100%", height: "100%", objectFit: "cover" }}
                   alt={`Trash ${idx}`}
                 />

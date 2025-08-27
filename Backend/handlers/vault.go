@@ -176,44 +176,70 @@ func CoverUploadHandler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// func CoverHandler(w http.ResponseWriter, r *http.Request) {
-// 	if r.Method != http.MethodGet {
-// 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-// 		return
-// 	}
+func GetCoverHandler(w http.ResponseWriter, r *http.Request) {
+        // 1. Get the logged-in user
+		log.Println("in image")
+		userID, _, err := utils.GetUserFromToken(r)
+        if err != nil {
+            http.Error(w, "Unauthorized", http.StatusUnauthorized)
+            return
+        }
 
-// 	vaultIdStr := strings.TrimPrefix(r.URL.Path, "/cover/display/")
-// 	vaultId, err := strconv.ParseUint(vaultIdStr, 10, 64)
-// 	if err != nil {
-// 		http.Error(w, "Invalid vault ID", http.StatusBadRequest)
-// 		return
-// 	}
+        // 2. Get image ID from URL
+		coverIdStr := strings.TrimPrefix(r.URL.Path, "/image/cover/")
+		coverID, err := strconv.ParseUint(coverIdStr, 10, 64)
+		if err != nil {
+			http.Error(w, "Invalid vault ID", http.StatusBadRequest)
+			return
+		}
 
-// 	userId, _, err := utils.GetUserFromToken(r)
-// 	if err != nil {
-// 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-// 		return
-// 	}
+        // 3. Look up image in DB
+		log.Println("before")
+        var img models.CoverImage
+		if err := config.DB.Preload("Vault").First(&img, "id = ?", coverID).Error; err != nil {
+			log.Println(err)
+			log.Println("in errir")
+            http.Error(w, "Not Found", http.StatusNotFound)
+            return
+        }
+		
+		log.Println("after")
+        // 4. Check ownership via Vault
+        if img.Vault.UserID != userID {
+            http.Error(w, "Forbidden", http.StatusForbidden)
+            return
+        }
 
-// 	var vault models.Vault
-// 	if err := config.DB.First(&vault, vaultId).Error; err != nil || vault.UserID != userId {
-// 		http.Error(w, "Vault not found or forbidden", http.StatusForbidden)
-// 		return
-// 	}
+        // if err := config.DB.First(&img, "id = ?", imageID).Error; err != nil {
+        //     http.Error(w, "Not Found", http.StatusNotFound)
+        //     return
+        // }
 
-// 	coverImage := models.CoverImage{}
-// 	if err := config.DB.First("vault_id = ?", vaultId).Find(&coverImage).Error; err != nil {
-// 		http.Error(w, "Failed to retrieve coverImage", http.StatusInternalServerError)
-// 		return
-// 	}
+        // // 4. Check ownership
+        // if img. != userID {
+        //     http.Error(w, "Forbidden", http.StatusForbidden)
+        //     return
+        // }
+		
+		cwd, _ := os.Getwd()
+		fmt.Println("Current working directory:", cwd)
+		filePath := fmt.Sprintf("/go/uploads/%s", img.Filename)
+		log.Println(filePath)
 
-// 	response := CoverImageResponse{}
-// 	response = CoverImageResponse{
-// 		ID:       u.ID,
-// 		Filename: u.Filename,
-// 	}
-// 	json.NewEncoder(w).Encode(response)
-// }
+		dirPath := "/go/uploads" // your directory
+		files, err := os.ReadDir(dirPath)
+		if err != nil {
+			fmt.Println("Error reading directory:", err)
+			return
+		}
+
+		fmt.Println("Files in", dirPath, ":")
+		for _, f := range files {
+			fmt.Println("-", f.Name())
+		}
+        // 5. Serve the file
+        http.ServeFile(w, r, filePath)
+}
 
 func DeleteVault(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodDelete {
