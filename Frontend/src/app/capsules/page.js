@@ -263,92 +263,108 @@ function DeleteModal({ onClose, currentCapsule, isOpen, setCapsules}) {
   );
 }
 
-function CapsuleList({setCurrentCapsule,capsules, sortFunc,setIsDeleteModalOpen}){
+function CapsuleCard({ capsule, setCurrentCapsule, setIsDeleteModalOpen }) {
   const router = useRouter();
+  const [src, setSrc] = useState(null);
+
+  const isBuried = capsule.Status === "buried";
+
+  useEffect(() => {
+    if (!capsule.CoverImageID) return;
+
+    const fetchImage = async () => {
+      const token = localStorage.getItem("token");
+      const res = await fetch(
+        `http://localhost:8080/image/cover/${capsule.CoverImageID}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      const blob = await res.blob();
+      setSrc(URL.createObjectURL(blob));
+    };
+
+    fetchImage();
+  }, [capsule.CoverImageID]);
+
+  return (
+    <div
+      key={capsule.ID}
+      onClick={() => {
+        if (!isBuried) {
+          router.push(`/view/${capsule.ID}`);
+        }
+      }}
+      style={{
+        background: "var(--softbackground)",
+        border: "1px solid var(--border)",
+        cursor: isBuried ? "" : "pointer",
+        opacity: isBuried ? 0.5 : 1,
+      }}
+      className="p-4 rounded shadow-sm flex flex-col justify-center items-center transition-transform duration-200 transform hover:scale-105 hover:shadow-lg group relative bg-white/70"
+    >
+      {/* Delete button */}
+      {!isBuried && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsDeleteModalOpen(true);
+            setCurrentCapsule(capsule);
+          }}
+          className="absolute top-1 right-1 bg-red-500 text-white text-xs px-2 py-1 rounded z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer"
+        >
+          ✕
+        </button>
+      )}
+
+      {/* Image */}
+      <div className="relative flex justify-center items-center w-full">
+        {capsule.CoverImageID ? (
+          <img src={src} alt="Capsule Cover" className="w-32 h-32 object-cover" />
+        ) : (
+          <img
+            src="/Vault-Closed.png"
+            alt="Capsule Closed"
+            className="w-32 h-32 object-cover"
+          />
+        )}
+      </div>
+
+      {/* Text */}
+      <p className="text-center text-lg font-semibold mt-2">{capsule.Title}</p>
+      <p className="text-center text-sm" style={{ color: "var(--foreground)" }}>
+        {capsule.Description}
+      </p>
+
+      {isBuried ? (
+        <p className="text-center text-sm text-gray-600">
+          Unlocks on {new Date(capsule.UnlockDate).toLocaleString()}
+        </p>
+      ) : (
+        <p className="text-center text-sm" style={{ color: "var(--foreground)" }}>
+          {capsule.Status}
+        </p>
+      )}
+    </div>
+  );
+}
+
+function CapsuleList({
+  setCurrentCapsule,
+  capsules,
+  sortFunc,
+  setIsDeleteModalOpen,
+}) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-      {capsules.
-      filter(sortFunc).
-      map((capsule) => {
-        const isBuried = capsule.Status === "buried";
-        const [src, setSrc] = useState(null)
-        useEffect(() => {
-          const fetchImage = async () => {
-            const token = localStorage.getItem('token')
-            const res = await fetch(`http://localhost:8080/image/cover/${capsule.CoverImageID}`, {
-              headers: { Authorization: `Bearer ${token}` }
-            })
-            const blob = await res.blob()
-            setSrc(URL.createObjectURL(blob))
-          }
-          fetchImage()
-        }, [])
-
-      return (
-        <div
-          key={capsule.id}
-          onClick={() => {
-            if (!isBuried) {
-              router.push(`/view/${capsule.ID}`);
-            }
-          }}
-          style={{
-            background: "var(--softbackground)",
-            border: "1px solid var(--border)",
-            cursor: isBuried ? "" : "pointer",
-            opacity: isBuried ? 0.5 : 1, // grayed out effect
-          }}
-          className="p-4 rounded shadow-sm flex flex-col justify-center items-center transition-transform duration-200 transform hover:scale-105 hover:shadow-lg group relative bg-white/70"
-        >
-          {/* Delete button */}
-          {!isBuried && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsDeleteModalOpen(true);
-                setCurrentCapsule(capsule);
-              }}
-              className="absolute top-1 right-1 bg-red-500 text-white text-xs px-2 py-1 rounded z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer"
-            >
-              ✕
-            </button>
-          )}
-
-          {/* Image */}
-          <div className="relative flex justify-center items-center w-full">
-            {capsule.CoverImageID ? (
-              <img
-                src={src}
-                alt="Capsule Cover"
-                className="w-32 h-32 object-cover"
-              />
-            ) : (
-              <img
-                src="/Vault-Closed.png"
-                alt="Capsule Closed"
-                className="w-32 h-32 object-cover"
-              />
-            )}
-          </div>
-
-          {/* Text */}
-          <p className="text-center text-lg font-semibold mt-2">{capsule.Title}</p>
-          <p className="text-center text-sm" style={{ color: "var(--foreground)" }}>
-            {capsule.Description}
-          </p>
-
-          {isBuried ? (
-            <p className="text-center text-sm text-gray-600">
-              Unlocks on {new Date(capsule.UnlockDate).toLocaleString()}
-            </p>
-          ) : (
-            <p className="text-center text-sm" style={{ color: "var(--foreground)" }}>
-              {capsule.Status}
-            </p>
-          )}
-        </div>
-      );
-      })}
+      {capsules.filter(sortFunc).map((capsule) => (
+        <CapsuleCard
+          key={capsule.ID}
+          capsule={capsule}
+          setCurrentCapsule={setCurrentCapsule}
+          setIsDeleteModalOpen={setIsDeleteModalOpen}
+        />
+      ))}
     </div>
   );
 }
