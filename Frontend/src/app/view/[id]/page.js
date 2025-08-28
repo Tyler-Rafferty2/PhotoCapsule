@@ -8,6 +8,7 @@ import Dnd from "@/components/Dnd";
 import Time from "@/components/Time";
 import { authFetch } from "@/utils/authFetch";
 import { useOnClickOutside } from "@/hooks/useOnClickOutside";
+import { useRouter } from "next/navigation";
 
 function ShareModal({setIsShareModalOpen,capsule}){
   return(
@@ -487,21 +488,34 @@ export default function ViewPage() {
   const [isCapulseSettingOpen, setIsCapulseSettingOpen] = useState(false);
   const [isBuryModalOpen, setIsBuryModalOpen] = useState(false);
   const [capsule, setCapsule] = useState(null)
+  const [error, setError] = useState(null)
 
-  const getVault = async (id) =>{
-    try {
-      const res = await authFetch(`http://localhost:8080/vault/${id}`, {
-      });
-      const data = await res.json();
-      console.log("Fetched capsules:", data);
-      setCapsule(data);
-    } catch (error) {
-      console.error("Error:", error);
-    }
-    console.log(capsule)
-  }
+  const router = useRouter();
+
+  const getVault = async (id) => {
+      try {
+        const res = await authFetch(`http://localhost:8080/vault/${id}`);
+
+        if (res.status === 403) {
+          setError("forbidden");
+          return;
+        }
+
+        if (res.status === 404) {
+          setError("notfound");
+          return;
+        }
+
+        const data = await res.json();
+        console.log("Fetched capsules:", data);
+        setCapsule(data);
+      } catch (error) {
+        console.error("Error:", error);
+        setError("server");
+      }
+    };
+
   useEffect(() => {
-    console.log("is using effect")
     getVault(id);
   }, [id]);
 
@@ -662,7 +676,38 @@ export default function ViewPage() {
     if (!isTimeModalOpen) {
       fetchVaultTime();
     }
-  }, [isTimeModalOpen]);
+  }, [isTimeModalOpen] );
+
+    // --- RENDER LOGIC ---
+  if (error === "forbidden") {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen">
+        <h1 className="text-3xl font-bold">Access Denied</h1>
+        <p className="mt-2">You don’t have permission to view this vault.</p>
+        <a href="/" className="mt-4 text-blue-500 underline">Go back home</a>
+      </div>
+    );
+  }
+
+  if (error === "notfound") {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen">
+        <h1 className="text-3xl font-bold">Vault Not Found</h1>
+        <p className="mt-2">This vault does not exist.</p>
+        <a href="/" className="mt-4 text-blue-500 underline">Go back home</a>
+      </div>
+    );
+  }
+
+  if (error === "server") {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen">
+        <h1 className="text-3xl font-bold">Something went wrong. Please try again later.</h1>
+        <a href="/" className="mt-4 text-blue-500 underline">Go back home</a>
+      </div>
+    )
+  }
+  
 
   return (
     <>
