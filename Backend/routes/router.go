@@ -15,6 +15,8 @@ func SetupRoutes() *http.ServeMux {
 	mux.HandleFunc("/logout", middleware.WithCORS(handlers.LogoutHandler))
 	mux.HandleFunc("/verify", middleware.WithCORS(handlers.VerifyEmailHandler))
 
+	mux.HandleFunc("/user", middleware.WithCORS(handlers.UserHandler))
+
 	mux.HandleFunc("/auth/refresh", middleware.WithCORS(handlers.RefreshHandler))
 	mux.HandleFunc("/image/", middleware.WithCORS(middleware.AuthMiddleware(handlers.GetImageHandler)))
 	mux.HandleFunc("/image/cover/", middleware.WithCORS(middleware.AuthMiddleware(handlers.GetCoverHandler)))

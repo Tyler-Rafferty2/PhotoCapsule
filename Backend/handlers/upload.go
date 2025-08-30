@@ -57,13 +57,17 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var user models.User
+	if err := config.DB.First(&user, userId).Error; err != nil {
+		http.Error(w, "User not found", http.StatusInternalServerError)
+		return
+	}
+
 	var vault models.Vault
 	if err := config.DB.First(&vault, vaultId).Error; err != nil || vault.UserID != userId {
 		http.Error(w, "Vault not found or forbidden", http.StatusForbidden)
 		return
 	}
-
-	r.ParseMultipartForm(32 << 20)
 
 	files := r.MultipartForm.File["images"]
 
@@ -78,7 +82,7 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Error opening file", http.StatusBadRequest)
 			return
 		}
-		defer file.Close()
+		file.Close()
 
 		dstPath := filepath.Join("uploads", handler.Filename)
 		dst, err := os.Create(dstPath)
@@ -106,6 +110,12 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 
 		if err := config.DB.Create(&upload).Error; err != nil {
 			http.Error(w, "Failed to log upload in DB", http.StatusInternalServerError)
+			return
+		}
+
+		user.TotalStorageUsed += handler.Size
+		if err := config.DB.Save(&user).Error; err != nil {
+			http.Error(w, "Failed to update user storage", http.StatusInternalServerError)
 			return
 		}
 	}

@@ -5,22 +5,26 @@ import (
 )
 
 type User struct {
-	ID           uint      `gorm:"primaryKey"`
-	Email        string    `gorm:"unique;not null"`
-	DisplayName     string
-	PasswordHash string    `gorm:"not null"`
-	CreatedAt    time.Time `gorm:"autoCreateTime"`
-	Vaults       []Vault   `gorm:"foreignKey:UserID"`
-	
-    IsVerified      bool      `gorm:"default:false"`     
-    VerificationToken string  `gorm:"size:64"`          
-    TokenExpiresAt  time.Time
+	ID               uint      `gorm:"primaryKey"`
+	Email            string    `gorm:"unique;not null"`
+	DisplayName      string
+	PlanType         string
+	TotalStorageUsed int64     `gorm:"default:0"` 
+	PasswordHash     string    `gorm:"not null"`
+	CreatedAt        time.Time `gorm:"autoCreateTime"`
+
+	Vaults []Vault `gorm:"foreignKey:UserID"`
+
+	IsVerified        bool      `gorm:"default:false"`
+	VerificationToken string    `gorm:"size:64"`
+	TokenExpiresAt    time.Time
 }
 
 type Vault struct {
 	ID          uint      `gorm:"primaryKey"`
 	UserID      uint      `gorm:"not null"`
 	Title       string    `gorm:"not null"`
+	TotalStorageUsed int64     `gorm:"default:0"`
 	Description string
 	CoverImageID  *uint
 	CoverImageURL *string
@@ -36,6 +40,7 @@ type Upload struct {
 	VaultID    uint       `gorm:"not null"`
 	Vault      Vault      `gorm:"foreignKey:VaultID"`
 	Filename   string     `gorm:"not null"`
+	Size        int64      `gorm:"not null"`
 	UploadTime time.Time  `gorm:"autoCreateTime"`
 	DeletedAt  *time.Time `gorm:"default:null"`
 	OrderIndex int  	  `gorm:"not null;default:0"`

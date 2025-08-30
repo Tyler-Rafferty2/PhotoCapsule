@@ -110,6 +110,8 @@ function ImageUploadModal({
   setUploadStatus,
   handleUpload,
   handleFileSelect,
+  storage,
+  setStorage
 }) {
   const fileInputRef = useRef(null);
 
@@ -141,7 +143,7 @@ function ImageUploadModal({
         style={{ maxHeight: "80vh", overflowY: "auto" }}
         ref={modalRef}
       >
-        <h2 className="text-xl font-bold mb-4">Upload Images</h2>
+        <h2 className="text-xl font-bold mb-4">Upload Images with {storage}</h2>
 
         {/* Hidden file input */}
         <input
@@ -275,7 +277,7 @@ function CapsuleSettingModal({ setIsCapulseSettingOpen, capsule, setCapsule }) {
       }
 
       const data = await response.json();
-      console.log("Vault updated:", data);
+
       return data
     } catch (err) {
       console.error("Failed to update vault:", err.message);
@@ -489,6 +491,7 @@ export default function ViewPage() {
   const [isBuryModalOpen, setIsBuryModalOpen] = useState(false);
   const [capsule, setCapsule] = useState(null)
   const [error, setError] = useState(null)
+  const [storage, setStorage] = useState(0)
 
   const router = useRouter();
 
@@ -533,8 +536,11 @@ export default function ViewPage() {
 
     const newPreviews = filesArray.map((file) => URL.createObjectURL(file));
 
+    const newFilesSize = filesArray.reduce((total, file) => total + file.size, 0);
+
     setFile((prevFiles) => [...prevFiles, ...filesArray]);
     setPreview((prevPreviews) => [...prevPreviews, ...newPreviews]);
+    setStorage((prevStorage) => prevStorage + newFilesSize);
     setUploadStatus("idle");
   };
 
@@ -570,7 +576,6 @@ export default function ViewPage() {
       console.error("Failed to fetch images:", err);
     } finally {
       setLoading(false);
-      console.log(images)
     }
     
   };
@@ -840,6 +845,8 @@ export default function ViewPage() {
           setUploadStatus={setUploadStatus}
           handleUpload={handleUpload}        
           handleFileSelect={handleFileSelect}
+          storage={storage}
+          setStorage={setStorage}
           />
       )}
 

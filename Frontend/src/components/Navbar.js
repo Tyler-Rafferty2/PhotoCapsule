@@ -5,13 +5,54 @@ import Link from "next/link";
 import ThemeToggle from "./ThemeToggle";
 import { useAuth } from "@/context/authContext";
 import { useOnClickOutside } from "@/hooks/useOnClickOutside";
+import { authFetch } from "@/utils/authFetch";
 
+
+async function fetchUser() {
+  try {
+    const response = await authFetch(`http://localhost:8080/user`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(errorText);
+    }
+
+    const data = await response.json();
+    console.log("User data:", data);
+    return data;
+  } catch (err) {
+    console.error("Failed to fetch user:", err.message);
+  }
+}
 
 function UserModal({ setIsUserModalOpen, user, logout }) {
-
-  
   const dropdownRef = useRef(null);
   useOnClickOutside(dropdownRef, () => setIsUserModalOpen(false));
+
+  const [userData, setUserData] = useState(null);
+
+  useEffect(() => {
+    async function loadUser() {
+      const data = await fetchUser();
+      if (data) {
+        console.log(data);
+        setUserData(data);
+      }
+    }
+    loadUser();
+  }, []);
+
+  // Convert bytes to MB
+  const formatBytesToMB = (bytes) => {
+    if (!bytes) return "0 MB";
+    const mb = bytes / 1_000_000; // decimal MB
+    return `${mb.toFixed(2)} MB`;
+  };
 
   return (
     <div
@@ -26,29 +67,25 @@ function UserModal({ setIsUserModalOpen, user, logout }) {
       <div className="p-4 text-sm text-gray-800">
         <div className="font-semibold mb-2">User Info</div>
         <div className="mb-2">
-          <span className="font-medium">Email:</span> {user?.email}
+          <span className="font-medium">Email:</span> {userData?.email}
         </div>
-        {/* <button
-          style={{
-                  background: "var(--accent)",
-                  color: "#fff",
-          }}
-          onClick={() => setIsUserModalOpen(false)}
-          className="w-full mt-3 px-4 py-2 text-white rounded transition"
-          onMouseOver={(e) => (e.currentTarget.style.background = "var(--secondaccent)")}
-          onMouseOut={(e) => (e.currentTarget.style.background = "var(--accent)")}
-        >
-          Close
-        </button> */}
+        <div className="mb-2">
+          <span className="font-medium">Storage Used:</span>{" "}
+          {formatBytesToMB(userData?.totalStorageUsed)}
+        </div>
         <button
           style={{
-                  background: "var(--accent)",
-                  color: "#fff",
+            background: "var(--accent)",
+            color: "#fff",
           }}
           onClick={logout}
           className="w-full mt-3 px-4 py-2 text-white rounded transition"
-          onMouseOver={(e) => (e.currentTarget.style.background = "var(--secondaccent)")}
-          onMouseOut={(e) => (e.currentTarget.style.background = "var(--accent)")}
+          onMouseOver={(e) =>
+            (e.currentTarget.style.background = "var(--secondaccent)")
+          }
+          onMouseOut={(e) =>
+            (e.currentTarget.style.background = "var(--accent)")
+          }
         >
           Logout
         </button>
