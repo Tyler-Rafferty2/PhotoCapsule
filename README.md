@@ -20,6 +20,5 @@ Photo Capsule is a modern web application that lets users create digital "capsul
 - **Backend**: Go (Golang) API server
 - **Database**: PostgreSQL (via GORM)
 - **Auth**: JWT-based authentication
-- **Hosting**: (Add here, e.g., Vercel / Netlify / Render)
 
 ---

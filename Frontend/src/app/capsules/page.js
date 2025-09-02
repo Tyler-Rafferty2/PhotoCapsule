@@ -335,6 +335,9 @@ function CapsuleCard({ capsule, setCurrentCapsule, setIsDeleteModalOpen }) {
       <p className="text-center text-sm" style={{ color: "var(--foreground)" }}>
         {capsule.Description}
       </p>
+      <p className="text-center text-sm" style={{ color: "var(--foreground)" }}>
+        {capsule.TotalStorageUsed}
+      </p>
 
       {isBuried ? (
         <p className="text-center text-sm text-gray-600">

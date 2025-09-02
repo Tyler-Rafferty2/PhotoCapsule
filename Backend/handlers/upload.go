@@ -11,6 +11,8 @@ import (
 	"time"
 	"log"
 	"fmt"
+	"gorm.io/gorm"
+	"errors"
 
 	"photovault/config"
 	"photovault/models"
@@ -106,6 +108,7 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 			VaultID:   uint(vaultId),
 			Filename:  handler.Filename,
 			OrderIndex: maxIndex + 1,
+			Size: handler.Size,
 		}
 
 		if err := config.DB.Create(&upload).Error; err != nil {
@@ -116,6 +119,12 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		user.TotalStorageUsed += handler.Size
 		if err := config.DB.Save(&user).Error; err != nil {
 			http.Error(w, "Failed to update user storage", http.StatusInternalServerError)
+			return
+		}
+
+		vault.TotalStorageUsed += handler.Size
+		if err := config.DB.Save(&vault).Error; err != nil {
+			http.Error(w, "Failed to update vault storage", http.StatusInternalServerError)
 			return
 		}
 	}
@@ -172,7 +181,6 @@ func ImagesHandler(w http.ResponseWriter, r *http.Request) {
 
 func GetImageHandler(w http.ResponseWriter, r *http.Request) {
         // 1. Get the logged-in user
-		log.Println("in image")
 		userID, _, err := utils.GetUserFromToken(r)
         if err != nil {
             http.Error(w, "Unauthorized", http.StatusUnauthorized)
@@ -191,8 +199,6 @@ func GetImageHandler(w http.ResponseWriter, r *http.Request) {
 		log.Println("before")
         var img models.Upload
 		if err := config.DB.Preload("Vault").First(&img, "id = ?", imageID).Error; err != nil {
-			log.Println(err)
-			log.Println("in errir")
             http.Error(w, "Not Found", http.StatusNotFound)
             return
         }
@@ -336,12 +342,19 @@ func TrashHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func TrashDelete(w http.ResponseWriter, r *http.Request) {
-	log.Println("in TrashDelete")
 	if r.Method != http.MethodDelete {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
+	// Get logged-in user
+	userID, _, err := utils.GetUserFromToken(r)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	// Parse upload ID from URL
 	idStr := strings.TrimPrefix(r.URL.Path, "/images/trash/delete/")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
@@ -349,21 +362,59 @@ func TrashDelete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Fetch upload with vault and user
 	var upload models.Upload
-	if err := config.DB.First(&upload, id).Error; err != nil {
-		http.Error(w, "Upload not found", http.StatusNotFound)
+	err = config.DB.Preload("Vault").Preload("Vault.User").First(&upload, id).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			http.Error(w, "Upload not found", http.StatusNotFound)
+			return
+		}
+		http.Error(w, "Database error", http.StatusInternalServerError)
 		return
 	}
 
+	// Check ownership
+	if upload.Vault.UserID != userID {
+		http.Error(w, "Forbidden: not your upload", http.StatusForbidden)
+		return
+	}
+	log.Println("HERERERERERERER")
+	log.Println(upload)
+	log.Println(upload.Size)
+	// Decrement user storage
+	user := &upload.Vault.User
+	user.TotalStorageUsed -= upload.Size
+	if user.TotalStorageUsed < 0 {
+		user.TotalStorageUsed = 0
+	}
+	if err := config.DB.Save(user).Error; err != nil {
+		http.Error(w, "Failed to update user storage", http.StatusInternalServerError)
+		return
+	}
+
+	// Decrement vault storage
+	vault := &upload.Vault
+	vault.TotalStorageUsed -= upload.Size
+	if vault.TotalStorageUsed < 0 {
+		vault.TotalStorageUsed = 0
+	}
+	if err := config.DB.Save(vault).Error; err != nil {
+		http.Error(w, "Failed to update vault storage", http.StatusInternalServerError)
+		return
+	}
+
+	// Delete the upload
 	if err := config.DB.Delete(&upload).Error; err != nil {
 		http.Error(w, "Failed to delete upload", http.StatusInternalServerError)
 		return
 	}
 
+	// Respond success
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{"message": "Deleted successfully"})
-
 }
+
 
 func TrashRecover(w http.ResponseWriter, r *http.Request) {
 	log.Println("in TrashRecover")

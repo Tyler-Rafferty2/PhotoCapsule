@@ -276,6 +276,13 @@ func DeleteVault(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var user models.User
+	if err := config.DB.First(&user, userId).Error; err != nil {
+		log.Printf("Failed to fetch user [userId=%d]: %v", userId, err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
 	if vault.CoverImageID != nil {
 		var coverImage models.CoverImage
 		if err := config.DB.First(&coverImage, vault.CoverImageID).Error; err == nil {
@@ -320,6 +327,12 @@ func DeleteVault(w http.ResponseWriter, r *http.Request) {
 			if err := config.DB.Delete(&image).Error; err != nil {
 				log.Printf("Failed to delete image record for %s: %v", image.Filename, err)
 				// Don’t abort
+			}
+
+			user.TotalStorageUsed -= image.Size
+			if err := config.DB.Save(&user).Error; err != nil {
+				http.Error(w, "Failed to update user storage", http.StatusInternalServerError)
+				return
 			}
 		}
 	}
