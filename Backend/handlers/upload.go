@@ -79,6 +79,14 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for _, handler := range files {
+
+		plan := utils.PlanLimits[user.PlanType]
+		log.Printf("here are the things %v + %v > %v",user.TotalStorageUsed,handler.Size,plan.MaxStorage)
+		if user.TotalStorageUsed + handler.Size > plan.MaxStorage {
+			http.Error(w, "Storage limit exceeded for your plan", http.StatusForbidden)
+			return 
+		}
+
 		file, err := handler.Open()
 		if err != nil {
 			http.Error(w, "Error opening file", http.StatusBadRequest)

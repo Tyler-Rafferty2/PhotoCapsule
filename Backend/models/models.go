@@ -8,7 +8,7 @@ type User struct {
 	ID               uint      `gorm:"primaryKey"`
 	Email            string    `gorm:"unique;not null"`
 	DisplayName      string
-	PlanType         string
+	PlanType         string    `gorm:"default:free"` 
 	TotalStorageUsed int64     `gorm:"default:0"` 
 	PasswordHash     string    `gorm:"not null"`
 	CreatedAt        time.Time `gorm:"autoCreateTime"`
