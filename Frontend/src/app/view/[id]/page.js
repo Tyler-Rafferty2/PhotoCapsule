@@ -117,6 +117,9 @@ function ImageUploadModal({
   handleUpload,
   handleFileSelect,
   storage,
+  setPreview,
+  setFile,
+  file,
   setStorage
 }) {
   const fileInputRef = useRef(null);
@@ -128,7 +131,26 @@ function ImageUploadModal({
   });
 
   const handleButtonClick = () => {
-    fileInputRef.current?.click();
+      fileInputRef.current?.click();
+    };
+
+  const handleRemoveFile = (index) => {
+    // Free the object URL
+    URL.revokeObjectURL(preview[index]);
+
+    // Remove the file from files
+    const newFiles = [...file];
+    const removedFile = newFiles.splice(index, 1)[0];
+    setFile(newFiles);
+
+    // Remove the preview
+    const newPreview = [...preview];
+    newPreview.splice(index, 1);
+    setPreview(newPreview);
+
+    // Subtract the removed file size from storage
+    console.log(removedFile)
+    setStorage((prevStorage) => prevStorage - removedFile.size);
   };
 
   const handleDrop = (e) => {
@@ -166,24 +188,6 @@ function ImageUploadModal({
           }}
         />
 
-        {/* Styled file upload button with bottom spacing */}
-        {/* <button
-          type="button"
-          onClick={handleButtonClick}
-          style={{
-            background: "var(--accent)",
-            color: "#fff",
-            border: "none",
-            padding: "8px 12px",
-            borderRadius: "4px",
-            cursor: "pointer",
-            fontSize: "1rem",
-            marginBottom: "1rem",
-          }}
-        >
-          {preview.length === 0 ? "Choose Images" : "Add More Images"}
-        </button> */}
-
         
         {/* Drag & Drop / Default Zone */}
         <div
@@ -202,12 +206,21 @@ function ImageUploadModal({
             <span className="text-gray-500 m-auto">Drag & drop images here or click to select</span>
           ) : (
             preview.map((src, index) => (
-              <img
-                key={index}
-                src={src}
-                alt={`preview-${index}`}
-                className="h-24 w-24 object-cover rounded"
-              />
+              <div key={index} className="relative">
+                <img
+                  src={src}
+                  alt={`preview-${index}`}
+                  className="h-24 w-24 object-cover rounded"
+                />
+                {/* Remove button */}
+                <button
+                  onClick={() => handleRemoveFile(index)}
+                  className="absolute top-0 right-0 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs"
+                  type="button"
+                >
+                  ×
+                </button>
+              </div>
             ))
           )}
         </div>
@@ -593,6 +606,7 @@ export default function ViewPage() {
 
     const formData = new FormData();
     file.forEach((f) => {
+      console.log(f)
       formData.append("images", f);
     });
 
@@ -855,6 +869,9 @@ export default function ViewPage() {
           handleUpload={handleUpload}        
           handleFileSelect={handleFileSelect}
           storage={storage}
+          setFile={setFile}
+          setPreview={setPreview}
+          file={file}
           setStorage={setStorage}
           />
       )}
