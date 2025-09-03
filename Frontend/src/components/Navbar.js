@@ -50,9 +50,10 @@ function UserModal({ setIsUserModalOpen, user, logout }) {
   // Convert bytes to MB
   const formatBytesToMB = (bytes) => {
     if (!bytes) return "0 MB";
-    const mb = bytes / 1_000_000; // decimal MB
+    const mb = bytes / (1024 * 1024); // binary MB
     return `${mb.toFixed(2)} MB`;
   };
+
 
   return (
     <div

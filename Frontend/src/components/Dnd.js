@@ -132,7 +132,6 @@ function SortableImage({ id, img, idx, handleTrash, isDragging }) {
     background: "var(--softbackground)",
     border: "1px solid var(--border)",
   };
-  console.log(img.url)
 
   useEffect(() => {
     const fetchImage = async () => {

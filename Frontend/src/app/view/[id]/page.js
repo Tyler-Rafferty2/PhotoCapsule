@@ -97,10 +97,16 @@ function StatusMessage({ uploadStatus }) {
     return (
       <p className="text-green-600 text-sm text-center">✅ Upload successful</p>
     );
-  } else if (uploadStatus === "error") {
-    return <p className="text-red-600 text-sm text-center">❌ Upload failed</p>;
+  } else if (uploadStatus == "idle"){
+    return null;
   }
-  return null;
+  else{
+    return (
+      <p className="text-red-600 text-sm text-center">
+        ❌ {uploadStatus || "Upload failed"}
+      </p>
+    );
+  }
 }
 
 function ImageUploadModal({
@@ -510,7 +516,6 @@ export default function ViewPage() {
         }
 
         const data = await res.json();
-        console.log("Fetched capsules:", data);
         setCapsule(data);
       } catch (error) {
         console.error("Error:", error);
@@ -597,7 +602,11 @@ export default function ViewPage() {
         body: formData,
       });
 
-      if (!res.ok) throw new Error("Upload failed");
+      if (!res.ok) {
+        // get error message from backend
+        const errorText = await res.text();
+        throw new Error(errorText); // throw with backend message
+      }
 
       await res.json();
       setPreview([]);
@@ -607,7 +616,7 @@ export default function ViewPage() {
       fetchImages();
     } catch (err) {
       console.error(err);
-      setUploadStatus("error");
+      setUploadStatus(err?.message || "Upload failed");
     }
   };
 
