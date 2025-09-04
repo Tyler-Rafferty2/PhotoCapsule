@@ -131,6 +131,12 @@ export default function Navbar() {
             <Image
               src="/PhotoCapsuleLogo.png"
               alt="Photo Capsule Logo"
+              // These props are for Next.js to calculate the 1:1 aspect ratio
+              // and prevent layout shift. Use the original image dimensions.
+              width={500}
+              height={500}
+              // This className is for Tailwind to style the final display size.
+              // Next.js will render an image that is 48px by 48px.
               className="h-12 w-12 object-contain"
             />
             <span className="text-xl font-bold tracking-tight">Photo Capsule</span>
@@ -159,6 +165,8 @@ export default function Navbar() {
           <Image
             src="/PhotoCapsuleLogo.png"
             alt="Photo Capsule Logo"
+            width={500}
+            height={500}
             className="h-12 w-12 object-contain"
           />
           <span className="text-xl font-bold tracking-tight">Photo Capsule</span>

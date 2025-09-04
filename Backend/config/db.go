@@ -12,12 +12,13 @@ import (
 var DB *gorm.DB
 
 func ConnectToDB() {
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
-		GetEnv("DB_HOST", "localhost"),
-		GetEnv("DB_USER", "postgres"),
-		GetEnv("DB_PASSWORD", "password"),
-		GetEnv("DB_NAME", "timecapsule"),
-		GetEnv("DB_PORT", "5432"),
+	dsn := fmt.Sprintf(
+		"host=%s user=%s password=%s dbname=%s port=%s sslmode=require",
+		"aws-1-us-east-1.pooler.supabase.com",
+		"postgres.rjkunrqftevwfssronze",
+		"#k4V6neSN8*5v4q",
+		"postgres",
+		"6543",
 	)
 
 	var err error

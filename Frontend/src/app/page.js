@@ -71,6 +71,8 @@ const HeroSection = () => {
           <Image
             src="/PhotoCapsuleLogo.png"
             alt="Photo Capsule Logo"
+            width={500}
+            height={500}
             className="relative z-10 w-full h-full object-contain"
           />
         </div>
@@ -92,6 +94,8 @@ const CapsuleCard = ({ image, title, description }) => {
       <Image
         src={image} 
         alt={title} 
+        width={500}
+        height={500}
         className="rounded-lg mb-4 w-full h-48 object-cover"
         loading="lazy"
       />
