@@ -10,7 +10,6 @@ import (
 
 	"photovault/config"
 	"photovault/routes"
-	"photovault/routes"
 	"github.com/joho/godotenv"
 	"github.com/syumai/workers"
 )
@@ -34,7 +33,7 @@ func main() {
 	config.JwtSecret = []byte(secret)
 	jobs.StartCapsuleCron()
 	mux := routes.SetupRoutes()
-	workers.Serve(router)
+	workers.Serve(mux)
 	fmt.Println("🚀 Server running at http://localhost:8080")
 	log.Fatal(http.ListenAndServe(":8080", mux))
 }
