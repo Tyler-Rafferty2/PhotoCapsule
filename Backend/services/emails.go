@@ -9,7 +9,7 @@ import (
 func SendEmail() {
     apiKey := config.GetEnv("resend_api", "")
 	if apiKey == "" {
-		log.Fatal("apiKey not set. Please define resend_api in environment variables.")
+		log.Println("apiKey not set. Please define resend_api in environment variables.")
 	}
     client := resend.NewClient(apiKey)
 

@@ -27,7 +27,7 @@ func main() {
 
 	secret := config.GetEnv("secret_token", "")
 	if secret == "" {
-		log.Fatal("Token not set. Please define secret_token in environment variables.")
+		log.Println("Token not set. Please define secret_token in environment variables.")
 	}
 	config.JwtSecret = []byte(secret)
 	jobs.StartCapsuleCron()
