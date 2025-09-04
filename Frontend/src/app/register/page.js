@@ -16,7 +16,7 @@ export default function SignUpForm() {
     setStatus("loading");
 
     try {
-      const res = await fetch("http://localhost:8080/signup", {
+      const res = await fetch("https://photocapsule.tjraff5.workers.dev/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
