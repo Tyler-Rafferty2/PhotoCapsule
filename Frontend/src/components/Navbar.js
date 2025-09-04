@@ -164,7 +164,7 @@ export default function Navbar() {
           <span className="text-xl font-bold tracking-tight">Photo Capsule</span>
         </Link>
         <div className="flex items-center space-x-6 px-4">
-          <ThemeToggle />
+          {/* <ThemeToggle /> */}
           <div className="flex items-center space-x-4 text-sm">
             {isAuthenticated ? ( 
               <>
