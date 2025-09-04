@@ -4,6 +4,8 @@ import {useState, useEffect} from "react"
 import Navbar from "@/components/Navbar";
 import Link from "next/link";
 import useSmoothScroll from "@/hooks/useSmoothScroll";
+import Image from "next/image";
+
 
 // Hero Section Component
 const HeroSection = () => {
@@ -66,7 +68,7 @@ const HeroSection = () => {
             transform: "translate(-50%, -50%)",
           }}
         >
-          <img
+          <Image
             src="/PhotoCapsuleLogo.png"
             alt="Photo Capsule Logo"
             className="relative z-10 w-full h-full object-contain"
@@ -87,7 +89,7 @@ const CapsuleCard = ({ image, title, description }) => {
       <span className="absolute top-2 right-2 bg-[#4285F4] text-white text-xs px-2 py-0.5 rounded">
         Example
       </span>
-      <img 
+      <Image
         src={image} 
         alt={title} 
         className="rounded-lg mb-4 w-full h-48 object-cover"

@@ -3,7 +3,8 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Navbar from "@/components/Navbar";
-import { authFetch } from "@/utils/authFetch"; // ✅ new import
+import { authFetch } from "@/utils/authFetch"; 
+import Image from "next/image";
 
 export default function ViewPage() {
   const [images, setImages] = useState([]);
@@ -132,7 +133,7 @@ export default function ViewPage() {
                 >
                   Recover
                 </button>
-                <img
+                <Image
                   src={img.objectUrl}
                   style={{ width: "100%", height: "100%", objectFit: "cover" }}
                   alt={`Trash ${idx}`}

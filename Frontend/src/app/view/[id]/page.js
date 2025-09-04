@@ -9,6 +9,7 @@ import Time from "@/components/Time";
 import { authFetch } from "@/utils/authFetch";
 import { useOnClickOutside } from "@/hooks/useOnClickOutside";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 function ShareModal({setIsShareModalOpen,capsule}){
   return(
@@ -20,7 +21,7 @@ function ShareModal({setIsShareModalOpen,capsule}){
             className="backdrop-blur-md bg-white/70 p-8 rounded shadow-lg w-full max-w-xl"
             style={{ height: "80vh", overflowY: "auto" }}
           >
-            <h2 className="text-2xl font-bold mb-6 text-center">Share "{capsule.Title}"</h2>
+            <h2 className="text-2xl font-bold mb-6 text-center">Share &quot;{capsule.Title}&quot;</h2>
             <div className="flex justify-end mt-6">
               <button
                 onClick={() => setIsShareModalOpen(false)}
@@ -81,7 +82,7 @@ function ImagePreview({ srcList }) {
   return (
     <div className="flex flex-wrap gap-4 mt-4">
       {srcList.map((src, idx) => (
-        <img
+        <Image
           key={idx}
           src={src}
           alt={`Preview ${idx}`}
@@ -207,7 +208,7 @@ function ImageUploadModal({
           ) : (
             preview.map((src, index) => (
               <div key={index} className="relative">
-                <img
+                <Image
                   src={src}
                   alt={`preview-${index}`}
                   className="h-24 w-24 object-cover rounded"
@@ -437,7 +438,7 @@ function BuryModal({ setIsBuryModalOpen, capsule}) {
       <div className="backdrop-blur-md bg-white/70 p-6 rounded shadow-lg w-full max-w-sm relative" ref={modalRef}>
         {/* Modal Content */}
         <h2 className="text-center text-lg font-semibold mt-2">
-          Are you sure you want to bury "{capsule.Title}"?
+          Are you sure you want to bury &quot;{capsule.Title}&quot;?
         </h2>
         
         {/* Input for confirmation */}
@@ -715,7 +716,7 @@ export default function ViewPage() {
       <div className="flex flex-col items-center justify-center min-h-screen">
         <h1 className="text-3xl font-bold">Access Denied</h1>
         <p className="mt-2">You don’t have permission to view this vault.</p>
-        <a href="/" className="mt-4 text-blue-500 underline">Go back home</a>
+        <Link href="/" className="mt-4 text-blue-500 underline">Go back home</Link>
       </div>
     );
   }
@@ -725,7 +726,7 @@ export default function ViewPage() {
       <div className="flex flex-col items-center justify-center min-h-screen">
         <h1 className="text-3xl font-bold">Vault Not Found</h1>
         <p className="mt-2">This vault does not exist.</p>
-        <a href="/" className="mt-4 text-blue-500 underline">Go back home</a>
+        <Link href="/" className="mt-4 text-blue-500 underline">Go back home</Link>
       </div>
     );
   }
@@ -734,7 +735,7 @@ export default function ViewPage() {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen">
         <h1 className="text-3xl font-bold">Something went wrong. Please try again later.</h1>
-        <a href="/" className="mt-4 text-blue-500 underline">Go back home</a>
+        <Link href="/" className="mt-4 text-blue-500 underline">Go back home</Link>
       </div>
     )
   }

@@ -1,10 +1,11 @@
-"use client";
+'use client';
 
-import { useEffect, useState, useRef } from "react";
+import { Suspense, useEffect, useState, useRef } from "react";
 import { authFetch } from "@/utils/authFetch";
 import Navbar from "@/components/Navbar";
 import { useOnClickOutside } from "@/hooks/useOnClickOutside";
 import { useSearchParams, useRouter } from "next/navigation";
+import Image from "next/image";
 
 
 function CapsuleModal({ isOpen, onClose, onSubmit, capsuleError, setCapsuleError }) {
@@ -104,7 +105,7 @@ function CapsuleModal({ isOpen, onClose, onSubmit, capsuleError, setCapsuleError
 
           {previewUrl && (
             <div style={{ marginTop: "1rem" }}>
-              <img
+              <Image
                 src={previewUrl}
                 alt="Cover Preview"
                 style={{
@@ -220,7 +221,7 @@ function DeleteModal({ onClose, currentCapsule, isOpen, setCapsules}) {
       <div className="backdrop-blur-md bg-white/70 p-6 pt-10 rounded shadow-lg w-full max-w-sm relative" ref={modalRef}>
         {/* Modal Content */}
         <h2 className="text-center text-lg font-semibold mt-2">
-          Are you sure you want to delete "{currentCapsule.Title}"?
+          Are you sure you want to delete &quot;{currentCapsule.Title}&quot;?
         </h2>
         
         {/* Input for confirmation */}
@@ -320,9 +321,9 @@ function CapsuleCard({ capsule, setCurrentCapsule, setIsDeleteModalOpen }) {
       {/* Image */}
       <div className="relative flex justify-center items-center w-full">
         {capsule.CoverImageID ? (
-          <img src={src} alt="Capsule Cover" className="w-32 h-32 object-cover" />
+          <Image src={src} alt="Capsule Cover" className="w-32 h-32 object-cover" />
         ) : (
-          <img
+          <Image
             src="/Vault-Closed.png"
             alt="Capsule Closed"
             className="w-32 h-32 object-cover"
@@ -411,6 +412,7 @@ export default function CapsulesPage() {
 
   const searchParams = useSearchParams();
   const create = searchParams.get("create");
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     if (create === "true") {
@@ -422,7 +424,6 @@ export default function CapsulesPage() {
   const [currentCapsule, setCurrentCapsule] = useState();
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [capsuleError, setCapsuleError] = useState("");
 

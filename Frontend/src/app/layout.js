@@ -1,6 +1,8 @@
 // src/app/layout.js
+
 import "./globals.css";
 import { AuthProvider } from "@/context/authContext"
+import { Suspense } from "react";
 export const metadata = {
   title: "PhotoVault",
   description: "Image sharing app",
@@ -11,7 +13,9 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body>
         <AuthProvider>
-          {children}
+          <Suspense fallback={<div>Loading...</div>}>
+            {children}
+          </Suspense>
         </AuthProvider>
       </body>
     </html>

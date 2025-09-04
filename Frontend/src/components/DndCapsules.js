@@ -15,6 +15,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { useRouter } from "next/navigation";
 import { authFetch } from "@/utils/authFetch";
+import Image from "next/image";
 
 
 
@@ -142,13 +143,13 @@ function SortableCapsule({ capsule, isDragging, isModalOpen, setIsModalOpen, set
 
       <div className="relative flex justify-center items-center w-full">
         {capsule.CoverImageURL ? (
-          <img
+          <Image
             src={`http://localhost:8080/uploads/${capsule.CoverImageURL}`}
             alt="Capsule Cover"
             className="w-32 h-32 object-cover"
           />
         ) : (
-          <img
+          <Image
             src="/Vault-Closed.png"
             alt="Capsule Closed"
             className="w-32 h-32 object-cover"
@@ -222,7 +223,7 @@ function DeleteModal({ onClose, capsule, isOpen, setCapsules }) {
       <div className="backdrop-blur-md bg-white/70 p-6 rounded shadow-lg w-full max-w-sm relative">
         {/* Modal Content */}
         <h2 className="text-center text-lg font-semibold mt-2">
-          Are you sure you want to delete "{capsule.Title}"?
+          Are you sure you want to delete &quot;{capsule.Title}&quot;?
         </h2>
         
         {/* Input for confirmation */}

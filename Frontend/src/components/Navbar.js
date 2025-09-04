@@ -6,7 +6,7 @@ import ThemeToggle from "./ThemeToggle";
 import { useAuth } from "@/context/authContext";
 import { useOnClickOutside } from "@/hooks/useOnClickOutside";
 import { authFetch } from "@/utils/authFetch";
-
+import Image from "next/image";
 
 async function fetchUser() {
   try {
@@ -128,7 +128,7 @@ export default function Navbar() {
       >
         <div className="flex items-center justify-between">
           <Link href="/" className="flex items-center space-x-1">
-            <img
+            <Image
               src="/PhotoCapsuleLogo.png"
               alt="Photo Capsule Logo"
               className="h-12 w-12 object-contain"
@@ -156,7 +156,7 @@ export default function Navbar() {
     >
       <div className="flex items-center justify-between">
         <Link href="/" className="flex items-center space-x-1">
-          <img
+          <Image
             src="/PhotoCapsuleLogo.png"
             alt="Photo Capsule Logo"
             className="h-12 w-12 object-contain"

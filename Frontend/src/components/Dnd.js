@@ -16,6 +16,7 @@ import {
   defaultAnimateLayoutChanges,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import Image from "next/image";
 
 export default function ImageList({ images, setImages, handleTrash }) {
   const [activeId, setActiveId] = useState(null);
@@ -33,7 +34,7 @@ export default function ImageList({ images, setImages, handleTrash }) {
         }}
       >
         <div className="relative w-full aspect-square overflow-hidden">
-          <img
+          <Image
             src={`http://localhost:8080/uploads/${img.filename}`}
             className="w-full h-full object-cover"
             alt="Overlay"
@@ -160,7 +161,7 @@ function SortableImage({ id, img, idx, handleTrash, isDragging }) {
         >
           ✕
         </button>
-        <img
+        <Image
           {...listeners}
           src={src}
           className="w-full h-full object-cover"
