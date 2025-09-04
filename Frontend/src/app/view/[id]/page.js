@@ -97,7 +97,7 @@ function StatusMessage({ uploadStatus }) {
     return (
       <p className="text-green-600 text-sm text-center">✅ Upload successful</p>
     );
-  } else if (uploadStatus == "idle"){
+  } else if (uploadStatus == "idle" || uploadStatus == "uploading"){
     return null;
   }
   else{
@@ -214,7 +214,10 @@ function ImageUploadModal({
                 />
                 {/* Remove button */}
                 <button
-                  onClick={() => handleRemoveFile(index)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleRemoveFile(index);
+                  }}
                   className="absolute top-0 right-0 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs"
                   type="button"
                 >
