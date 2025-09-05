@@ -9,7 +9,6 @@ func WithCORS(next http.HandlerFunc) http.HandlerFunc {
 	allowedOrigins := map[string]bool{
 		"http://localhost:3000": true,
 		"https://photo-capsule.vercel.app": true,
-		"https://photocapsule.tjraff5.workers.dev": true,
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
