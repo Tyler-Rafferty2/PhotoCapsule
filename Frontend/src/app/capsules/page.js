@@ -186,13 +186,13 @@ function DeleteModal({ onClose, currentCapsule, isOpen, setCapsules}) {
     setIsValid(false);
     console.log(`Deleting capsule with ID: ${currentCapsule.ID}`);
     try {
-      const response = await authFetch(`http://localhost:8080/vault/delete/${currentCapsule.ID}`, {
+      const response = await authFetch(`/vault/delete/${currentCapsule.ID}`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
         }
       });
-      const res = await authFetch("http://localhost:8080/api/getvaults", {
+      const res = await authFetch("/api/getvaults", {
       });
       const data = await res.json();
       console.log("Fetched capsules:", data);
@@ -276,7 +276,7 @@ function CapsuleCard({ capsule, setCurrentCapsule, setIsDeleteModalOpen }) {
     const fetchImage = async () => {
       const token = localStorage.getItem("token");
       const res = await fetch(
-        `http://localhost:8080/image/cover/${capsule.CoverImageID}`,
+        `/image/cover/${capsule.CoverImageID}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }

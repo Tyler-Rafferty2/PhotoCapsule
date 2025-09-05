@@ -19,7 +19,7 @@ export default function SignInForm() {
     setStatus("loading");
 
     try {
-      const res = await fetch("http://localhost:8080/signin", {
+      const res = await fetch("/signin", {
         method: "POST",
         credentials: "include",
         headers: {

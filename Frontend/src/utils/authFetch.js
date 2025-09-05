@@ -43,7 +43,7 @@ async function tryRefreshToken() {
   return refreshPromise;
 }
 
-export async function authFetch(url, options = {}) {
+export async function authFetch(endpoint, options = {}) {
   let token = localStorage.getItem("token");
   //console.log(token)
 
@@ -57,7 +57,7 @@ export async function authFetch(url, options = {}) {
   }
       
 
-  return fetch(url, {
+  return fetch("https://render.com/docs/web-services#port-binding" + endpoint, {
     ...options,
     headers: {
       ...options.headers,
