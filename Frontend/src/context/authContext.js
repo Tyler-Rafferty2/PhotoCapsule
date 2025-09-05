@@ -28,7 +28,7 @@ export const AuthProvider = ({ children }) => {
     // 2. Make an API call to the backend to invalidate the refresh token cookie
     try {
       // The `fetch` request needs to await the response
-      await fetch("http://localhost:8080/logout", {
+      await fetch("https://photocapsule.onrender.com/logout", {
         method: "POST",
         // This is crucial. It tells the browser to include the cookie with the request.
         credentials: "include", 
