@@ -22,7 +22,12 @@ func ConnectToDB() {
 	)
 
 	var err error
-	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{
+		// This is the key change to prevent the prepared statement conflict
+		// It tells GORM to not use a prepared statement cache
+		// which is a common source of conflict with connection poolers like Supabase's
+		PrepareStmt: false, 
+	})
 	if err != nil {
 		log.Fatal("Failed to connect to DB:", err)
 	}
