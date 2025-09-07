@@ -30,8 +30,8 @@ func main() {
 		log.Println("Token not set. Please define secret_token in environment variables.")
 	}
 	config.JwtSecret = []byte(secret)
-	jobs.StartCapsuleCron()
+	// jobs.StartCapsuleCron()
 	mux := routes.SetupRoutes()
-	fmt.Println("🚀 Server running at http://localhost:8080")
+	//fmt.Println("🚀 Server running at http://localhost:8080")
 	log.Fatal(http.ListenAndServe(":8080", mux))
 }
