@@ -2,11 +2,9 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"os"
-	"photovault/jobs"
 
 	"photovault/config"
 	"photovault/routes"
