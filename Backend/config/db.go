@@ -6,7 +6,6 @@ import (
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"photovault/models"
 )
 
 var DB *gorm.DB
