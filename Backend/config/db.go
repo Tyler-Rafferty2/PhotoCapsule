@@ -36,19 +36,19 @@ func ConnectToDB() {
         log.Fatal("Failed to connect to DB:", err)
     }
 
-	err = DB.AutoMigrate(
-		&models.User{},
-		&models.Vault{},
-		&models.Upload{},
-		&models.CoverImage{},
-		&models.RefreshToken{},
-	)
-	if err != nil {
-		// Only log warning, don’t exit
-		log.Println("⚠️ Auto-migration warning:", err)
-	} else {
-		fmt.Println("✅ DB AutoMigrate succeeded")
-	}
+	// err = DB.AutoMigrate(
+	// 	&models.User{},
+	// 	&models.Vault{},
+	// 	&models.Upload{},
+	// 	&models.CoverImage{},
+	// 	&models.RefreshToken{},
+	// )
+	// if err != nil {
+	// 	// Only log warning, don’t exit
+	// 	log.Println("⚠️ Auto-migration warning:", err)
+	// } else {
+	// 	fmt.Println("✅ DB AutoMigrate succeeded")
+	// }
 
 	fmt.Println("✅ Connected to PostgreSQL database with GORM!")
 }
