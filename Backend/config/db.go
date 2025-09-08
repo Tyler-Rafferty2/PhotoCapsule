@@ -15,15 +15,16 @@ func ConnectToDB() {
 	log.Println("Attempting to connect to the database with hardcoded credentials...")
 
     // This is the hardcoded DSN string
-    dsn := fmt.Sprintf(
-		"host=%s user=%s password=%s dbname=%s port=%s sslmode=%s",
-		os.Getenv("DB_HOST"),
-		os.Getenv("DB_USER"),
-		os.Getenv("DB_PASS"),
-		os.Getenv("DB_NAME"),
-		os.Getenv("DB_PORT"),
-		os.Getenv("DB_SSLMODE"),
-	)
+    // dsn := fmt.Sprintf(
+	// 	"host=%s user=%s password=%s dbname=%s port=%s sslmode=%s",
+	// 	os.Getenv("DB_HOST"),
+	// 	os.Getenv("DB_USER"),
+	// 	os.Getenv("DB_PASS"),
+	// 	os.Getenv("DB_NAME"),
+	// 	os.Getenv("DB_PORT"),
+	// 	os.Getenv("DB_SSLMODE"),
+	// )
+	dsn := "postgresql://postgres.rjkunrqftevwfssronze:%23k4V6neSN8*5v4q@aws-1-us-east-1.pooler.supabase.com:6543/postgres"
     
     // Log the configuration for debugging
     log.Printf("Using hardcoded DSN. PrepareStmt will be set to false.")
