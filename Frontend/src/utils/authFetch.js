@@ -10,7 +10,7 @@ async function tryRefreshToken() {
     isRefreshing = true;
     refreshPromise = (async () => {
       try {
-        const res = await fetch("http://localhost:8080/auth/refresh", {
+        const res = await fetch("https://photocapsule.onrender.com/auth/refresh", {
           method: "POST",
           credentials: "include",
         });
@@ -57,7 +57,7 @@ export async function authFetch(endpoint, options = {}) {
   }
       
 
-  return fetch("https://render.com/docs/web-services#port-binding" + endpoint, {
+  return fetch("https://photocapsule.onrender.com" + endpoint, {
     ...options,
     headers: {
       ...options.headers,
