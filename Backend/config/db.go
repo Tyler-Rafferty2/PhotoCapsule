@@ -15,13 +15,14 @@ func ConnectToDB() {
 
     // This is the hardcoded DSN string
     dsn := fmt.Sprintf(
-        "host=%s user=%s password=%s dbname=%s port=%s sslmode=require",
-        "aws-1-us-east-1.pooler.supabase.com",
-        "postgres.rjkunrqftevwfssronze",
-        "#k4V6neSN8*5v4q",
-        "postgres",
-        "6543",
-    )
+		"host=%s user=%s password=%s dbname=%s port=%s sslmode=%s",
+		os.Getenv("DB_HOST"),
+		os.Getenv("DB_USER"),
+		os.Getenv("DB_PASS"),
+		os.Getenv("DB_NAME"),
+		os.Getenv("DB_PORT"),
+		os.Getenv("DB_SSLMODE"),
+	)
     
     // Log the configuration for debugging
     log.Printf("Using hardcoded DSN. PrepareStmt will be set to false.")
@@ -33,6 +34,11 @@ func ConnectToDB() {
     })
     if err != nil {
         log.Fatal("Failed to connect to DB:", err)
+    }
+
+	err = DB.Ping()
+    if err != nil {
+        log.Fatal("Could not ping DB:", err)
     }
 
 	// err = DB.AutoMigrate(

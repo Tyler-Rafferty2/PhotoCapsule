@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: photo-capsule-backend
+    env: go
+    buildCommand: go build -o app ./...
+    startCommand: ./app
+    plan: starter # free tier = sleeps, use starter ($7/mo) for always-on
+    envVars:
+      - key: DB_HOST
+        value: aws-1-us-east-1.pooler.supabase.com
+      - key: DB_USER
+        value: postgres.rjkunrqftevwfssronze
+      - key: DB_PASS
+        value: "#k4V6neSN8*5v4q"
+      - key: DB_NAME
+        value: postgres
+      - key: DB_PORT
+        value: "6543"
+      - key: DB_SSLMODE
+        value: require
