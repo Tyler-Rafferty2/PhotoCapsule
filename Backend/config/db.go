@@ -36,10 +36,10 @@ func ConnectToDB() {
         log.Fatal("Failed to connect to DB:", err)
     }
 
-	err = DB.Ping()
-    if err != nil {
-        log.Fatal("Could not ping DB:", err)
-    }
+	// err = DB.Ping()
+    // if err != nil {
+    //     log.Fatal("Could not ping DB:", err)
+    // }
 
 	// err = DB.AutoMigrate(
 	// 	&models.User{},
