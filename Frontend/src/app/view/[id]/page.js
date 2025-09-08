@@ -286,7 +286,7 @@ function CapsuleSettingModal({ setIsCapulseSettingOpen, capsule, setCapsule }) {
 
   const updateVault = async (id, updatedFields) => {
     try {
-      const response = await authFetch(`http://localhost:8080/vault/changeTitleAndDesc/${id}`, {
+      const response = await authFetch(`/vault/changeTitleAndDesc/${id}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -413,7 +413,7 @@ function BuryModal({ setIsBuryModalOpen, capsule}) {
     setIsValid(false);
     console.log(`Burying capsule with ID: ${capsule.ID}`);
     try {
-      const response = await authFetch(`http://localhost:8080/vault/changeStatus/${capsule.ID}`, {
+      const response = await authFetch(`/vault/changeStatus/${capsule.ID}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -520,7 +520,7 @@ export default function ViewPage() {
 
   const getVault = async (id) => {
       try {
-        const res = await authFetch(`http://localhost:8080/vault/${id}`);
+        const res = await authFetch(`/vault/${id}`);
 
         if (res.status === 403) {
           setError("forbidden");
@@ -578,7 +578,7 @@ export default function ViewPage() {
 
   const handleTrash = async (img) => {
     try {
-      const res = await authFetch(`http://localhost:8080/api/upload/trash/${img}`, {
+      const res = await authFetch(`/api/upload/trash/${img}`, {
         method: "PATCH",
       });
 
@@ -591,7 +591,7 @@ export default function ViewPage() {
 
   const fetchImages = async () => {
     try {
-      const res = await authFetch(`http://localhost:8080/images/${id}`);
+      const res = await authFetch(`/images/${id}`);
       const data = await res.json();
       setImages(data);
     } catch (err) {
@@ -615,7 +615,7 @@ export default function ViewPage() {
     });
 
     try {
-      const res = await authFetch(`http://localhost:8080/upload/${id}`, {
+      const res = await authFetch(`/upload/${id}`, {
         method: "POST",
         body: formData,
       });
@@ -644,7 +644,7 @@ export default function ViewPage() {
 
   const fetchVaultTime = async () => {
     try {
-      const res = await authFetch(`http://localhost:8080/time/get/${id}`);
+      const res = await authFetch(`/time/get/${id}`);
       if (!res.ok) {
         const text = await res.text();
         throw new Error(`Request failed: ${text}`);
@@ -673,7 +673,7 @@ export default function ViewPage() {
 
   const addUsers = async () => {
     try {
-      const res = await authFetch(`http://localhost:8080/time/get/${id}`);
+      const res = await authFetch(`/time/get/${id}`);
       if (!res.ok) {
         const text = await res.text();
         throw new Error(`Request failed: ${text}`);

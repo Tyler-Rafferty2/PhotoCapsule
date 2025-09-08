@@ -460,7 +460,7 @@ export default function CapsulesPage() {
   const fetchCapsules = async () => {
     try {
       const token = localStorage.getItem("token");
-      const res = await authFetch("http://localhost:8080/api/getvaults", {
+      const res = await authFetch("/api/getvaults", {
       });
       const data = await res.json();
       console.log("Fetched capsules:", data);
@@ -481,7 +481,7 @@ export default function CapsulesPage() {
 
     try {
       const token = localStorage.getItem("token");
-      const vaultResponse = await authFetch("http://localhost:8080/api/addvaults", {
+      const vaultResponse = await authFetch("/api/addvaults", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -502,13 +502,13 @@ export default function CapsulesPage() {
       formData.append("images", coverImage);
 
 
-      await authFetch(`http://localhost:8080/cover/upload/${vaultId}`, {
+      await authFetch(`/cover/upload/${vaultId}`, {
         method: "POST",
         body: formData, // ✅ no headers — browser sets Content-Type for FormData
       });
 
       if (includeInCapsule) {
-        const uploadResponse = await authFetch(`http://localhost:8080/upload/${vaultId}`, {
+        const uploadResponse = await authFetch(`/upload/${vaultId}`, {
           method: "POST",
           body: formData,
         });
@@ -546,7 +546,7 @@ export default function CapsulesPage() {
       formData.append("images", f);
     });
     try {
-      const res = await authFetch(`http://localhost:8080/upload/${id}`, {
+      const res = await authFetch(`/upload/${id}`, {
         method: "POST",
         body: formData,
       });

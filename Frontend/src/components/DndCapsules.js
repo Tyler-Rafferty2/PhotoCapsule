@@ -144,7 +144,7 @@ function SortableCapsule({ capsule, isDragging, isModalOpen, setIsModalOpen, set
       <div className="relative flex justify-center items-center w-full">
         {capsule.CoverImageURL ? (
           <Image
-            src={`http://localhost:8080/uploads/${capsule.CoverImageURL}`}
+            src={`/uploads/${capsule.CoverImageURL}`}
             alt="Capsule Cover"
             className="w-32 h-32 object-cover"
           />
@@ -188,13 +188,13 @@ function DeleteModal({ onClose, capsule, isOpen, setCapsules }) {
     setIsValid(false);
     console.log(`Deleting capsule with ID: ${capsule.ID}`);
     try {
-      const response = await authFetch(`http://localhost:8080/vault/delete/${capsule.ID}`, {
+      const response = await authFetch(`/vault/delete/${capsule.ID}`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
         }
       });
-      const res = await authFetch("http://localhost:8080/api/getvaults", {
+      const res = await authFetch("/api/getvaults", {
       });
       const data = await res.json();
       console.log("Fetched capsules:", data);

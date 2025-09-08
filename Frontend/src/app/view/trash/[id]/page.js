@@ -13,14 +13,14 @@ export default function ViewPage() {
 
   const fetchImages = async () => {
     try {
-      const res = await authFetch(`http://localhost:8080/images/trash/${id}`);
+      const res = await authFetch(`/images/trash/${id}`);
       const data = await res.json();
       console.log("Fetched data:", data);
 
       // fetch each image as blob
       const withUrls = await Promise.all(
         data.map(async (img) => {
-          const imageRes = await authFetch(`http://localhost:8080${img.url}`); 
+          const imageRes = await authFetch(`${img.url}`); 
           const blob = await imageRes.blob();
           const objectUrl = URL.createObjectURL(blob);
 
@@ -39,7 +39,7 @@ export default function ViewPage() {
   const PermDel = async (img) => {
     try {
       const res = await authFetch(
-        `http://localhost:8080/images/trash/delete/${img}`,
+        `/images/trash/delete/${img}`,
         {
           method: "DELETE",
         }
@@ -55,7 +55,7 @@ export default function ViewPage() {
   const Recover = async (img) => {
     try {
       const res = await authFetch(
-        `http://localhost:8080/images/trash/recover/${img}`,
+        `/images/trash/recover/${img}`,
         {
           method: "PATCH",
         }

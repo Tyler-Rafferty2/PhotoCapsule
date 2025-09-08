@@ -10,7 +10,7 @@ import Image from "next/image";
 
 async function fetchUser() {
   try {
-    const response = await authFetch(`http://localhost:8080/user`, {
+    const response = await authFetch(`/user`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",

@@ -35,7 +35,7 @@ export default function ImageList({ images, setImages, handleTrash }) {
       >
         <div className="relative w-full aspect-square overflow-hidden">
           <Image
-            src={`http://localhost:8080/uploads/${img.filename}`}
+            src={`/uploads/${img.filename}`}
             className="w-full h-full object-cover"
             alt="Overlay"
           />
@@ -52,7 +52,7 @@ export default function ImageList({ images, setImages, handleTrash }) {
       order_index: index,
     }));
 
-    await authFetch("http://localhost:8080/api/update-order", {
+    await authFetch("/api/update-order", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -137,7 +137,7 @@ function SortableImage({ id, img, idx, handleTrash, isDragging }) {
   useEffect(() => {
     const fetchImage = async () => {
       const token = localStorage.getItem('token')
-      const res = await fetch(`http://localhost:8080${img.url}`, {
+      const res = await fetch(`${img.url}`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       const blob = await res.blob()

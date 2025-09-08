@@ -14,7 +14,7 @@ export default function Time({ vaultId, setCapsule }) {
   useEffect(() => {
     const fetchReleaseTime = async () => {
       try {
-        const res = await authFetch(`http://localhost:8080/time/get/${vaultId}`);
+        const res = await authFetch(`/time/get/${vaultId}`);
         if (!res.ok) {
           const text = await res.text();
           throw new Error(`Failed to fetch time: ${text}`);
@@ -133,7 +133,7 @@ export default function Time({ vaultId, setCapsule }) {
 
       const isoTime = combinedDateTime.toISOString();
 
-      const res = await authFetch(`http://localhost:8080/time/set/${vaultId}`, {
+      const res = await authFetch(`/time/set/${vaultId}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -151,7 +151,7 @@ export default function Time({ vaultId, setCapsule }) {
       setStatus("Time successfully set!");
 
       try {
-        const res = await authFetch(`http://localhost:8080/vault/${vaultId}`, {
+        const res = await authFetch(`/vault/${vaultId}`, {
         });
         const data = await res.json();
         console.log("Fetched capsules:", data);
