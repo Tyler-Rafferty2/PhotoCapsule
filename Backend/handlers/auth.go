@@ -75,7 +75,7 @@ func SigninHandler(w http.ResponseWriter, r *http.Request) {
 	// 	http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	// 	return
 	// }
-
+	log.Printf("n the sign in")
 	var req SigninRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
