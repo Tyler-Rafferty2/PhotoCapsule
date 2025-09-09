@@ -5,7 +5,6 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -13,10 +12,13 @@ import (
 	"fmt"
 	"gorm.io/gorm"
 	"errors"
+	"bytes"
+	"context"
 
 	"photovault/config"
 	"photovault/models"
 	"photovault/utils"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
 
 type UploadResponse struct {
@@ -94,16 +96,23 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		file.Close()
 
-		dstPath := filepath.Join("uploads", handler.Filename)
-		dst, err := os.Create(dstPath)
-		if err != nil {
-			http.Error(w, "Could not save file", http.StatusInternalServerError)
+		// Read the file into memory
+		buf := new(bytes.Buffer)
+		if _, err := io.Copy(buf, file); err != nil {
+			http.Error(w, "Failed to read file", http.StatusInternalServerError)
 			return
 		}
-		defer dst.Close()
+		file.Close()
 
-		if _, err := io.Copy(dst, file); err != nil {
-			http.Error(w, "Failed to save file", http.StatusInternalServerError)
+		// Upload to R2
+		key := fmt.Sprintf("vaults/%d/%s", vaultId, handler.Filename)
+		_, err = config.R2Client.PutObject(context.TODO(), &s3.PutObjectInput{
+			Bucket: &config.R2Bucket,
+			Key:    &key,
+			Body:   bytes.NewReader(buf.Bytes()),
+		})
+		if err != nil {
+			http.Error(w, "Failed to upload to storage: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
 
