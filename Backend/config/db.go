@@ -29,10 +29,10 @@ func ConnectToDB() {
     log.Printf("Using hardcoded DSN. PrepareStmt will be set to false.")
 
     var err error
-    DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{
-        // This is the crucial fix for the "prepared statement" error
-        PreferSimpleProtocol:  true, 
-    })
+    DB, err := gorm.Open(postgres.New(postgres.Config{
+		DSN:                  dsn,
+		PreferSimpleProtocol:  true, // disables implicit prepared statement usage
+	}), &gorm.Config{})
     if err != nil {
         log.Fatal("Failed to connect to DB:", err)
     }
