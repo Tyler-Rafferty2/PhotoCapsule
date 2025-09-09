@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"photovault/config"
+	"photovault/config"s
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
