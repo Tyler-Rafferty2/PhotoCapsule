@@ -13,7 +13,8 @@ import (
 
 func main() {
 	config.ConnectToDB()
-
+	config.ConnectToR2()
+	
 	if err := os.MkdirAll("uploads", os.ModePerm); err != nil {
 		log.Fatal(err)
 	}

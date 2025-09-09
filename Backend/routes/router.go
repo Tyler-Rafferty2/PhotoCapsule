@@ -44,7 +44,7 @@ func SetupRoutes() *http.ServeMux {
 	mux.HandleFunc("/time/set/", middleware.WithCORS(middleware.AuthMiddleware(handlers.SetVaultReleaseTimeHandler)))
 	mux.HandleFunc("/time/get/", middleware.WithCORS(middleware.AuthMiddleware(handlers.GetVaultReleaseTimeHandler)))
 
-
+	mux.HandleFunc("/storage/upload/", middleware.WithCORS(handlers.UploadFile))
 
 	return mux
 }
