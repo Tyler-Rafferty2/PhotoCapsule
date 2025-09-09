@@ -31,7 +31,7 @@ func ConnectToDB() {
     var err error
     DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{
         // This is the crucial fix for the "prepared statement" error
-        PrepareStmt: false, 
+        PreferSimpleProtocol:  true, 
     })
     if err != nil {
         log.Fatal("Failed to connect to DB:", err)
