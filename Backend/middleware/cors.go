@@ -17,7 +17,6 @@ func WithCORS(next http.HandlerFunc) http.HandlerFunc {
 		if allowedOrigins[origin] {
 			w.Header().Set("Access-Control-Allow-Origin", origin)
 		}
-		log.Printf("In the middleware")
 		w.Header().Set("Access-Control-Allow-Credentials", "true")
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
@@ -28,7 +27,6 @@ func WithCORS(next http.HandlerFunc) http.HandlerFunc {
 		}
 
 		next(w, r)
-		log.Printf("end of middleware")
 	}
 }
 
