@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"net/http"
-	"log"
 )
 
 func WithCORS(next http.HandlerFunc) http.HandlerFunc {
