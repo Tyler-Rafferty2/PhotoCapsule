@@ -23,18 +23,25 @@ func ConnectToR2() {
 		log.Fatal("❌ Missing R2 environment variables")
 	}
 
+	// R2 endpoint includes account ID
 	endpoint := "https://" + accountID + ".r2.cloudflarestorage.com"
 
-	customResolver := aws.EndpointResolverFunc(func(service, region string) (aws.Endpoint, error) {
-		return aws.Endpoint{
-			URL:           endpoint,
-			SigningRegion: "auto",
-		}, nil
+	// Custom resolver to force R2 endpoint
+	customResolver := aws.EndpointResolverWithOptionsFunc(func(service, region string, opts ...interface{}) (aws.Endpoint, error) {
+		if service == s3.ServiceID {
+			return aws.Endpoint{
+				URL:           endpoint,
+				SigningRegion: "auto", // 👈 required for R2
+			}, nil
+		}
+		return aws.Endpoint{}, &aws.EndpointNotFoundError{}
 	})
 
+	// Load config with region = "auto"
 	cfg, err := config.LoadDefaultConfig(context.TODO(),
+		config.WithRegion("auto"), // 👈 must be set
 		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(accessKey, secretKey, "")),
-		config.WithEndpointResolver(customResolver),
+		config.WithEndpointResolverWithOptions(customResolver),
 	)
 	if err != nil {
 		log.Fatalf("❌ failed to load R2 config: %v", err)
