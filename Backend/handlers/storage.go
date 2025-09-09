@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"photovault/config"
 
@@ -13,46 +12,32 @@ import (
 )
 
 func UploadFile(w http.ResponseWriter, r *http.Request) {
-    // Limit request body size (optional)
-    r.Body = http.MaxBytesReader(w, r.Body, 20<<20) // 20MB max
+	r.ParseMultipartForm(10 << 20)
 
-    // Parse multipart form
-    err := r.ParseMultipartForm(10 << 20) // 10MB
-    if err != nil {
-        log.Println("❌ Error parsing multipart form:", err)
-        http.Error(w, "failed to parse multipart form: "+err.Error(), http.StatusBadRequest)
-        return
-    }
+	file, header, err := r.FormFile("file")
+	if err != nil {
+		http.Error(w, "file not found"+err.Error(), http.StatusBadRequest)
+		return
+	}
+	defer file.Close()
 
-    // Debug: print all form values
-    log.Println("Form Values:", r.Form)                  // text fields
-    log.Println("MultipartForm File Keys:", r.MultipartForm.File) // files map
+	buf := bytes.NewBuffer(nil)
+	if _, err := io.Copy(buf, file); err != nil {
+		http.Error(w, "failed to read file", http.StatusInternalServerError)
+		return
+	}
 
-    // Attempt to get file
-    file, header, err := r.FormFile("file")
-    if err != nil {
-        log.Println("❌ Error retrieving 'file' from form:", err)
-        if r.MultipartForm != nil {
-            log.Println("Available file keys:", r.MultipartForm.File)
-        }
-        http.Error(w, "file not found: "+err.Error(), http.StatusBadRequest)
-        return
-    }
-    defer file.Close()
+	key := "uploads/" + header.Filename
 
-    log.Println("✅ Received file:", header.Filename)
-    log.Println("Size:", header.Size, "bytes")
-    log.Println("Header:", header.Header)
+	_, err = config.R2Client.PutObject(context.TODO(), &s3.PutObjectInput{
+		Bucket: &config.R2Bucket,
+		Key:    &key,
+		Body:   bytes.NewReader(buf.Bytes()),
+	})
+	if err != nil {
+		http.Error(w, "upload failed: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
 
-    // Read file into memory (for example)
-    buf := new(bytes.Buffer)
-    n, err := buf.ReadFrom(file)
-    if err != nil {
-        log.Println("❌ Error reading file:", err)
-        http.Error(w, "failed to read file", http.StatusInternalServerError)
-        return
-    }
-    log.Println("Read bytes:", n)
-
-    fmt.Fprintf(w, "✅ Uploaded file: %s (%d bytes)", header.Filename, n)
+	fmt.Fprintf(w, "✅ Uploaded %s", key)
 }
