@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"log"
+	"os"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -55,6 +56,6 @@ func ConnectToDB() {
 	// } else {
 	// 	fmt.Println("✅ DB AutoMigrate succeeded")
 	// }
-
+	fmt.Println(os.Getenv("resend_api"))
 	fmt.Println("✅ Connected to PostgreSQL database with GORM!")
 }
