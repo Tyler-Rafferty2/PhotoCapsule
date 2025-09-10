@@ -137,9 +137,9 @@ function SortableImage({ id, img, idx, handleTrash, isDragging }) {
   useEffect(() => {
     const fetchImage = async () => {
       const token = localStorage.getItem('token')
-      const res = await fetch(`${img.url}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      })
+      console.log(img.url)
+      const res = await authFetch(`${img.url}`, {
+      });
       const blob = await res.blob()
       setSrc(URL.createObjectURL(blob))
     }
