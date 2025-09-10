@@ -96,26 +96,6 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		file.Close()
 
-		// Read the file into memory
-		buf := new(bytes.Buffer)
-		if _, err := io.Copy(buf, file); err != nil {
-			http.Error(w, "Failed to read file", http.StatusInternalServerError)
-			return
-		}
-		file.Close()
-
-		// Upload to R2
-		key := fmt.Sprintf("vaults/%d/%s", vaultId, handler.Filename)
-		_, err = config.R2Client.PutObject(context.TODO(), &s3.PutObjectInput{
-			Bucket: &config.R2Bucket,
-			Key:    &key,
-			Body:   bytes.NewReader(buf.Bytes()),
-		})
-		if err != nil {
-			http.Error(w, "Failed to upload to storage: "+err.Error(), http.StatusInternalServerError)
-			return
-		}
-
 		var maxIndex int
 		config.DB.Model(&models.Upload{}).
 			Where("vault_id = ?", vaultId).
@@ -130,6 +110,26 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 
 		if err := config.DB.Create(&upload).Error; err != nil {
 			http.Error(w, "Failed to log upload in DB", http.StatusInternalServerError)
+			return
+		}
+
+				// Read the file into memory
+		buf := new(bytes.Buffer)
+		if _, err := io.Copy(buf, file); err != nil {
+			http.Error(w, "Failed to read file", http.StatusInternalServerError)
+			return
+		}
+		file.Close()
+
+		// Upload to R2
+		key := fmt.Sprintf("vaults/%d/uploads/%d", vaultId, upload.ID)
+		_, err = config.R2Client.PutObject(context.TODO(), &s3.PutObjectInput{
+			Bucket: &config.R2Bucket,
+			Key:    &key,
+			Body:   bytes.NewReader(buf.Bytes()),
+		})
+		if err != nil {
+			http.Error(w, "Failed to upload to storage: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
 
