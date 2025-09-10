@@ -106,11 +106,10 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 			Filename:  handler.Filename,
 			OrderIndex: maxIndex + 1,
 			Size: handler.Size,
-
 		}
 
 		if err := config.DB.Create(&upload).Error; err != nil {
-			http.Error(w, "Failed to log upload in DB", http.StatusInternalServerError)
+			http.Error(w, "Failed to log upload in DB" + err.Error(), http.StatusInternalServerError)
 			return
 		}
 
