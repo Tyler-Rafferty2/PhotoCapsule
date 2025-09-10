@@ -243,25 +243,22 @@ func GetImageHandler(w http.ResponseWriter, r *http.Request) {
         //     http.Error(w, "Forbidden", http.StatusForbidden)
         //     return
         // }
-		
-		cwd, _ := os.Getwd()
-		fmt.Println("Current working directory:", cwd)
-		filePath := fmt.Sprintf("/go/uploads/%s", img.Filename)
-		log.Println(filePath)
 
-		dirPath := "/go/uploads" // your directory
-		files, err := os.ReadDir(dirPath)
+		resp, err := config.R2Client.GetObject(context.TODO(), &s3.GetObjectInput{
+			Bucket: &config.R2Bucket,
+			Key:    aws.String(img.Key), // fetch from DB
+		})
+		w.Header().Set("Content-Disposition", "inline; filename="+strconv.Quote(img.Filename))
 		if err != nil {
-			fmt.Println("Error reading directory:", err)
+			http.Error(w, "Failed to retrieve file: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		fmt.Println("Files in", dirPath, ":")
-		for _, f := range files {
-			fmt.Println("-", f.Name())
-		}
         // 5. Serve the file
-        http.ServeFile(w, r, filePath)
+		if _, err := io.Copy(w, resp.Body); err != nil {
+			http.Error(w, "Failed to stream file: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
 }
 
 
