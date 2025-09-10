@@ -106,6 +106,7 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 			Filename:  handler.Filename,
 			OrderIndex: maxIndex + 1,
 			Size: handler.Size,
+
 		}
 
 		if err := config.DB.Create(&upload).Error; err != nil {
@@ -122,14 +123,22 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		file.Close()
 
 		// Upload to R2
-		key := fmt.Sprintf("vaults/%d/uploads/%d", vaultId, upload.ID)
+		safeFilename := strings.ReplaceAll(handler.Filename, " ", "_")
+		key := fmt.Sprintf("vaults/%d/uploads/%d_%s", vaultId, upload.ID, safeFilename)
 		_, err = config.R2Client.PutObject(context.TODO(), &s3.PutObjectInput{
 			Bucket: &config.R2Bucket,
 			Key:    &key,
 			Body:   bytes.NewReader(buf.Bytes()),
 		})
 		if err != nil {
+			config.DB.Delete(&upload)
 			http.Error(w, "Failed to upload to storage: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		upload.Key = key
+		if err := config.DB.Save(&upload).Error; err != nil {
+			http.Error(w, "Failed to update upload key in DB", http.StatusInternalServerError)
 			return
 		}
 
@@ -213,14 +222,12 @@ func GetImageHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
         // 3. Look up image in DB
-		log.Println("before")
         var img models.Upload
 		if err := config.DB.Preload("Vault").First(&img, "id = ?", imageID).Error; err != nil {
             http.Error(w, "Not Found", http.StatusNotFound)
             return
         }
 
-		log.Println("after")
         // 4. Check ownership via Vault
         if img.Vault.UserID != userID {
             http.Error(w, "Forbidden", http.StatusForbidden)

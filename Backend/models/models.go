@@ -42,6 +42,7 @@ type Upload struct {
 	Vault      Vault      `gorm:"foreignKey:VaultID"`
 	Filename   string     `gorm:"not null"`
 	Size        int64      `gorm:"not null"`
+	Key       string         `gorm:"uniqueIndex"`
 	UploadTime time.Time  `gorm:"autoCreateTime"`
 	DeletedAt  *time.Time `gorm:"default:null"`
 	OrderIndex int  	  `gorm:"not null;default:0"`
