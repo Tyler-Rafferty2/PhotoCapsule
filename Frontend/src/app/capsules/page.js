@@ -275,12 +275,7 @@ function CapsuleCard({ capsule, setCurrentCapsule, setIsDeleteModalOpen }) {
 
     const fetchImage = async () => {
       const token = localStorage.getItem("token");
-      const res = await fetch(
-        `/image/cover/${capsule.CoverImageID}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      const res = await authFetch(`/image/cover/${capsule.CoverImageID}`,{});
       const blob = await res.blob();
       setSrc(URL.createObjectURL(blob));
     };
