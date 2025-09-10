@@ -15,19 +15,16 @@ func ConnectToDB() {
 	log.Println("Attempting to connect to the database with hardcoded credentials...")
 
     // This is the hardcoded DSN string
-    // dsn := fmt.Sprintf(
-	// 	"host=%s user=%s password=%s dbname=%s port=%s sslmode=%s",
-	// 	os.Getenv("DB_HOST"),
-	// 	os.Getenv("DB_USER"),
-	// 	os.Getenv("DB_PASS"),
-	// 	os.Getenv("DB_NAME"),
-	// 	os.Getenv("DB_PORT"),
-	// 	os.Getenv("DB_SSLMODE"),
-	// )
-	dsn := "postgresql://postgres.rjkunrqftevwfssronze:%23k4V6neSN8*5v4q@aws-1-us-east-1.pooler.supabase.com:6543/postgres"
+    user := os.Getenv("DB_USER")
+	password := os.Getenv("DB_PASSWORD")
+	host := os.Getenv("DB_HOST")
+	port := os.Getenv("DB_PORT")
+	dbname := os.Getenv("DB_NAME")
+
+	dsn := fmt.Sprintf("postgresql://%s:%s@%s:%s/%s", user, password, host, port, dbname)
     
     // Log the configuration for debugging
-    log.Printf("Using hardcoded DSN. PrepareStmt will be set to false.")
+    log.Printf("PreferSimpleProtocol will be set to true.")
 
     var err error
 	DB, err = gorm.Open(postgres.New(postgres.Config{
@@ -37,25 +34,5 @@ func ConnectToDB() {
     if err != nil {
         log.Fatal("Failed to connect to DB:", err)
     }
-
-	// err = DB.Ping()
-    // if err != nil {
-    //     log.Fatal("Could not ping DB:", err)
-    // }
-
-	// err = DB.AutoMigrate(
-	// 	&models.User{},
-	// 	&models.Vault{},
-	// 	&models.Upload{},
-	// 	&models.CoverImage{},
-	// 	&models.RefreshToken{},
-	// )
-	// if err != nil {
-	// 	// Only log warning, don’t exit
-	// 	log.Println("⚠️ Auto-migration warning:", err)
-	// } else {
-	// 	fmt.Println("✅ DB AutoMigrate succeeded")
-	// }
-	fmt.Println(os.Getenv("resend_api"))
 	fmt.Println("✅ Connected to PostgreSQL database with GORM!")
 }
