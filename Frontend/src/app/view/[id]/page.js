@@ -739,7 +739,7 @@ export default function ViewPage() {
       </div>
     )
   }
-  
+  console.log(capsule)
   if (capsule.Status === "buried") {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen">
