@@ -59,7 +59,7 @@ func SendVerifyEmail(email, verifyToken string) {
 
 	sent, err := client.Emails.Send(params)
 	if err != nil {
-		log.Fatal("Failed to send email:", err)
+		log.Println("Failed to send email:", err)
 	}
 
 	log.Printf("Verification email sent to %s: %+v", email, sent)

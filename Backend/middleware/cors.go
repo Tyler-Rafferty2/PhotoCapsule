@@ -7,8 +7,7 @@ import (
 func WithCORS(next http.HandlerFunc) http.HandlerFunc {
 	// Allowed origins
 	allowedOrigins := map[string]bool{
-		"http://localhost:3000": true,
-		"https://photo-capsule.vercel.app": true,
+		"https://www.myphotocapsule.com": true,
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
