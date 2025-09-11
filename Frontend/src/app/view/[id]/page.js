@@ -739,15 +739,18 @@ export default function ViewPage() {
       </div>
     )
   }
-  console.log(capsule)
-  if (capsule.Status === "buried") {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen">
-        <h1 className="text-3xl font-bold">This Capsule has been buried.</h1>
-        <Link href="/" className="mt-4 text-blue-500 underline">Go back home</Link>
-      </div>
-    )
+
+  if (capsule != null){
+    if (capsule.Status === "buried") {
+      return (
+        <div className="flex flex-col items-center justify-center min-h-screen">
+          <h1 className="text-3xl font-bold">This Capsule has been buried.</h1>
+          <Link href="/" className="mt-4 text-blue-500 underline">Go back home</Link>
+        </div>
+      )
+    }
   }
+
   
 
   return (
