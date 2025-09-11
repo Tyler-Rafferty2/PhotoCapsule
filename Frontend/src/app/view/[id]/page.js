@@ -389,7 +389,7 @@ function CapsuleSettingModal({ setIsCapulseSettingOpen, capsule, setCapsule }) {
   );
 }
 
-function BuryModal({ setIsBuryModalOpen, capsule}) {
+function BuryModal({ setIsBuryModalOpen, capsule,id,getVault}) {
   const [userInput, setUserInput] = useState(""); // State to store the user's input
   const [isValid, setIsValid] = useState(false); // To check if the input matches the title
 
@@ -422,6 +422,7 @@ function BuryModal({ setIsBuryModalOpen, capsule}) {
       });
       const result = await response.json();
       console.log(result.message);  // You can display a success message or handle further logic here
+      getVault(id)
     } catch (error) {
       console.error("Error:", error);
     }
@@ -516,8 +517,6 @@ export default function ViewPage() {
   const [error, setError] = useState(null)
   const [storage, setStorage] = useState(0)
 
-  const router = useRouter();
-
   const getVault = async (id) => {
       try {
         const res = await authFetch(`/vault/${id}`);
@@ -538,7 +537,7 @@ export default function ViewPage() {
         console.error("Error:", error);
         setError("server");
       }
-    };
+  };
 
   useEffect(() => {
     getVault(id);
@@ -918,6 +917,8 @@ export default function ViewPage() {
         <BuryModal
           setIsBuryModalOpen={setIsBuryModalOpen}
           capsule={capsule}
+          id={id}
+          getVault={getVault}
         />
       )}
       
