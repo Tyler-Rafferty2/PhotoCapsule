@@ -15,7 +15,7 @@ func SendEmail() {
     client := resend.NewClient(apiKey)
 
     params := &resend.SendEmailRequest{
-        From:    "onboarding@resend.dev",
+        From:    "no-reply@myphotocapsule.com",
         To:      []string{"tjraff5@gmail.com"},
         Subject: "Hello World",
         Html:    "<p>Congrats on sending your <strong>first email</strong>!</p>",
