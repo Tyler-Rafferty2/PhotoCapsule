@@ -8,8 +8,8 @@ import Dnd from "@/components/Dnd";
 import Time from "@/components/Time";
 import { authFetch } from "@/utils/authFetch";
 import { useOnClickOutside } from "@/hooks/useOnClickOutside";
-import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { useNavigate } from "react-router-dom";
 
 function ShareModal({setIsShareModalOpen,capsule}){
   return(
@@ -389,9 +389,10 @@ function CapsuleSettingModal({ setIsCapulseSettingOpen, capsule, setCapsule }) {
   );
 }
 
-function BuryModal({ setIsBuryModalOpen, capsule,id,getVault}) {
+function BuryModal({ setIsBuryModalOpen, capsule}) {
   const [userInput, setUserInput] = useState(""); // State to store the user's input
   const [isValid, setIsValid] = useState(false); // To check if the input matches the title
+  const navigate = useNavigate();
 
   const modalRef = useRef(null);
   useOnClickOutside(modalRef, () => setIsBuryModalOpen(false));
@@ -422,7 +423,7 @@ function BuryModal({ setIsBuryModalOpen, capsule,id,getVault}) {
       });
       const result = await response.json();
       console.log(result.message);  // You can display a success message or handle further logic here
-      getVault(id)
+      navigate("/capsules");
     } catch (error) {
       console.error("Error:", error);
     }
@@ -917,8 +918,6 @@ export default function ViewPage() {
         <BuryModal
           setIsBuryModalOpen={setIsBuryModalOpen}
           capsule={capsule}
-          id={id}
-          getVault={getVault}
         />
       )}
       
