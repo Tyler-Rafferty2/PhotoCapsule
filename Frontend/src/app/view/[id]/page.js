@@ -2,14 +2,13 @@
 
 import Link from "next/link";
 import { useEffect, useState, useRef } from "react";
-import { useParams } from "next/navigation";
+import { useParams,useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import Dnd from "@/components/Dnd";
 import Time from "@/components/Time";
 import { authFetch } from "@/utils/authFetch";
 import { useOnClickOutside } from "@/hooks/useOnClickOutside";
 import Image from "next/image";
-import { useNavigate } from "react-router-dom";
 
 function ShareModal({setIsShareModalOpen,capsule}){
   return(
@@ -392,8 +391,7 @@ function CapsuleSettingModal({ setIsCapulseSettingOpen, capsule, setCapsule }) {
 function BuryModal({ setIsBuryModalOpen, capsule}) {
   const [userInput, setUserInput] = useState(""); // State to store the user's input
   const [isValid, setIsValid] = useState(false); // To check if the input matches the title
-  const navigate = useNavigate();
-
+  const router = useRouter();
   const modalRef = useRef(null);
   useOnClickOutside(modalRef, () => setIsBuryModalOpen(false));
 
@@ -423,7 +421,7 @@ function BuryModal({ setIsBuryModalOpen, capsule}) {
       });
       const result = await response.json();
       console.log(result.message);  // You can display a success message or handle further logic here
-      navigate("/capsules");
+      router.push(`/capsules`);
     } catch (error) {
       console.error("Error:", error);
     }
