@@ -715,7 +715,7 @@ export default function ViewPage() {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen">
         <h1 className="text-3xl font-bold">Access Denied</h1>
-        <p className="mt-2">You don’t have permission to view this vault.</p>
+        <p className="mt-2">You don’t have permission to view this capsule.</p>
         <Link href="/" className="mt-4 text-blue-500 underline">Go back home</Link>
       </div>
     );
@@ -724,7 +724,7 @@ export default function ViewPage() {
   if (error === "notfound") {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen">
-        <h1 className="text-3xl font-bold">Vault Not Found</h1>
+        <h1 className="text-3xl font-bold">Capsule Not Found</h1>
         <p className="mt-2">This vault does not exist.</p>
         <Link href="/" className="mt-4 text-blue-500 underline">Go back home</Link>
       </div>
@@ -735,6 +735,15 @@ export default function ViewPage() {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen">
         <h1 className="text-3xl font-bold">Something went wrong. Please try again later.</h1>
+        <Link href="/" className="mt-4 text-blue-500 underline">Go back home</Link>
+      </div>
+    )
+  }
+
+  if (capsule.status === "buried") {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen">
+        <h1 className="text-3xl font-bold">This Capsule has been buried.</h1>
         <Link href="/" className="mt-4 text-blue-500 underline">Go back home</Link>
       </div>
     )
