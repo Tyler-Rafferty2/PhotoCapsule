@@ -2,6 +2,7 @@ package services
 
 import (
 	"log"
+	"fmt"
 	"photovault/config"
 	"github.com/resend/resend-go/v2"
 )
