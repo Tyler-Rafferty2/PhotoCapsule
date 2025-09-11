@@ -67,7 +67,7 @@ func SignupHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusCreated)
-	services.sendVerifyEmail(newUser.email,newUser.VerificationToken)
+	services.sendVerifyEmail(newUser.Email,newUser.VerificationToken)
 	json.NewEncoder(w).Encode(map[string]string{"message": "User created successfully"})
 }
 
