@@ -22,9 +22,8 @@ export default function VerifyPage() {
         "Content-Type": "application/json",
       },
     })
-      .then((res) => res.text())
+      .then((res) => res.json())
       .then((data) => {
-        console.log(data)
         if (data.success) {
           setStatus("Your email has been verified! 🎉");
         } else {
