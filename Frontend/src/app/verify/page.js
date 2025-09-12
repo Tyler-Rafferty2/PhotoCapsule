@@ -24,6 +24,7 @@ export default function VerifyPage() {
     })
       .then((res) => res.text())
       .then((data) => {
+        console.log(data)
         if (data.success) {
           setStatus("Your email has been verified! 🎉");
         } else {

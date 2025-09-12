@@ -57,6 +57,7 @@ type CoverImage struct {
 }
 
 type RefreshToken struct {
+	ID        uint   `gorm:"primaryKey;autoIncrement"`
     UserID      uint   `gorm:"not null"`
 	Email        string    `gorm:"unique;not null"`
     TokenHash   string `gorm:"not null;uniqueIndex"`
