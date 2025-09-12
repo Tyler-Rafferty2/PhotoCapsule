@@ -224,7 +224,11 @@ func VerifyEmailHandler(w http.ResponseWriter, r *http.Request) {
 
     config.DB.Save(&user)
 
-    w.Write([]byte("Email verified! You can now log in."))
+    w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"success": true,
+		"message": "Email verified! You can now log in.",
+	})
 }
 
 func LogoutHandler(w http.ResponseWriter, r *http.Request) {
