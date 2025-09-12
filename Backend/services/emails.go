@@ -51,7 +51,7 @@ func SendVerifyEmail(email, verifyToken string) {
 	`, verifyURL)
 
 	params := &resend.SendEmailRequest{
-		From:    "onboarding@resend.dev", // must be a verified sender in Resend
+		From:    "no-reply@myphotocapsule.com",
 		To:      []string{email},
 		Subject: "Please Verify Your Account",
 		Html:    html,
