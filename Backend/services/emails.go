@@ -38,7 +38,7 @@ func SendVerifyEmail(email, verifyToken string) {
 	client := resend.NewClient(apiKey)
 
 
-	verifyURL := fmt.Sprintf("https://photo-capsule.vercel.app/verify?token=%s", verifyToken)
+	verifyURL := fmt.Sprintf("https://myphotocapsule.com/verify?token=%s", verifyToken)
 
 	html := fmt.Sprintf(`
 		<h2>Verify Your Account</h2>
