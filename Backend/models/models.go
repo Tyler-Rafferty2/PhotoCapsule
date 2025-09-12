@@ -15,7 +15,7 @@ type User struct {
 
 	Vaults []Vault `gorm:"foreignKey:UserID"`
 
-	IsVerified        bool      `gorm:"default:true"`
+	IsVerified        bool      `gorm:"default:false"`
 	VerificationToken string    `gorm:"size:64"`
 	TokenExpiresAt    time.Time
 }
