@@ -27,7 +27,8 @@ export default function SignUpForm() {
       setStatus("success");
       setEmail("");
       setPassword("");
-      router.push("/login");
+      // Instead of redirecting immediately, show the button
+      // router.push("/login");
     } catch (err) {
       console.error("Signup error:", err.message);
       setStatus("error");
@@ -81,10 +82,19 @@ export default function SignUpForm() {
           </button>
 
           {status === "success" && (
-            <p className="text-green-600 text-sm text-center">
-              ✅ Account created
-            </p>
+            <div className="text-center space-y-2">
+              <p className="text-green-600 text-sm">
+                ✅ Account created! Please verify your email.
+              </p>
+              <button
+                onClick={() => router.push("/login")}
+                className="px-4 py-2 mt-2 rounded shadow bg-blue-600 text-white hover:bg-blue-700 transition-colors duration-200"
+              >
+                Proceed to Sign In
+              </button>
+            </div>
           )}
+
           {status === "error" && (
             <p className="text-red-600 text-sm text-center">
               ❌ Signup failed
