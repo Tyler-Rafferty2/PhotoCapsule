@@ -30,8 +30,8 @@ func StartCapsuleCron() {
 
 			// You could trigger a notification, send an email, etc.
 			//Services.SendEmail()
-			var cap Capsule
-			if err := db.Preload("User").First(&cap, capsuleID).Error; err != nil {
+			var cap models.Vault
+			if err := config.DB.Preload("User").First(&cap, capsule.ID).Error; err != nil {
 				return "", err
 			}
 			fmt.Println(cap.User.Email)
