@@ -5,7 +5,7 @@ import (
 	"time"
 	"photovault/config"
 	"photovault/models"
-	//"photovault/services"
+	"photovault/services"
 	"github.com/robfig/cron/v3"
 )
 
@@ -31,6 +31,7 @@ func StartCapsuleCron() {
 			// You could trigger a notification, send an email, etc.
 			//Services.SendEmail()
 			fmt.Println("Opened capsule ID:", capsule.ID)
+			services.SendOpenEmail
 		}
 	})
 
