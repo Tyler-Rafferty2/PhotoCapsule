@@ -17,7 +17,11 @@ func StartCapsuleCron() {
 		now := time.Now().Truncate(time.Minute)
 
 		var capsules []models.Vault
-		result := config.DB.Where("unlock_date <= ?", now).Find(&capsules)
+		result := config.DB.
+			Where("unlock_date <= ?", now).
+			Where("status = ?", "buried").
+			Find(&capsules)
+
 		if result.Error != nil {
 			fmt.Println("Error fetching capsules:", result.Error)
 			return
