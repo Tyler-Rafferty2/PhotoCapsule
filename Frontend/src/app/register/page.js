@@ -88,7 +88,17 @@ export default function SignUpForm() {
               </p>
               <button
                 onClick={() => router.push("/login")}
-                className="px-4 py-2 mt-2 rounded shadow bg-blue-600 text-white hover:bg-blue-700 transition-colors duration-200"
+                className="px-4 py-2 mt-2 rounded shadow transition-colors duration-200"
+                style={{
+                  background: "var(--accent)",
+                  color: "#fff",
+                }}
+                onMouseOver={(e) =>
+                  (e.currentTarget.style.background = "var(--secondaccent)")
+                }
+                onMouseOut={(e) =>
+                  (e.currentTarget.style.background = "var(--accent)")
+                }
               >
                 Proceed to Sign In
               </button>
