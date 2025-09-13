@@ -4,6 +4,7 @@ import (
 	"log"
 	"fmt"
 	"photovault/config"
+	"photovault/models"
 	"github.com/resend/resend-go/v2"
 )
 
@@ -84,14 +85,14 @@ func SendOpenEmail(email string, capsuleID int) {
 
 	var vault models.Vault
 	if err := config.DB.First(&vault, capsuleID).Error; err != nil {
-		http.Error(w, "Vault not found", http.StatusNotFound)
+		log.Println("Vault not found")
 		return
 	}
 
 	vault.Status = "open"
 
 	if err := config.DB.Save(&vault).Error; err != nil {
-		http.Error(w, "Failed to update vault", http.StatusInternalServerError)
+		log.Println("Failed to update vault")
 		return
 	}
 
