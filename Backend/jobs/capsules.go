@@ -32,7 +32,7 @@ func StartCapsuleCron() {
 			//Services.SendEmail()
 			var cap models.Vault
 			if err := config.DB.Preload("User").First(&cap, capsule.ID).Error; err != nil {
-				return "", err
+				return 
 			}
 			fmt.Println(cap.User.Email)
 			fmt.Println("Opened capsule ID:", capsule.ID)
