@@ -75,7 +75,7 @@ func SendVerifyEmail(email, verifyToken string) {
 	log.Printf("Verification email sent to %s: %+v", email, sent)
 }
 
-func SendOpenEmail(email string, capsuleID int) {
+func SendOpenEmail(email string, capsuleID uint) {
     // Get Resend API key from environment
     apiKey := config.GetEnv("resend_api", "")
     if apiKey == "" {
