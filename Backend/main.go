@@ -8,6 +8,7 @@ import (
 
 	"photovault/config"
 	"photovault/routes"
+	"photovault/jobs"
 	"github.com/joho/godotenv"
 )
 
