@@ -30,8 +30,13 @@ func StartCapsuleCron() {
 
 			// You could trigger a notification, send an email, etc.
 			//Services.SendEmail()
+			var cap Capsule
+			if err := db.Preload("User").First(&cap, capsuleID).Error; err != nil {
+				return "", err
+			}
+			fmt.Println(cap.User.Email)
 			fmt.Println("Opened capsule ID:", capsule.ID)
-			services.SendOpenEmail
+			services.SendOpenEmail(cap.User.Email,capsule.ID)
 		}
 	})
 
