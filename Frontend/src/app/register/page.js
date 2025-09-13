@@ -84,7 +84,7 @@ export default function SignUpForm() {
           {status === "success" && (
             <div className="text-center space-y-2">
               <p className="text-green-600 text-sm">
-                ✅ Account created! Please verify your email.
+                Account created! Please verify your email.
               </p>
               <button
                 onClick={() => router.push("/login")}

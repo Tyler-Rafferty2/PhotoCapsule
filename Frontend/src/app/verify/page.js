@@ -25,7 +25,7 @@ export default function VerifyPage() {
       .then((res) => res.json())
       .then((data) => {
         if (data.success) {
-          setStatus("Your email has been verified! 🎉");
+          setStatus("Your email has been verified!");
         } else {
           setStatus("Invalid or expired token.");
         }
