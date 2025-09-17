@@ -99,7 +99,6 @@ func GetVaults(w http.ResponseWriter, r *http.Request) {
 }
 
 func CoverUploadHandler(w http.ResponseWriter, r *http.Request) {
-	log.Println("1")
 	if r.Method == http.MethodOptions {
 		w.WriteHeader(http.StatusOK)
 		return

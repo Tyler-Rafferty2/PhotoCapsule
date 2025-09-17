@@ -37,10 +37,10 @@ function CapsuleModal({ isOpen, onClose, onSubmit, capsuleError, setCapsuleError
   };
 
   const handleSubmit = () => {
-    if(name == ""){
+    if (name == "") {
       setCapsuleError("Please input a name")
-    }else{
-      onSubmit({ name, description, coverImage, includeInCapsule,setCapsuleError});
+    } else {
+      onSubmit({ name, description, coverImage, includeInCapsule, setCapsuleError });
       setName("");
       setDescription("");
       setCoverImage(null);
@@ -49,19 +49,19 @@ function CapsuleModal({ isOpen, onClose, onSubmit, capsuleError, setCapsuleError
       setCapsuleError(null)
     }
   };
-  
+
   if (!isOpen) return null;
 
   return (
-    
+
     <div
       className="fixed inset-0 flex items-center justify-center z-50"
       style={{
-        background: "rgba(0, 0, 0, 0.7)", 
+        background: "rgba(0, 0, 0, 0.7)",
       }}
     >
       <div className="backdrop-blur-md bg-white/70 p-6 rounded shadow-lg w-full max-w-sm" ref={modalRef}>
-        
+
         <h2 className="text-xl font-bold mb-4">Create New Capsule</h2>
         <input
           type="text"
@@ -129,9 +129,9 @@ function CapsuleModal({ isOpen, onClose, onSubmit, capsuleError, setCapsuleError
           )}
         </div>
         <div className="">
-        {capsuleError && (
-          <h2 className="text-red-500 text-sm mt-2">{capsuleError}</h2>
-        )}
+          {capsuleError && (
+            <h2 className="text-red-500 text-sm mt-2">{capsuleError}</h2>
+          )}
         </div>
         <div className="flex justify-end gap-2">
           <button
@@ -162,7 +162,7 @@ function CapsuleModal({ isOpen, onClose, onSubmit, capsuleError, setCapsuleError
   );
 }
 
-function DeleteModal({ onClose, currentCapsule, isOpen, setCapsules}) {
+function DeleteModal({ onClose, currentCapsule, isOpen, setCapsules }) {
   const [userInput, setUserInput] = useState(""); // State to store the user's input
   const [isValid, setIsValid] = useState(false); // To check if the input matches the title
 
@@ -180,7 +180,7 @@ function DeleteModal({ onClose, currentCapsule, isOpen, setCapsules}) {
   const modalRef = useRef(null);
   useOnClickOutside(modalRef, onClose);
 
-  const  handleDelete = async () => {
+  const handleDelete = async () => {
     // Call the delete function, passing capsule ID or any necessary data
     setUserInput("")
     setIsValid(false);
@@ -206,7 +206,7 @@ function DeleteModal({ onClose, currentCapsule, isOpen, setCapsules}) {
     } catch (error) {
       console.error("Error:", error);
     }
-      onClose(); // Close the modal after deletion
+    onClose(); // Close the modal after deletion
   };
 
   if (!isOpen) return null; // Don't render the modal if it's not open
@@ -223,7 +223,7 @@ function DeleteModal({ onClose, currentCapsule, isOpen, setCapsules}) {
         <h2 className="text-center text-lg font-semibold mt-2">
           Are you sure you want to delete &quot;{currentCapsule.Title}&quot;?
         </h2>
-        
+
         {/* Input for confirmation */}
         <p className="text-center text-sm mt-2">Type the title to confirm:</p>
         <input
@@ -275,7 +275,7 @@ function CapsuleCard({ capsule, setCurrentCapsule, setIsDeleteModalOpen }) {
 
     const fetchImage = async () => {
       const token = localStorage.getItem("token");
-      const res = await authFetch(`/image/cover/${capsule.CoverImageID}`,{});
+      const res = await authFetch(`/image/cover/${capsule.CoverImageID}`, {});
       const blob = await res.blob();
       setSrc(URL.createObjectURL(blob));
     };
@@ -368,7 +368,7 @@ function CapsuleList({
   );
 }
 
-function Sidebar({selected, setSelected, items}) {
+function Sidebar({ selected, setSelected, items }) {
   return (
     <aside
       className="fixed top-0 left-0 h-screen w-42 px-2 space-y-4 pt-16"
@@ -385,10 +385,9 @@ function Sidebar({selected, setSelected, items}) {
             <button
               onClick={() => setSelected(item)}
               className={`w-full text-left py-2 rounded transition
-                ${
-                  selected.id === item.id
-                    ? "bg-white bg-opacity-20 border border-white border-opacity-30 shadow-sm"
-                    : "hover:bg-white hover:bg-opacity-20 hover:border hover:border-white hover:border-opacity-30 hover:shadow-sm"
+                ${selected.id === item.id
+                  ? "bg-white bg-opacity-20 border border-white border-opacity-30 shadow-sm"
+                  : "hover:bg-white hover:bg-opacity-20 hover:border hover:border-white hover:border-opacity-30 hover:shadow-sm"
                 }`}
               style={{ outline: "none" }}
             >
@@ -494,12 +493,12 @@ export default function CapsulesPage() {
       const vaultId = vaultData.vaultId;
 
       const formData = new FormData();
-      formData.append("images", coverImage);
+      formData.append("image", coverImage);
 
 
       await authFetch(`/cover/upload/${vaultId}`, {
         method: "POST",
-        body: formData, // ✅ no headers — browser sets Content-Type for FormData
+        body: formData,
       });
 
       if (includeInCapsule) {
@@ -564,11 +563,11 @@ export default function CapsulesPage() {
       {/* Layout container under navbar */}
       <div className="flex">
         <Sidebar
-        selected={selected}
-        setSelected={setSelected}
-        items={items}
+          selected={selected}
+          setSelected={setSelected}
+          items={items}
         />
-        
+
 
         {/* Main content pushed right by sidebar width */}
         <main
@@ -601,11 +600,11 @@ export default function CapsulesPage() {
               No capsules yet. Click above to create one.
             </p>
           ) : (
-            <CapsuleList 
-            setCurrentCapsule={setCurrentCapsule}
-            capsules={capsules} 
-            sortFunc={selected.filterFn}
-            setIsDeleteModalOpen={setIsDeleteModalOpen}
+            <CapsuleList
+              setCurrentCapsule={setCurrentCapsule}
+              capsules={capsules}
+              sortFunc={selected.filterFn}
+              setIsDeleteModalOpen={setIsDeleteModalOpen}
             />
           )}
         </main>
