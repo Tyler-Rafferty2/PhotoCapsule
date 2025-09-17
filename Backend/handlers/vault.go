@@ -219,12 +219,14 @@ func GetCoverHandler(w http.ResponseWriter, r *http.Request) {
 	// 3. Look up cover image in DB
 	var img models.CoverImage
 	if err := config.DB.Preload("Vault").First(&img, "id = ?", coverID).Error; err != nil {
+		log.Println("not found in cover lookup")
 		http.Error(w, "Not Found", http.StatusNotFound)
 		return
 	}
-
+  
 	// 4. Check ownership via Vault
 	if img.Vault.UserID != userID {
+		log.Println("Forbidden")
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
 	}
@@ -235,6 +237,7 @@ func GetCoverHandler(w http.ResponseWriter, r *http.Request) {
 		Key:    aws.String(img.Key),
 	})
 	if err != nil {
+		log.Println("Failed to retrieve file: ")
 		http.Error(w, "Failed to retrieve file: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
