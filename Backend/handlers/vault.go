@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"fmt"
 	"log"
+	"bytes"
 	"context"
 
 	"photovault/config"
@@ -179,7 +180,6 @@ func CoverUploadHandler(w http.ResponseWriter, r *http.Request) {
 		VaultID:  uint(vaultId),
 		Filename: handler.Filename,
 		Key:      key,
-		Size:     handler.Size,
 	}
 	if err := config.DB.Create(&coverImage).Error; err != nil {
 		http.Error(w, "Failed to save cover image in DB", http.StatusInternalServerError)

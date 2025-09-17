@@ -54,6 +54,7 @@ type CoverImage struct {
 	Vault      Vault      `gorm:"foreignKey:VaultID"`
 	Filename        string    `gorm:"not null"`
 	UploadTime      time.Time `gorm:"autoCreateTime"`
+	Key       string      `gorm:"uniqueIndex"`
 }
 
 type RefreshToken struct {
