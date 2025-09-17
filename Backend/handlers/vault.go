@@ -140,7 +140,7 @@ log.Println("7")
 	}
 log.Println("8")
 	// Expect a single file field "image"
-	file, handler, err := r.FormFile("image")
+	file, handler, err := r.FormFile("images")
 	if err != nil {
 		http.Error(w, "No file uploaded", http.StatusBadRequest)
 		return

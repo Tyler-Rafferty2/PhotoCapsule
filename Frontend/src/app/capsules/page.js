@@ -493,7 +493,7 @@ export default function CapsulesPage() {
       const vaultId = vaultData.vaultId;
 
       const formData = new FormData();
-      formData.append("image", coverImage);
+      formData.append("images", coverImage);
 
 
       await authFetch(`/cover/upload/${vaultId}`, {
