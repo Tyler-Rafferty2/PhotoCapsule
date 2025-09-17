@@ -95,12 +95,10 @@ func GetVaults(w http.ResponseWriter, r *http.Request) {
 }
 
 func CoverUploadHandler(w http.ResponseWriter, r *http.Request) {
-
 	if r.Method == http.MethodOptions {
 		w.WriteHeader(http.StatusOK)
 		return
 	}
-
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
@@ -124,39 +122,62 @@ func CoverUploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var user models.User
+	if err := config.DB.First(&user, userId).Error; err != nil {
+		http.Error(w, "User not found", http.StatusInternalServerError)
+		return
+	}
+
 	var vault models.Vault
 	if err := config.DB.First(&vault, vaultId).Error; err != nil || vault.UserID != userId {
 		http.Error(w, "Vault not found or forbidden", http.StatusForbidden)
 		return
 	}
 
-	fileHeader, _, err := r.FormFile("images")
+	// Expect a single file field "image"
+	file, handler, err := r.FormFile("image")
 	if err != nil {
 		http.Error(w, "No file uploaded", http.StatusBadRequest)
 		return
 	}
-	defer fileHeader.Close()
-	filename := fmt.Sprintf("%d_%s", vaultId, "cover.jpg")
-	dstPath := filepath.Join("uploads", filename)
+	defer file.Close()
 
-	dst, err := os.Create(dstPath)
+	// Check plan limits
+	plan := utils.PlanLimits[user.PlanType]
+	if user.TotalStorageUsed+handler.Size > plan.MaxStorage {
+		http.Error(w, "Storage limit exceeded for your plan", http.StatusForbidden)
+		return
+	}
+
+	// Read file into memory
+	buf := new(bytes.Buffer)
+	if _, err := io.Copy(buf, file); err != nil {
+		http.Error(w, "Failed to read file", http.StatusInternalServerError)
+		return
+	}
+
+	// Generate a safe R2 key
+	safeFilename := fmt.Sprintf("%d_cover.jpg", vaultId)
+	key := fmt.Sprintf("vaults/%d/cover/%s", vaultId, safeFilename)
+
+	// Upload to R2
+	_, err = config.R2Client.PutObject(context.TODO(), &s3.PutObjectInput{
+		Bucket: &config.R2Bucket,
+		Key:    &key,
+		Body:   bytes.NewReader(buf.Bytes()),
+	})
 	if err != nil {
-		http.Error(w, "Could not save file", http.StatusInternalServerError)
-		return
-	}
-	defer dst.Close()
-
-	if _, err := io.Copy(dst, fileHeader); err != nil {
-		http.Error(w, "Failed to save file", http.StatusInternalServerError)
+		http.Error(w, "Failed to upload to storage: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	// Create CoverImage model record
+	// Save cover image model
 	coverImage := models.CoverImage{
-		VaultID:           uint(vaultId),
-		Filename:          filename,
+		VaultID:  uint(vaultId),
+		Filename: handler.Filename,
+		Key:      key,
+		Size:     handler.Size,
 	}
-
 	if err := config.DB.Create(&coverImage).Error; err != nil {
 		http.Error(w, "Failed to save cover image in DB", http.StatusInternalServerError)
 		return
@@ -164,81 +185,64 @@ func CoverUploadHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Link to vault
 	vault.CoverImageID = &coverImage.ID
-	vault.CoverImageURL = &filename
 	if err := config.DB.Save(&vault).Error; err != nil {
 		http.Error(w, "Failed to link cover image", http.StatusInternalServerError)
 		return
 	}
-
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{
 		"message": "Cover image uploaded and linked successfully",
+		"key":     key,
 	})
 }
 
+
 func GetCoverHandler(w http.ResponseWriter, r *http.Request) {
-        // 1. Get the logged-in user
-		log.Println("in image")
-		userID, _, err := utils.GetUserFromToken(r)
-        if err != nil {
-            http.Error(w, "Unauthorized", http.StatusUnauthorized)
-            return
-        }
+	// 1. Get the logged-in user
+	userID, _, err := utils.GetUserFromToken(r)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
 
-        // 2. Get image ID from URL
-		coverIdStr := strings.TrimPrefix(r.URL.Path, "/image/cover/")
-		coverID, err := strconv.ParseUint(coverIdStr, 10, 64)
-		if err != nil {
-			http.Error(w, "Invalid vault ID", http.StatusBadRequest)
-			return
-		}
+	// 2. Get cover image ID from URL
+	coverIdStr := strings.TrimPrefix(r.URL.Path, "/image/cover/")
+	coverID, err := strconv.ParseUint(coverIdStr, 10, 64)
+	if err != nil {
+		http.Error(w, "Invalid cover ID", http.StatusBadRequest)
+		return
+	}
 
-        // 3. Look up image in DB
-		log.Println("before")
-        var img models.CoverImage
-		if err := config.DB.Preload("Vault").First(&img, "id = ?", coverID).Error; err != nil {
-			log.Println(err)
-			log.Println("in errir")
-            http.Error(w, "Not Found", http.StatusNotFound)
-            return
-        }
-		
-		log.Println("after")
-        // 4. Check ownership via Vault
-        if img.Vault.UserID != userID {
-            http.Error(w, "Forbidden", http.StatusForbidden)
-            return
-        }
+	// 3. Look up cover image in DB
+	var img models.CoverImage
+	if err := config.DB.Preload("Vault").First(&img, "id = ?", coverID).Error; err != nil {
+		http.Error(w, "Not Found", http.StatusNotFound)
+		return
+	}
 
-        // if err := config.DB.First(&img, "id = ?", imageID).Error; err != nil {
-        //     http.Error(w, "Not Found", http.StatusNotFound)
-        //     return
-        // }
+	// 4. Check ownership via Vault
+	if img.Vault.UserID != userID {
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
 
-        // // 4. Check ownership
-        // if img. != userID {
-        //     http.Error(w, "Forbidden", http.StatusForbidden)
-        //     return
-        // }
-		
-		cwd, _ := os.Getwd()
-		fmt.Println("Current working directory:", cwd)
-		filePath := fmt.Sprintf("/go/uploads/%s", img.Filename)
-		log.Println(filePath)
+	// 5. Get object from R2
+	resp, err := config.R2Client.GetObject(context.TODO(), &s3.GetObjectInput{
+		Bucket: &config.R2Bucket,
+		Key:    aws.String(img.Key),
+	})
+	if err != nil {
+		http.Error(w, "Failed to retrieve file: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer resp.Body.Close()
 
-		dirPath := "/go/uploads" // your directory
-		files, err := os.ReadDir(dirPath)
-		if err != nil {
-			fmt.Println("Error reading directory:", err)
-			return
-		}
-
-		fmt.Println("Files in", dirPath, ":")
-		for _, f := range files {
-			fmt.Println("-", f.Name())
-		}
-        // 5. Serve the file
-        http.ServeFile(w, r, filePath)
+	// 6. Set headers and stream file
+	w.Header().Set("Content-Disposition", "inline; filename="+strconv.Quote(img.Filename))
+	if _, err := io.Copy(w, resp.Body); err != nil {
+		http.Error(w, "Failed to stream file: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
 }
 
 func DeleteVault(w http.ResponseWriter, r *http.Request) {
