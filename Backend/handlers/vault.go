@@ -230,7 +230,7 @@ func GetCoverHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
 	}
-
+	log.Println("CoverImage:", img.ID, img.Key, img.Filename, "VaultID:", img.VaultID, "UserID:", img.Vault.UserID)
 	// 5. Get object from R2
 	resp, err := config.R2Client.GetObject(context.TODO(), &s3.GetObjectInput{
 		Bucket: &config.R2Bucket,
