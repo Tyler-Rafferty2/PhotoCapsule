@@ -99,45 +99,47 @@ func GetVaults(w http.ResponseWriter, r *http.Request) {
 }
 
 func CoverUploadHandler(w http.ResponseWriter, r *http.Request) {
+	log.Println("1")
 	if r.Method == http.MethodOptions {
 		w.WriteHeader(http.StatusOK)
 		return
 	}
+	log.Println("2")
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
-
+log.Println("3")
 	if err := r.ParseMultipartForm(10 << 20); err != nil {
 		http.Error(w, "Error parsing form", http.StatusBadRequest)
 		return
 	}
-
+log.Println("4")
 	vaultIdStr := strings.TrimPrefix(r.URL.Path, "/cover/upload/")
 	vaultId, err := strconv.ParseUint(vaultIdStr, 10, 64)
 	if err != nil {
 		http.Error(w, "Invalid vault ID", http.StatusBadRequest)
 		return
 	}
-
+log.Println("5")
 	userId, _, err := utils.GetUserFromToken(r)
 	if err != nil {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
-
+log.Println("6")
 	var user models.User
 	if err := config.DB.First(&user, userId).Error; err != nil {
 		http.Error(w, "User not found", http.StatusInternalServerError)
 		return
 	}
-
+log.Println("7")
 	var vault models.Vault
 	if err := config.DB.First(&vault, vaultId).Error; err != nil || vault.UserID != userId {
 		http.Error(w, "Vault not found or forbidden", http.StatusForbidden)
 		return
 	}
-
+log.Println("8")
 	// Expect a single file field "image"
 	file, handler, err := r.FormFile("image")
 	if err != nil {
@@ -145,25 +147,18 @@ func CoverUploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer file.Close()
-
-	// Check plan limits
-	plan := utils.PlanLimits[user.PlanType]
-	if user.TotalStorageUsed+handler.Size > plan.MaxStorage {
-		http.Error(w, "Storage limit exceeded for your plan", http.StatusForbidden)
-		return
-	}
-
+log.Println("9")
 	// Read file into memory
 	buf := new(bytes.Buffer)
 	if _, err := io.Copy(buf, file); err != nil {
 		http.Error(w, "Failed to read file", http.StatusInternalServerError)
 		return
 	}
-
+log.Println("10")
 	// Generate a safe R2 key
 	safeFilename := fmt.Sprintf("%d_cover.jpg", vaultId)
 	key := fmt.Sprintf("vaults/%d/cover/%s", vaultId, safeFilename)
-
+log.Println("11")
 	// Upload to R2
 	_, err = config.R2Client.PutObject(context.TODO(), &s3.PutObjectInput{
 		Bucket: &config.R2Bucket,
@@ -174,7 +169,7 @@ func CoverUploadHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to upload to storage: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
-
+log.Println("12")
 	// Save cover image model
 	coverImage := models.CoverImage{
 		VaultID:  uint(vaultId),
@@ -185,13 +180,14 @@ func CoverUploadHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to save cover image in DB", http.StatusInternalServerError)
 		return
 	}
-
+log.Println("14")
 	// Link to vault
 	vault.CoverImageID = &coverImage.ID
 	if err := config.DB.Save(&vault).Error; err != nil {
 		http.Error(w, "Failed to link cover image", http.StatusInternalServerError)
 		return
 	}
+	log.Println("15")
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{
 		"message": "Cover image uploaded and linked successfully",
