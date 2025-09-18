@@ -56,7 +56,7 @@ function CapsuleModal({ isOpen, onClose, onSubmit, capsuleError, setCapsuleError
   return (
 
     <div
-      className="fixed inset-0 flex items-center justify-center z-50"
+      className="fixed inset-0 flex items-center justify-center z-40"
       style={{
         background: "rgba(0, 0, 0, 0.7)",
       }}
@@ -71,7 +71,7 @@ function CapsuleModal({ isOpen, onClose, onSubmit, capsuleError, setCapsuleError
           />
         </div>
       )}
-      <div className="backdrop-blur-md bg-white/70 p-6 rounded shadow-lg w-full max-w-sm z-50" ref={modalRef}>
+      <div className="backdrop-blur-md bg-white/70 p-6 rounded shadow-lg w-full max-w-sm z-40" ref={modalRef}>
 
         <h2 className="text-xl font-bold mb-4">Create New Capsule</h2>
         <input
