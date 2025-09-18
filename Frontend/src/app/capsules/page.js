@@ -293,6 +293,12 @@ function CapsuleCard({ capsule, setCurrentCapsule, setIsDeleteModalOpen }) {
 
     fetchImage();
   }, [capsule.CoverImageID]);
+  const formatBytesToMB = (bytes) => {
+    if (!bytes) return "0 MB";
+    const mb = bytes / (1024 * 1024); // binary MB
+    return `${mb.toFixed(2)} MB`;
+  };
+
 
   return (
     <div
@@ -343,7 +349,7 @@ function CapsuleCard({ capsule, setCurrentCapsule, setIsDeleteModalOpen }) {
         {capsule.Description}
       </p>
       <p className="text-center text-sm" style={{ color: "var(--foreground)" }}>
-        {capsule.TotalStorageUsed}
+        {formatBytesToMB(capsule.TotalStorageUsed)}
       </p>
 
       {isBuried ? (
