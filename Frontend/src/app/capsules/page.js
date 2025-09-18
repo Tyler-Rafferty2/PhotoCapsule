@@ -61,13 +61,17 @@ function CapsuleModal({ isOpen, onClose, onSubmit, capsuleError, setCapsuleError
         background: "rgba(0, 0, 0, 0.7)",
       }}
     >
-      <ClipLoader
-        loading={creating}
-        size={150}
-        aria-label="Loading Spinner"
-        data-testid="loader"
-      />
-      <div className="backdrop-blur-md bg-white/70 p-6 rounded shadow-lg w-full max-w-sm" ref={modalRef}>
+      {creating && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/50 z-50">
+          <ClipLoader
+            loading={true}
+            size={150}
+            aria-label="Loading Spinner"
+            data-testid="loader"
+          />
+        </div>
+      )}
+      <div className="backdrop-blur-md bg-white/70 p-6 rounded shadow-lg w-full max-w-sm z-50" ref={modalRef}>
 
         <h2 className="text-xl font-bold mb-4">Create New Capsule</h2>
         <input
