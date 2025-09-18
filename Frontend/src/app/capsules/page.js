@@ -6,9 +6,10 @@ import Navbar from "@/components/Navbar";
 import { useOnClickOutside } from "@/hooks/useOnClickOutside";
 import { useSearchParams, useRouter } from "next/navigation";
 import Image from "next/image";
+import { ClipLoader } from "react-spinners";
 
 
-function CapsuleModal({ isOpen, onClose, onSubmit, capsuleError, setCapsuleError }) {
+function CapsuleModal({ isOpen, onClose, onSubmit, capsuleError, setCapsuleError, creating }) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [coverImage, setCoverImage] = useState(null);
@@ -60,6 +61,12 @@ function CapsuleModal({ isOpen, onClose, onSubmit, capsuleError, setCapsuleError
         background: "rgba(0, 0, 0, 0.7)",
       }}
     >
+      <ClipLoader
+        loading={creating}
+        size={150}
+        aria-label="Loading Spinner"
+        data-testid="loader"
+      />
       <div className="backdrop-blur-md bg-white/70 p-6 rounded shadow-lg w-full max-w-sm" ref={modalRef}>
 
         <h2 className="text-xl font-bold mb-4">Create New Capsule</h2>
@@ -616,6 +623,7 @@ export default function CapsulesPage() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSubmit={handleCreateCapsule}
+        creating={creating}
       />
 
       <DeleteModal
