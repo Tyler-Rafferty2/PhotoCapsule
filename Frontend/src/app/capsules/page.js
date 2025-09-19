@@ -333,9 +333,23 @@ function CapsuleCard({ capsule, setCurrentCapsule, setIsDeleteModalOpen }) {
       {/* Image */}
       <div className="relative flex justify-center items-center w-full">
         {capsule.CoverImageID ? (
-          <Image src={src} alt="Capsule Cover" className="w-32 h-32 object-cover" />
+          <div className="w-32 h-32 relative">
+            {/* Skeleton until loaded */}
+            {!loaded && (
+              <div className="absolute inset-0 bg-gray-200 animate-pulse rounded" />
+            )}
+            {src && (
+              <img
+                src={src}
+                alt="Capsule Cover"
+                onLoad={() => setLoaded(true)}
+                className={`w-32 h-32 object-cover rounded transition-opacity duration-300 ${loaded ? "opacity-100" : "opacity-0"
+                  }`}
+              />
+            )}
+          </div>
         ) : (
-          <Image
+          <img
             src="/Vault-Closed.png"
             alt="Capsule Closed"
             className="w-32 h-32 object-cover"
