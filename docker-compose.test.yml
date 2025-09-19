@@ -25,6 +25,7 @@ services:
       - DB_USER=postgres
       - DB_PASSWORD=password
       - DB_NAME=timecapsule
+      - APP_ENV=test
     depends_on:
       db:
         condition: service_healthy

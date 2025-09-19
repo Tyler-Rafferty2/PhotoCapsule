@@ -25,14 +25,15 @@ func ConnectToDB() {
     
     // Log the configuration for debugging
     log.Printf("PreferSimpleProtocol will be set to true.")
-
-    var err error
-	DB, err = gorm.Open(postgres.New(postgres.Config{
-		DSN:                  dsn,
-		PreferSimpleProtocol:  true, // disables implicit prepared statement usage
-	}), &gorm.Config{})
-    if err != nil {
-        log.Fatal("Failed to connect to DB:", err)
-    }
+	if(os.Getenv("APP_ENV") != "test"){
+		var err error
+		DB, err = gorm.Open(postgres.New(postgres.Config{
+			DSN:                  dsn,
+			PreferSimpleProtocol:  true, // disables implicit prepared statement usage
+		}), &gorm.Config{})
+		if err != nil {
+			log.Fatal("Failed to connect to DB:", err)
+		}
+	}
 	fmt.Println("✅ Connected to PostgreSQL database with GORM!")
 }
