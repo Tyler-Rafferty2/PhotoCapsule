@@ -278,6 +278,7 @@ function DeleteModal({ onClose, currentCapsule, isOpen, setCapsules }) {
 function CapsuleCard({ capsule, setCurrentCapsule, setIsDeleteModalOpen }) {
   const router = useRouter();
   const [src, setSrc] = useState(null);
+  const [loaded, setLoaded] = useState(false);
 
   const isBuried = capsule.Status === "buried";
 
@@ -285,7 +286,6 @@ function CapsuleCard({ capsule, setCurrentCapsule, setIsDeleteModalOpen }) {
     if (!capsule.CoverImageID) return;
 
     const fetchImage = async () => {
-      const token = localStorage.getItem("token");
       const res = await authFetch(`/image/cover/${capsule.CoverImageID}`, {});
       const blob = await res.blob();
       setSrc(URL.createObjectURL(blob));
@@ -293,20 +293,17 @@ function CapsuleCard({ capsule, setCurrentCapsule, setIsDeleteModalOpen }) {
 
     fetchImage();
   }, [capsule.CoverImageID]);
+
   const formatBytesToMB = (bytes) => {
     if (!bytes) return "0 MB";
-    const mb = bytes / (1024 * 1024); // binary MB
+    const mb = bytes / (1024 * 1024);
     return `${mb.toFixed(2)} MB`;
   };
 
-
   return (
     <div
-      key={capsule.ID}
       onClick={() => {
-        if (!isBuried) {
-          router.push(`/view/${capsule.ID}`);
-        }
+        if (!isBuried) router.push(`/view/${capsule.ID}`);
       }}
       style={{
         background: "var(--softbackground)",
@@ -378,6 +375,7 @@ function CapsuleCard({ capsule, setCurrentCapsule, setIsDeleteModalOpen }) {
     </div>
   );
 }
+
 
 function CapsuleList({
   setCurrentCapsule,
