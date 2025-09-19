@@ -604,7 +604,7 @@ export default function CapsulesPage() {
           style={{ color: "var(--text)" }}
         >
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <h1 className="text-3xl font-bold">📂 Your Capsules</h1>
+            <h1 className="text-3xl font-bold">Your Capsules</h1>
             <button
               onClick={() => setIsModalOpen(true)}
               disabled={creating}

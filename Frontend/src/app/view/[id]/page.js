@@ -849,7 +849,7 @@ export default function ViewPage() {
         </div>
         <div className="space-y-4">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <h1 className="text-3xl font-bold">📸 Uploaded Images</h1>
+            <h1 className="text-3xl font-bold">Uploaded Images</h1>
 
             <Link
               href={`/view/trash/${id}`}
