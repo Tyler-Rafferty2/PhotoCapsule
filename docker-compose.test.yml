@@ -18,6 +18,8 @@ services:
     container_name: photovault-backend
     ports:
       - "8080:8080"
+    env_file:
+      - ./Backend/.env
     environment:
       - DATABASE_URL=postgres://postgres:password@db:5432/timecapsule
       - DB_HOST=db
