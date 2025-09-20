@@ -7,14 +7,14 @@ import (
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"photovault/models"
 )
 
 var DB *gorm.DB
 
 func ConnectToDB() {
 	log.Println("Attempting to connect to the database with hardcoded credentials...")
-    if(os.Getenv("APP_ENV") == "test")
-	{
+    if(os.Getenv("APP_ENV") == "test"){
 			dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
 			GetEnv("DB_HOST", "localhost"),
 			GetEnv("DB_USER", "postgres"),
