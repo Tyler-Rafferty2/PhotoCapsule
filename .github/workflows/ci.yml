@@ -23,8 +23,9 @@ jobs:
       # Build and start Docker Compose
       - name: Start Services
         run: |
-          docker-compose -f docker-compose.test.yml up --build --abort-on-container-exit
+          docker compose -f docker-compose.test.yml up --build --abort-on-container-exit
 
       # Tear down
       - name: Tear Down
-        run: docker-compose -f docker-compose.test.yml down
+        run: |
+          docker compose -f docker-compose.test.yml down

@@ -20,7 +20,7 @@ func ConnectToR2() {
 	secretKey := os.Getenv("secretKey")
 	R2Bucket = os.Getenv("R2Bucket")
 
-	
+	if(os.Getenv("APP_ENV") != "test"){
 	if accountID == "" || accessKey == "" || secretKey == "" || R2Bucket == "" {
 		log.Fatal("❌ Missing R2 environment variables")
 	}
@@ -50,5 +50,6 @@ func ConnectToR2() {
 	}
 
 	R2Client = s3.NewFromConfig(cfg)
+	}
 	log.Println("✅ Connected to R2 bucket:", R2Bucket)
 }

@@ -1,34 +1,40 @@
+version: "3.9"
+
 services:
   frontend:
     build: ./Frontend
     container_name: photovault-frontend
     ports:
       - "3000:3000"
-    volumes:
-      - ./Frontend:/app
     environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:8080
+      - NEXT_PUBLIC_API_URL=http://backend:8080
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
+    command: sh -c "npm install && npm run build"
 
   backend:
     build: ./Backend
     container_name: photovault-backend
     ports:
       - "8080:8080"
-    volumes:
-      - ./Backend:/app
     environment:
-      - DATABASE_URL=postgres://postgres:password@photovault-db:5432/timecapsule
-      - DB_HOST=photovault-db
+      - DATABASE_URL=postgres://postgres:password@db:5432/timecapsule
+      - DB_HOST=db
       - DB_PORT=5432
       - DB_USER=postgres
       - DB_PASSWORD=password
       - DB_NAME=timecapsule
-    env_file:
-      - ./Backend/.env
+      - APP_ENV=test
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   db:
     image: postgres:15
@@ -41,6 +47,12 @@ services:
       POSTGRES_DB: timecapsule
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d timecapsule"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
 volumes:
   pgdata:
