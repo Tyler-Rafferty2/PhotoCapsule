@@ -1,0 +1,7 @@
+name = "dummy-worker"
+compatibility_date = "2025-09-21"
+
+[[r2_buckets]]
+binding = "MY_BUCKET"      # the environment variable your backend will use
+bucket_name = "my-r2-bucket"
+preview_bucket_name = "my-r2-bucket-preview"
