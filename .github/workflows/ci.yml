@@ -17,6 +17,7 @@ jobs:
           echo "DB_USER=${{ secrets.DB_USER }}" >> Backend/.env
           echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> Backend/.env
           echo "DB_NAME=${{ secrets.DB_NAME }}" >> Backend/.env
+          echo "secret_token=${{ secrets.secret_token }}" >> Backend/.env
           echo "APP_ENV=test" >> Backend/.env
 
       # Set up Docker Buildx
