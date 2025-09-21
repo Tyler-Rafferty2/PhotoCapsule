@@ -32,6 +32,7 @@ func main() {
 	config.JwtSecret = []byte(secret)
 	jobs.StartCapsuleCron()
 	mux := routes.SetupRoutes()
+	log.Println("are you getting ev ", os.Getenv("APP_ENV"))
 	//fmt.Println("🚀 Server running at http://localhost:8080")
 	log.Fatal(http.ListenAndServe(":8080", mux))
 }

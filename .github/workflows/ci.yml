@@ -11,11 +11,14 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      # Set Supabase test environment variables
-      - name: Set Env
+      - name: Create .env for backend
         run: |
-          echo "SUPABASE_URL=${{ secrets.SUPABASE_TEST_URL }}" >> $GITHUB_ENV
-          echo "SUPABASE_KEY=${{ secrets.SUPABASE_TEST_KEY }}" >> $GITHUB_ENV
+          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> Backend/.env
+          echo "DB_USER=${{ secrets.DB_USER }}" >> Backend/.env
+          echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> Backend/.env
+          echo "DB_NAME=${{ secrets.DB_NAME }}" >> Backend/.env
+          echo "secret_token=${{ secrets.secret_token }}" >> Backend/.env
+          echo "APP_ENV=test" >> Backend/.env
 
       # Set up Docker Buildx
       - uses: docker/setup-buildx-action@v3
@@ -23,8 +26,9 @@ jobs:
       # Build and start Docker Compose
       - name: Start Services
         run: |
-          docker-compose -f docker-compose.test.yml up --build --abort-on-container-exit
+          docker compose -f docker-compose.test.yml up --build --abort-on-container-exit
 
       # Tear down
       - name: Tear Down
-        run: docker-compose -f docker-compose.test.yml down
+        run: |
+          docker compose -f docker-compose.test.yml down

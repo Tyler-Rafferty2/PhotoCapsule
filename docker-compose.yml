@@ -25,6 +25,8 @@ services:
       - DB_USER=postgres
       - DB_PASSWORD=password
       - DB_NAME=timecapsule
+    env_file:
+      - ./Backend/.env
     depends_on:
       - db
 
