@@ -1,6 +1,6 @@
 {
     "name": "worker-name",
-    "main": "src/app/page.js",
+    "main": "src/index.js",
     "compatibility_date": "2025-09-21",
     "assets": {
         "directory": "./dist"
