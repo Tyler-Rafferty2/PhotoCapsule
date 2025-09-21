@@ -46,6 +46,8 @@ func SetupRoutes() *http.ServeMux {
 
 	mux.HandleFunc("/storage/upload/", middleware.WithCORS(handlers.UploadFile))
 
+	mux.HandleFunc("/health", middleware.WithCORS(handlers.healthHandler))
+
 	return mux
 }
 
