@@ -1,20 +1,22 @@
 package handlers
 
 import (
-    "database/sql"
-    "fmt"
     "net/http"
-    "time"
+    "photovault/config"
 )
 
-func healthHandler(w http.ResponseWriter, r *http.Request) {
-    // Optional: check DB connection
-    if err := config.DB.Ping(); err != nil {
-        http.Error(w, "Database unreachable", http.StatusServiceUnavailable)
+func HealthHandler(w http.ResponseWriter, r *http.Request) {
+    sqlDB, err := config.DB.DB()
+    if err != nil {
+        http.Error(w, "Database error", http.StatusInternalServerError)
         return
     }
 
-    // Everything is healthy
+    if err := sqlDB.Ping(); err != nil {
+        http.Error(w, "Database unreachable", http.StatusInternalServerError)
+        return
+    }
+
     w.WriteHeader(http.StatusOK)
     w.Write([]byte("OK"))
 }
