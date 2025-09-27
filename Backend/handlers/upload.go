@@ -13,9 +13,12 @@ import (
 	"errors"
 	"bytes"
 	"context"
+	"sync"
+	"mime/multipart"
 
 	"photovault/config"
 	"photovault/models"
+	"github.com/google/uuid"
 	"photovault/utils"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/aws"
