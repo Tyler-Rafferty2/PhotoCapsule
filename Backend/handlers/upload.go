@@ -37,17 +37,17 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		return
 	}
-
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
-	if err := r.ParseMultipartForm(10 << 20); err != nil {
-		http.Error(w, "Error parsing form", http.StatusBadRequest)
+	if err := r.ParseMultipartForm(50 << 20); err != nil { // 50MB max form
+		http.Error(w, "Error parsing form: "+err.Error(), http.StatusBadRequest)
 		return
 	}
 
+	// Parse vault ID from URL
 	vaultIdStr := strings.TrimPrefix(r.URL.Path, "/upload/")
 	vaultId, err := strconv.ParseUint(vaultIdStr, 10, 64)
 	if err != nil {
@@ -55,18 +55,19 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Authenticate user from token
 	userId, _, err := utils.GetUserFromToken(r)
 	if err != nil {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
+	// Load user & vault
 	var user models.User
 	if err := config.DB.First(&user, userId).Error; err != nil {
 		http.Error(w, "User not found", http.StatusInternalServerError)
 		return
 	}
-
 	var vault models.Vault
 	if err := config.DB.First(&vault, vaultId).Error; err != nil || vault.UserID != userId {
 		http.Error(w, "Vault not found or forbidden", http.StatusForbidden)
@@ -74,91 +75,102 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	files := r.MultipartForm.File["images"]
-
 	if len(files) == 0 {
 		http.Error(w, "No files uploaded", http.StatusBadRequest)
 		return
 	}
 
+	plan := utils.PlanLimits[user.PlanType]
+	var wg sync.WaitGroup
+	errCh := make(chan error, len(files))
+
+	// Upload each file concurrently
 	for _, handler := range files {
+		wg.Add(1)
+		go func(h *multipart.FileHeader) {
+			defer wg.Done()
 
-		plan := utils.PlanLimits[user.PlanType]
-		log.Printf("here are the things %v + %v > %v",user.TotalStorageUsed,handler.Size,plan.MaxStorage)
-		if user.TotalStorageUsed + handler.Size > plan.MaxStorage {
-			http.Error(w, "Storage limit exceeded for your plan", http.StatusForbidden)
-			return 
-		}
+			// Storage limit check
+			if user.TotalStorageUsed+h.Size > plan.MaxStorage {
+				errCh <- fmt.Errorf("storage limit exceeded")
+				return
+			}
 
-		file, err := handler.Open()
+			// Open file
+			file, err := h.Open()
+			if err != nil {
+				errCh <- fmt.Errorf("error opening file: %w", err)
+				return
+			}
+			defer file.Close()
+
+			// Copy into memory
+			buf := new(bytes.Buffer)
+			if _, err := io.Copy(buf, file); err != nil {
+				errCh <- fmt.Errorf("failed to read file: %w", err)
+				return
+			}
+
+			// Find order index
+			var maxIndex int
+			config.DB.Model(&models.Upload{}).
+				Where("vault_id = ?", vaultId).
+				Select("COALESCE(MAX(order_index), 0)").Scan(&maxIndex)
+
+			upload := models.Upload{
+				VaultID:    uint(vaultId),
+				Filename:   h.Filename,
+				OrderIndex: maxIndex + 1,
+				Size:       h.Size,
+			}
+
+			if err := config.DB.Create(&upload).Error; err != nil {
+				errCh <- fmt.Errorf("failed to log upload: %w", err)
+				return
+			}
+
+			// Upload to R2
+			safeFilename := strings.ReplaceAll(h.Filename, " ", "_")
+			key := fmt.Sprintf("vaults/%d/uploads/%d_%s", vaultId, upload.ID, safeFilename)
+			_, err = config.R2Client.PutObject(context.TODO(), &s3.PutObjectInput{
+				Bucket: &config.R2Bucket,
+				Key:    &key,
+				Body:   bytes.NewReader(buf.Bytes()),
+			})
+			if err != nil {
+				config.DB.Delete(&upload)
+				errCh <- fmt.Errorf("failed to upload to storage: %w", err)
+				return
+			}
+
+			// Save key
+			upload.Key = key
+			if err := config.DB.Save(&upload).Error; err != nil {
+				errCh <- fmt.Errorf("failed to update upload key: %w", err)
+				return
+			}
+
+			// Update storage atomically
+			config.DB.Model(&user).UpdateColumn("total_storage_used", gorm.Expr("total_storage_used + ?", h.Size))
+			config.DB.Model(&vault).UpdateColumn("total_storage_used", gorm.Expr("total_storage_used + ?", h.Size))
+
+			log.Printf("Uploaded %s", h.Filename)
+		}(handler)
+	}
+
+	wg.Wait()
+	close(errCh)
+
+	for err := range errCh {
 		if err != nil {
-			http.Error(w, "Error opening file", http.StatusBadRequest)
-			return
-		}
-		file.Close()
-
-		var maxIndex int
-		config.DB.Model(&models.Upload{}).
-			Where("vault_id = ?", vaultId).
-			Select("COALESCE(MAX(order_index), 0)").Scan(&maxIndex)
-
-		upload := models.Upload{
-			VaultID:   uint(vaultId),
-			Filename:  handler.Filename,
-			OrderIndex: maxIndex + 1,
-			Size: handler.Size,
-		}
-
-		if err := config.DB.Create(&upload).Error; err != nil {
-			http.Error(w, "Failed to log upload in DB" + err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-				// Read the file into memory
-		buf := new(bytes.Buffer)
-		if _, err := io.Copy(buf, file); err != nil {
-			http.Error(w, "Failed to read file", http.StatusInternalServerError)
-			return
-		}
-		file.Close()
-
-		// Upload to R2
-		safeFilename := strings.ReplaceAll(handler.Filename, " ", "_")
-		key := fmt.Sprintf("vaults/%d/uploads/%d_%s", vaultId, upload.ID, safeFilename)
-		_, err = config.R2Client.PutObject(context.TODO(), &s3.PutObjectInput{
-			Bucket: &config.R2Bucket,
-			Key:    &key,
-			Body:   bytes.NewReader(buf.Bytes()),
-		})
-		if err != nil {
-			config.DB.Delete(&upload)
-			http.Error(w, "Failed to upload to storage: "+err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		upload.Key = key
-		if err := config.DB.Save(&upload).Error; err != nil {
-			http.Error(w, "Failed to update upload key in DB", http.StatusInternalServerError)
-			return
-		}
-
-		user.TotalStorageUsed += handler.Size
-		if err := config.DB.Save(&user).Error; err != nil {
-			http.Error(w, "Failed to update user storage", http.StatusInternalServerError)
-			return
-		}
-
-		vault.TotalStorageUsed += handler.Size
-		if err := config.DB.Save(&vault).Error; err != nil {
-			http.Error(w, "Failed to update vault storage", http.StatusInternalServerError)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 	}
 
+	// Success
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]string{
-		"message": "Upload successful",
-	})
-
+	json.NewEncoder(w).Encode(map[string]string{"message": "Upload successful"})
 }
 
 func ImagesHandler(w http.ResponseWriter, r *http.Request) {

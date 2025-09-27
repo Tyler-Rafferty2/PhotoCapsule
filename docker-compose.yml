@@ -8,8 +8,10 @@ services:
       - ./Frontend:/app
     environment:
       - NEXT_PUBLIC_API_URL=http://localhost:8080
+      - NEXT_PUBLIC_APP_ENV=dev
     depends_on:
       - backend
+
 
   backend:
     build: ./Backend
@@ -18,29 +20,20 @@ services:
       - "8080:8080"
     volumes:
       - ./Backend:/app
-    environment:
-      - DATABASE_URL=postgres://postgres:password@photovault-db:5432/timecapsule
-      - DB_HOST=photovault-db
-      - DB_PORT=5432
-      - DB_USER=postgres
-      - DB_PASSWORD=password
-      - DB_NAME=timecapsule
     env_file:
       - ./Backend/.env
-    depends_on:
-      - db
 
-  db:
-    image: postgres:15
-    container_name: photovault-db
-    ports:
-      - "5432:5432"
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: timecapsule
-    volumes:
-      - pgdata:/var/lib/postgresql/data
+  # db:
+  #   image: postgres:15
+  #   container_name: photovault-db
+  #   ports:
+  #     - "5432:5432"
+  #   environment:
+  #     POSTGRES_USER: postgres
+  #     POSTGRES_PASSWORD: password
+  #     POSTGRES_DB: timecapsule
+  #   volumes:
+  #     - pgdata:/var/lib/postgresql/data
 
 volumes:
   pgdata:

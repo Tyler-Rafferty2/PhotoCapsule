@@ -9,9 +9,9 @@ export default function SignInForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [status, setStatus] = useState("idle");
-  
+
   // 1. Destructure the `login` function from your new AuthContext
-  const { login } = useAuth(); 
+  const { login } = useAuth();
   const router = useRouter();
 
   const handleSignIn = async (e) => {
@@ -36,8 +36,8 @@ export default function SignInForm() {
 
       // 3. Use the `login` function from the AuthContext to handle everything.
       // This will store the token, decode it, set the user, and update all state.
-      login(data.token); 
-      
+      login(data.token);
+
       setStatus("success");
       setEmail("");
       setPassword("");
