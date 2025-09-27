@@ -5,11 +5,9 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"fmt"
 
 	"photovault/config"
 	"photovault/routes"
-	"photovault/tests"
 	"photovault/jobs"
 	"github.com/joho/godotenv"
 )
