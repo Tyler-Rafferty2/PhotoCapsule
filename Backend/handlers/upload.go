@@ -119,24 +119,27 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 				Where("vault_id = ?", vaultId).
 				Select("COALESCE(MAX(order_index), 0)").Scan(&maxIndex)
 
+			// Insert with a temporary unique key
+			tempKey := fmt.Sprintf("pending-%d", time.Now().UnixNano())
 			upload := models.Upload{
 				VaultID:    uint(vaultId),
 				Filename:   h.Filename,
 				OrderIndex: maxIndex + 1,
 				Size:       h.Size,
+				Key:        tempKey,
 			}
-
 			if err := config.DB.Create(&upload).Error; err != nil {
 				errCh <- fmt.Errorf("failed to log upload: %w", err)
 				return
 			}
 
-			// Upload to R2
+			// Upload to R2 with the real key
 			safeFilename := strings.ReplaceAll(h.Filename, " ", "_")
-			key := fmt.Sprintf("vaults/%d/uploads/%d_%s", vaultId, upload.ID, safeFilename)
+			realKey := fmt.Sprintf("vaults/%d/uploads/%d_%s", vaultId, upload.ID, safeFilename)
+
 			_, err = config.R2Client.PutObject(context.TODO(), &s3.PutObjectInput{
 				Bucket: &config.R2Bucket,
-				Key:    &key,
+				Key:    &realKey,
 				Body:   bytes.NewReader(buf.Bytes()),
 			})
 			if err != nil {
@@ -145,8 +148,8 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			// Save key
-			upload.Key = key
+			// Update with real key
+			upload.Key = realKey
 			if err := config.DB.Save(&upload).Error; err != nil {
 				errCh <- fmt.Errorf("failed to update upload key: %w", err)
 				return
@@ -174,6 +177,7 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{"message": "Upload successful"})
 }
+
 
 func ImagesHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
