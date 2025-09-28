@@ -1,6 +1,6 @@
 "use client";
 
-import {useState, useEffect} from "react"
+import { useState, useEffect } from "react"
 import Navbar from "@/components/Navbar";
 import Link from "next/link";
 import useSmoothScroll from "@/hooks/useSmoothScroll";
@@ -25,7 +25,7 @@ const HeroSection = () => {
     // Cleanup
     return () => window.removeEventListener("tokenChange", handleTokenChange);
   }, []);
-  
+
   return (
     <section className="flex flex-col md:flex-row items-center justify-between py-20 px-8 min-h-screen">
       <div className="flex-1 text-left">
@@ -36,26 +36,45 @@ const HeroSection = () => {
           Create a personal time capsule to keep your memories alive forever.
         </p>
         <div className="space-x-4">
-          {token && (
+          {token ? (
+            <>
+              <Link
+                href="/capsules"
+                className="inline-block text-white px-6 py-3 rounded shadow"
+                style={{ background: "var(--accent)" }}
+                onMouseOver={(e) =>
+                  (e.currentTarget.style.background = "var(--secondaccent)")}
+                onMouseOut={(e) =>
+                  (e.currentTarget.style.background = "var(--accent)")}
+              >
+                View Your Capsules
+              </Link>
+
+              <Link
+                href="/capsules?create=true"
+                className="inline-block text-white px-6 py-3 rounded shadow"
+                style={{ background: "var(--accent)" }}
+                onMouseOver={(e) =>
+                  (e.currentTarget.style.background = "var(--secondaccent)")}
+                onMouseOut={(e) =>
+                  (e.currentTarget.style.background = "var(--accent)")}
+              >
+                Create a Capsule
+              </Link>
+            </>
+          ) : (
             <Link
-              href="/capsules"
+              href="/register"
               className="inline-block text-white px-6 py-3 rounded shadow"
               style={{ background: "var(--accent)" }}
-              onMouseOver={(e) => (e.currentTarget.style.background = "var(--secondaccent)")}
-              onMouseOut={(e) => (e.currentTarget.style.background = "var(--accent)")}
+              onMouseOver={(e) =>
+                (e.currentTarget.style.background = "var(--secondaccent)")}
+              onMouseOut={(e) =>
+                (e.currentTarget.style.background = "var(--accent)")}
             >
-              View Your Capsules
+              Sign up to Create a Capsule
             </Link>
           )}
-          <Link
-            href="/capsules?create=true"
-            className="inline-block text-white px-6 py-3 rounded shadow"
-            style={{ background: "var(--accent)" }}
-            onMouseOver={(e) => (e.currentTarget.style.background = "var(--secondaccent)")}
-            onMouseOut={(e) => (e.currentTarget.style.background = "var(--accent)")}
-          >
-            Create a Capsule
-          </Link>
         </div>
       </div>
 
@@ -92,8 +111,8 @@ const CapsuleCard = ({ image, title, description }) => {
         Example
       </span>
       <Image
-        src={image} 
-        alt={title} 
+        src={image}
+        alt={title}
         width={500}
         height={500}
         className="rounded-lg mb-4 w-full h-48 object-cover"
