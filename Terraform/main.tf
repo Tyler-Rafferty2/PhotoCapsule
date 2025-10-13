@@ -13,7 +13,18 @@ provider "aws" {
   secret_key = var.aws_secret_key
 }
 
-# Create a key pair (optional – for SSH access)
+# Variables
+variable "aws_access_key" {
+  description = "AWS Access Key"
+  type        = string
+}
+
+variable "aws_secret_key" {
+  description = "AWS Secret Key"
+  type        = string
+}
+
+# Generate Key Pair for SSH
 resource "tls_private_key" "ec2_key" {
   algorithm = "RSA"
   rsa_bits  = 4096
@@ -24,14 +35,13 @@ resource "aws_key_pair" "deployer" {
   public_key = tls_private_key.ec2_key.public_key_openssh
 }
 
-# Save private key locally (so you can SSH later)
 resource "local_file" "private_key" {
-  filename = "${path.module}/ec2_key.pem"
-  content  = tls_private_key.ec2_key.private_key_pem
+  filename        = "${path.module}/ec2_key.pem"
+  content         = tls_private_key.ec2_key.private_key_pem
   file_permission = "0600"
 }
 
-# Security group – allows SSH and HTTP
+# Security Group
 resource "aws_security_group" "ec2_sg" {
   name        = "ec2_sg"
   description = "Allow SSH and HTTP"
@@ -58,9 +68,20 @@ resource "aws_security_group" "ec2_sg" {
   }
 }
 
-# EC2 instance
+# Fetch Latest Amazon Linux 2023 AMI
+data "aws_ami" "amazon_linux2023" {
+  most_recent = true
+  owners      = ["amazon"]
+
+  filter {
+    name   = "name"
+    values = ["amzn2023-ami-kernel-6.1-hvm-*-x86_64*"]
+  }
+}
+
+# EC2 Instance
 resource "aws_instance" "app_server" {
-  ami           = "ami-0c55b159cbfafe1f0" # Amazon Linux 2
+  ami           = data.aws_ami.amazon_linux2023.id
   instance_type = "t2.micro"
   key_name      = aws_key_pair.deployer.key_name
   vpc_security_group_ids = [aws_security_group.ec2_sg.id]
@@ -78,4 +99,15 @@ resource "aws_instance" "app_server" {
               echo "Hello from Terraform!" > /home/ec2-user/index.html
               nohup busybox httpd -f -p 80 &
               EOF
+}
+
+# Outputs
+output "public_ip" {
+  description = "Public IP of the EC2 instance"
+  value       = aws_instance.app_server.public_ip
+}
+
+output "ssh_command" {
+  description = "Command to SSH into the EC2 instance"
+  value       = "ssh -i ${local_file.private_key.filename} ec2-user@${aws_instance.app_server.public_ip}"
 }
