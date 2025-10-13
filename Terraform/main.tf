@@ -13,17 +13,6 @@ provider "aws" {
   secret_key = var.aws_secret_key
 }
 
-# Variables
-variable "aws_access_key" {
-  description = "AWS Access Key"
-  type        = string
-}
-
-variable "aws_secret_key" {
-  description = "AWS Secret Key"
-  type        = string
-}
-
 # Generate Key Pair for SSH
 resource "tls_private_key" "ec2_key" {
   algorithm = "RSA"
@@ -99,15 +88,4 @@ resource "aws_instance" "app_server" {
               echo "Hello from Terraform!" > /home/ec2-user/index.html
               nohup busybox httpd -f -p 80 &
               EOF
-}
-
-# Outputs
-output "public_ip" {
-  description = "Public IP of the EC2 instance"
-  value       = aws_instance.app_server.public_ip
-}
-
-output "ssh_command" {
-  description = "Command to SSH into the EC2 instance"
-  value       = "ssh -i ${local_file.private_key.filename} ec2-user@${aws_instance.app_server.public_ip}"
 }
