@@ -64,9 +64,15 @@ data "aws_ami" "amazon_linux2023" {
 
   filter {
     name   = "name"
-    values = ["amzn2023-ami-kernel-6.1-hvm-*-x86_64*"]
+    values = ["amzn2023-ami-hvm-*-x86_64*"]
+  }
+
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
   }
 }
+
 
 # EC2 Instance
 resource "aws_instance" "app_server" {
