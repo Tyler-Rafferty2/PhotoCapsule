@@ -121,7 +121,7 @@ resource "aws_instance" "app_server" {
     sudo systemctl reload nginx
 
     # Note: Run certbot manually after DNS is configured
-    # sudo certbot --nginx -d api.myphotocapsule.com --non-interactive --agree-tos -m ${var.admin_email}
+    # sudo certbot --nginx -d api.myphotocapsule.com --non-interactive --agree-tos -m tjraff5@gmail.com
   EOF
 }
 
