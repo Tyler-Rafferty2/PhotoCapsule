@@ -33,7 +33,7 @@ jobs:
 
             sudo docker pull ${{ secrets.DOCKER_USERNAME }}/photo-capsule:latest
 
-            sudo docker run -d -p 80:8080 \
+            sudo docker run -d -p 8080:8080 \
               --name backend \
               -e DB_HOST="${{ secrets.DB_HOST }}" \
               -e DB_NAME="${{ secrets.DB_NAME }}" \
