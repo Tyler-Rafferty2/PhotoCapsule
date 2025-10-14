@@ -1,56 +1,56 @@
-name: Terraform EC2 Deployment
+# name: Terraform EC2 Deployment
 
-on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+# on:
+#   push:
+#     branches:
+#       - main
+#   pull_request:
+#     branches:
+#       - main
 
-jobs:
-  terraform:
-    runs-on: ubuntu-latest
-    env:
-      TF_VAR_ssh_public_key: ${{ secrets.EC2_PUBLIC_KEY }}
-    defaults:
-      run:
-        working-directory: Terraform  
+# jobs:
+#   terraform:
+#     runs-on: ubuntu-latest
+#     env:
+#       TF_VAR_ssh_public_key: ${{ secrets.EC2_PUBLIC_KEY }}
+#     defaults:
+#       run:
+#         working-directory: Terraform  
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v4
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: 1.8.5
+#       - name: Setup Terraform
+#         uses: hashicorp/setup-terraform@v3
+#         with:
+#           terraform_version: 1.8.5
 
-      - name: Debug AWS creds
-        run: echo "AWS keys are set"
-        env:
-          TF_VAR_aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          TF_VAR_aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#       - name: Debug AWS creds
+#         run: echo "AWS keys are set"
+#         env:
+#           TF_VAR_aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#           TF_VAR_aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-      - name: Terraform Init
-        run: terraform init
-        env:
-          TF_VAR_aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          TF_VAR_aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#       - name: Terraform Init
+#         run: terraform init
+#         env:
+#           TF_VAR_aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#           TF_VAR_aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-      - name: Terraform Validate
-        run: terraform validate
+#       - name: Terraform Validate
+#         run: terraform validate
 
-      - name: Terraform Plan
-        if: github.event_name == 'pull_request'
-        run: terraform plan -refresh=false
-        env:
-          TF_VAR_aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          TF_VAR_aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#       - name: Terraform Plan
+#         if: github.event_name == 'pull_request'
+#         run: terraform plan -refresh=false
+#         env:
+#           TF_VAR_aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#           TF_VAR_aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-      - name: Terraform Apply
-        if: github.ref == 'refs/heads/main'
-        run: terraform apply -auto-approve -input=false -no-color
-        env:
-          TF_VAR_aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          TF_VAR_aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#       - name: Terraform Apply
+#         if: github.ref == 'refs/heads/main'
+#         run: terraform apply -auto-approve -input=false -no-color
+#         env:
+#           TF_VAR_aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#           TF_VAR_aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
