@@ -64,7 +64,17 @@ data "aws_ami" "amazon_linux2023" {
 
   filter {
     name   = "name"
-    values = ["amzn2023-ami-hvm-*-x86_64*"]
+    values = ["al2023-ami-*-x86_64"]
+  }
+
+  filter {
+    name   = "architecture"
+    values = ["x86_64"]
+  }
+
+  filter {
+    name   = "root-device-type"
+    values = ["ebs"]
   }
 
   filter {
