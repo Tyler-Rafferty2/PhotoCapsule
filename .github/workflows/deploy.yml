@@ -22,28 +22,28 @@ jobs:
           docker push ${{ secrets.DOCKER_USERNAME }}/photo-capsule:latest
 
       - name: Deploy to EC2
-          uses: appleboy/ssh-action@v1.2.0
-          with:
-            host: ${{ secrets.EC2_HOST }}
-            username: ${{ secrets.EC2_USER }}
-            key: ${{ secrets.EC2_SSH_KEY }}
-            script: |
-              sudo docker pull ${{ secrets.DOCKER_USERNAME }}/photo-capsule:latest
-              sudo docker stop backend || true
-              sudo docker rm backend || true
-              sudo docker run -d \
-                -p 80:8080 \
-                --name backend \
-                -e DB_HOST="${{ secrets.DB_HOST }}" \
-                -e DB_NAME="${{ secrets.DB_NAME }}" \
-                -e DB_PASSWORD="${{ secrets.DB_PASSWORD }}" \
-                -e DB_PORT="${{ secrets.DB_PORT }}" \
-                -e DB_USER="${{ secrets.DB_USER }}" \
-                -e R2Bucket="${{ secrets.R2Bucket }}" \
-                -e accessKey="${{ secrets.accessKey }}" \
-                -e accountID="${{ secrets.accountID }}" \
-                -e resend_api="${{ secrets.resend_api }}" \
-                -e secretKey="${{ secrets.secretKey }}" \
-                -e secret_token="${{ secrets.secret_token }}" \
-                ${{ secrets.DOCKER_USERNAME }}/photo-capsule:latest
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/photo-capsule:latest
+            sudo docker stop backend || true
+            sudo docker rm backend || true
+            sudo docker run -d \
+              -p 80:8080 \
+              --name backend \
+              -e DB_HOST="${{ secrets.DB_HOST }}" \
+              -e DB_NAME="${{ secrets.DB_NAME }}" \
+              -e DB_PASSWORD="${{ secrets.DB_PASSWORD }}" \
+              -e DB_PORT="${{ secrets.DB_PORT }}" \
+              -e DB_USER="${{ secrets.DB_USER }}" \
+              -e R2Bucket="${{ secrets.R2Bucket }}" \
+              -e accessKey="${{ secrets.accessKey }}" \
+              -e accountID="${{ secrets.accountID }}" \
+              -e resend_api="${{ secrets.resend_api }}" \
+              -e secretKey="${{ secrets.secretKey }}" \
+              -e secret_token="${{ secrets.secret_token }}" \
+              ${{ secrets.DOCKER_USERNAME }}/photo-capsule:latest
 
