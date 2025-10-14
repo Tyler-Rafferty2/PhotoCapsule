@@ -21,13 +21,13 @@ resource "tls_private_key" "ec2_key" {
 
 resource "aws_key_pair" "deployer" {
   key_name   = "github-actions-key"
-  public_key = tls_private_key.ec2_key.public_key_openssh
+  public_key = file("~/.ssh/github-actions-key.pub")
 }
 
 resource "local_file" "private_key" {
-  filename        = "${path.module}/ec2_key.pem"
-  content         = tls_private_key.ec2_key.private_key_pem
-  file_permission = "0600"
+  content  = tls_private_key.ec2_key.private_key_pem
+  filename = "${path.module}/github-actions-key.pem"
+  file_permission = "0400"
 }
 
 # Security Group
