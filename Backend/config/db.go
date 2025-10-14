@@ -34,7 +34,6 @@ func ConnectToDB() {
 		}
 		
 	}else{
-		// This is the hardcoded DSN string
 		log.Println("not in test")
 		user := os.Getenv("DB_USER")
 		password := os.Getenv("DB_PASSWORD")
@@ -44,7 +43,6 @@ func ConnectToDB() {
 
 		dsn := fmt.Sprintf("postgresql://%s:%s@%s:%s/%s", user, password, host, port, dbname)
 		
-		// Log the configuration for debugging
 		log.Printf("PreferSimpleProtocol will be set to true.")
 
 		var err error
