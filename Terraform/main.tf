@@ -14,21 +14,23 @@ provider "aws" {
 }
 
 # Generate Key Pair for SSH
+resource "aws_key_pair" "deployer" {
+  key_name   = "github-actions-key"
+  public_key = var.ssh_public_key
+}
+/*
+
 resource "tls_private_key" "ec2_key" {
   algorithm = "RSA"
   rsa_bits  = 4096
 }
 
-resource "aws_key_pair" "deployer" {
-  key_name   = "github-actions-key"
-  public_key = file("~/.ssh/github-actions-key.pub")
-}
-
 resource "local_file" "private_key" {
-  content  = tls_private_key.ec2_key.private_key_pem
-  filename = "${path.module}/github-actions-key.pem"
-  file_permission = "0400"
+  filename        = "${path.module}/ec2_key.pem"
+  content         = tls_private_key.ec2_key.private_key_pem
+  file_permission = "0600"
 }
+*/
 
 # Security Group
 resource "aws_security_group" "ec2_sg" {

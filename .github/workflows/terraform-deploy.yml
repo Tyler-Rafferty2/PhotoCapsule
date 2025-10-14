@@ -11,6 +11,8 @@ on:
 jobs:
   terraform:
     runs-on: ubuntu-latest
+    env:
+      TF_VAR_ssh_public_key: ${{ secrets.EC2_PUBLIC_KEY }}
     defaults:
       run:
         working-directory: Terraform  
