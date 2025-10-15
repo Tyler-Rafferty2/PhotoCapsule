@@ -6,16 +6,16 @@ import { authFetch } from "@/utils/authFetch";
 import { useRouter } from "next/navigation";
 
 const AuthContext = createContext({
-  user: null, 
+  user: null,
   isAuthenticated: false,
-  isLoading: true, 
-  login: (token) => {},
-  logout: () => {},
+  isLoading: true,
+  login: (token) => { },
+  logout: () => { },
 });
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [isLoading, setIsLoading] = useState(true); 
+  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
   const logout = useCallback(async () => {
@@ -28,10 +28,10 @@ export const AuthProvider = ({ children }) => {
     // 2. Make an API call to the backend to invalidate the refresh token cookie
     try {
       // The `fetch` request needs to await the response
-      await fetch("https://photocapsule.onrender.com/logout", {
+      await fetch("https://api.myphotocapsulecom/logout", {
         method: "POST",
         // This is crucial. It tells the browser to include the cookie with the request.
-        credentials: "include", 
+        credentials: "include",
       });
       console.log("Backend logout endpoint called successfully.");
     } catch (error) {
@@ -64,26 +64,26 @@ export const AuthProvider = ({ children }) => {
       // This is crucial to prevent the UI flicker
       setIsLoading(false);
     }
-  }, [logout]); 
+  }, [logout]);
 
   useEffect(() => {
     const handleStorageChange = (event) => {
-        if (event.key === "token") {
-            if (!event.newValue) {
-                logout();
+      if (event.key === "token") {
+        if (!event.newValue) {
+          logout();
+        } else {
+          try {
+            const decoded = jwtDecode(event.newValue);
+            if (decoded.exp * 1000 > Date.now()) {
+              setUser(decoded);
             } else {
-                try {
-                    const decoded = jwtDecode(event.newValue);
-                    if (decoded.exp * 1000 > Date.now()) {
-                        setUser(decoded);
-                    } else {
-                        logout();
-                    }
-                } catch {
-                    logout();
-                }
+              logout();
             }
+          } catch {
+            logout();
+          }
         }
+      }
     };
 
     window.addEventListener("storage", handleStorageChange);
@@ -95,12 +95,12 @@ export const AuthProvider = ({ children }) => {
   const login = (token) => {
     console.log("Logging in");
     try {
-        const decoded = jwtDecode(token);
-        localStorage.setItem("token", token);
-        setUser(decoded);
+      const decoded = jwtDecode(token);
+      localStorage.setItem("token", token);
+      setUser(decoded);
     } catch (error) {
-        console.error("Failed to decode token on login:", error);
-        logout();
+      console.error("Failed to decode token on login:", error);
+      logout();
     }
   };
 

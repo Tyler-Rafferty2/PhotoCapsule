@@ -10,7 +10,7 @@ async function tryRefreshToken() {
     isRefreshing = true;
     refreshPromise = (async () => {
       try {
-        const res = await fetch("https://photocapsule.onrender.com/auth/refresh", {
+        const res = await fetch("https://api.myphotocapsule.com/auth/refresh", {
           method: "POST",
           credentials: "include",
         });
@@ -55,9 +55,9 @@ export async function authFetch(endpoint, options = {}) {
     console.warn("Token expired or missing");
     throw new Error("Unauthorized");
   }
-      
 
-  return fetch("https://photocapsule.onrender.com" + endpoint, {
+
+  return fetch("https://api.myphotocapsule.com" + endpoint, {
     ...options,
     headers: {
       ...options.headers,

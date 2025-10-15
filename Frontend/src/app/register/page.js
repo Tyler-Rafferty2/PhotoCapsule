@@ -16,7 +16,7 @@ export default function SignUpForm() {
     setStatus("loading");
 
     try {
-      const res = await fetch("https://photocapsule.onrender.com/signup", {
+      const res = await fetch("https://api.myphotocapsule.com/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
